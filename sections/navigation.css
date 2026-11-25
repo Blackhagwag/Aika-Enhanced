@@ -2,8 +2,8 @@
    sections/navigation.css — the navigation taken from Steam Enhanced (Aika
    Enhanced): My Profile (the avatar with its status ring), Settings, Games,
    Announcements and Notifications, in a left rail or in the top bar
-   (vendor/steam-enhanced/client/navigation/aika-nav.js;
-   "Navigation layout" in the theme settings).
+   (vendor/steam-enhanced/client/navigation/aika-nav.js; the Navigation tab of
+   the theme settings, vendor/.../settings/theme/nav-editor.js).
 
    Steam Enhanced's navigation (client/navigation/nav-rail.css) gives the
    shapes: square-cornered tiles in a narrow rail, the avatar at its foot as
@@ -17,14 +17,24 @@
    Notifications, the account button) stay in its title-bar controls and are
    only laid out here; Settings and Games are the theme's, beside them.
      html[data-aika-nav="top" | "rail"]   — the layout (set by aika-nav.js)
+     html[data-aika-nav-look~="…"]        — the Navigation settings' flags
      [data-aika-nav-slot="settings" | "games" | "news" | "alerts" | "profile"]
-                                          — a button's place
+                                          — a button
+     [data-aika-nav-zone="start" | "center" | "end"]
+                                          — its area; --aika-nav-x / -y (a
+                                            placed area), --aika-nav-order
+                                            (the top bar's right area)
+
+   The Navigation settings write custom properties on the root only when they
+   differ from their defaults: every var() below falls back to 2.1.0's value,
+   so the defaults draw 2.1.0's navigation exactly.
+
    The Downloads button (Aika's floating icons), the other header buttons,
    the window controls and the Friends Dock are not touched.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Sizes and the ring's colours (tokens, Aika's)
+   Sizes, motion and colours (tokens, Aika's)
    -------------------------------------------------------------------------- */
 
 html[data-aika-nav] {
@@ -35,12 +45,25 @@ html[data-aika-nav] {
     --aika-nav-glyph: 18px;
     --aika-nav-avatar: 32px;
     --aika-nav-ring: 2px;
+    /* Aika's durations, scaled by the Animation speed */
+    --aika-nav-fast: calc(var(--aika-dur-fast) * var(--aika-nav-speed, 1));
+    --aika-nav-base: calc(var(--aika-dur-base) * var(--aika-nav-speed, 1));
+    --aika-nav-enter: calc(var(--aika-dur-enter) * var(--aika-nav-speed, 1));
+    --aika-nav-a: var(--aika-nav-accent, var(--aika-accent));
+    --aika-nav-a-bright: var(--aika-nav-accent, var(--aika-accent-bright));
+    --aika-nav-a-fill: var(--aika-nav-accent, var(--aika-accent-fill));
+    --aika-nav-a-edge: var(--aika-border-accent);
+}
+
+html[data-aika-nav][style*="--aika-nav-accent:"] {
+    --aika-nav-a-edge: rgb(from var(--aika-nav-accent) r g b / 0.4);
 }
 
 html[data-aika-nav="top"] {
     --aika-nav-btn: 32px;                   /* the header buttons' height (sections/library.css) */
     --aika-nav-glyph: 16px;
     --aika-nav-avatar: 24px;
+    --aika-nav-gap: var(--aika-space-1);
 }
 
 /* --------------------------------------------------------------------------
@@ -61,23 +84,25 @@ html[data-aika-nav] .TitleBarControls :is(.AnnouncementsButton, .NotificationsBu
     min-width: 0;
     margin: 0;
     padding: 0;
-    border-radius: var(--aika-radius-md);
-    background-color: var(--aika-surface);
-    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+    border-radius: var(--aika-nav-btn-radius, var(--aika-radius-md));
+    background-color: rgb(from var(--aika-surface) r g b / calc(alpha * var(--aika-nav-btn-k, 1)));
+    box-shadow: inset 0 0 0 var(--aika-nav-border-w, var(--aika-hairline)) rgb(from var(--aika-border) r g b / calc(alpha * var(--aika-nav-edge-k, 1)));
     color: var(--aika-fg-muted);
     font-size: 0;
     cursor: pointer;
     -webkit-app-region: no-drag;
     transition:
-        background-color var(--aika-dur-fast) var(--aika-ease-hover),
-        color var(--aika-dur-fast) var(--aika-ease-hover),
-        box-shadow var(--aika-dur-base) var(--aika-ease),
-        transform var(--aika-dur-base) var(--aika-ease);
+        background-color var(--aika-nav-fast) var(--aika-ease-hover),
+        color var(--aika-nav-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-nav-base) var(--aika-ease),
+        transform var(--aika-nav-base) var(--aika-ease),
+        translate var(--aika-nav-base) var(--aika-ease),
+        opacity var(--aika-nav-base) var(--aika-ease);
 }
 
 html[data-aika-nav] .aika-nav-btn:is(:hover, :focus-visible),
 html[data-aika-nav] .TitleBarControls :is(.AnnouncementsButton, .NotificationsButton):not(.GamepadUIToggle):hover {
-    background-color: var(--aika-surface-hover);
+    background-color: rgb(from var(--aika-surface-hover) r g b / calc(alpha * var(--aika-nav-hover-k, 1)));
     color: var(--aika-fg);
 }
 
@@ -88,14 +113,15 @@ html[data-aika-nav] .TitleBarControls :is(.AnnouncementsButton, .NotificationsBu
 
 /* A button whose menu is open (the menu marks its owner aria-expanded): the selected look */
 html[data-aika-nav] :is(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton, .AccountMenu)[aria-expanded="true"] {
-    background-color: var(--aika-accent-soft);
-    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+    background-color: rgb(from var(--aika-nav-a) r g b / calc(0.12 * var(--aika-nav-active-k, 1)));
+    box-shadow: inset 0 0 0 var(--aika-nav-border-w, var(--aika-hairline)) var(--aika-nav-a-edge);
     color: var(--aika-fg);
 }
 
 /* The glyph: Steam Enhanced's icons (core/icons-*.css), in the button's colour */
 html[data-aika-nav] .aika-nav-glyph,
 html[data-aika-nav] .TitleBarControls :is(.AnnouncementsButton, .NotificationsButton):not(.GamepadUIToggle)::before {
+    flex: none;
     width: var(--aika-nav-glyph);
     height: var(--aika-nav-glyph);
     background: currentColor;
@@ -126,7 +152,7 @@ html[data-aika-nav] .TitleBarControls .NotificationsButton[data-aika-unread]:not
     width: 7px;
     height: 7px;
     border-radius: var(--aika-radius-full);
-    background: var(--aika-accent-bright);
+    background: var(--aika-nav-a-bright);
     box-shadow: 0 0 0 2px var(--aika-bg-base), 0 0 8px var(--aika-accent-glow);
 }
 
@@ -142,21 +168,27 @@ html[data-aika-nav] .TitleBarControls .NotificationsButton[data-aika-count]::aft
     display: grid;
     place-items: center;
     border-radius: var(--aika-radius-full);
-    background: var(--aika-accent-fill);
+    background: var(--aika-nav-a-fill);
     box-shadow: 0 0 0 2px var(--aika-bg-base);
     color: var(--aika-on-accent);
     font: var(--aika-weight-semibold) 9px/1 var(--aika-font-mono);
     font-variant-numeric: tabular-nums;
 }
 
+/* Unread indicators off */
+html[data-aika-nav-look~="nounread"] .TitleBarControls :is(.AnnouncementsButton, .NotificationsButton):not(.GamepadUIToggle):not([data-aika-label])::after {
+    content: none;
+}
+
 /* --------------------------------------------------------------------------
    My Profile: Steam's account button as your avatar in a status ring (the
    friends window's colours: online — the bright accent, in game — ok, away —
-   warn, do not disturb — live, invisible / offline — subtle)
+   warn, do not disturb — live, invisible / offline — subtle; each can be
+   set in the Navigation settings)
    -------------------------------------------------------------------------- */
 
 html[data-aika-nav] .TitleBarControls .AccountMenu {
-    --aika-nav-ring-color: var(--aika-fg-subtle);
+    --aika-nav-ring-color: var(--aika-nav-c-offline, var(--aika-fg-subtle));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -170,13 +202,16 @@ html[data-aika-nav] .TitleBarControls .AccountMenu {
     box-shadow: none;
     cursor: pointer;
     -webkit-app-region: no-drag;
+    transition: translate var(--aika-nav-base) var(--aika-ease), opacity var(--aika-nav-base) var(--aika-ease);
 }
 
-html[data-aika-nav] .TitleBarControls .AccountMenu[data-aika-state="online"] { --aika-nav-ring-color: var(--aika-accent-bright); }
-html[data-aika-nav] .TitleBarControls .AccountMenu[data-aika-state="ingame"] { --aika-nav-ring-color: var(--aika-ok); }
-html[data-aika-nav] .TitleBarControls .AccountMenu:is([data-aika-state="away"], [data-aika-state="snooze"]) { --aika-nav-ring-color: var(--aika-warn); }
-html[data-aika-nav] .TitleBarControls .AccountMenu:is([data-aika-state="busy"], [data-aika-state="dnd"]) { --aika-nav-ring-color: var(--aika-live); }
-html[data-aika-nav] .TitleBarControls .AccountMenu:is([data-aika-state="invisible"], [data-aika-state="offline"]) { --aika-nav-ring-color: var(--aika-fg-subtle); }
+html[data-aika-nav] .TitleBarControls .AccountMenu[data-aika-state="online"] { --aika-nav-ring-color: var(--aika-nav-c-online, var(--aika-nav-a-bright)); }
+html[data-aika-nav] .TitleBarControls .AccountMenu[data-aika-state="ingame"] { --aika-nav-ring-color: var(--aika-nav-c-ingame, var(--aika-ok)); }
+html[data-aika-nav] .TitleBarControls .AccountMenu[data-aika-state="away"] { --aika-nav-ring-color: var(--aika-nav-c-away, var(--aika-warn)); }
+html[data-aika-nav] .TitleBarControls .AccountMenu[data-aika-state="snooze"] { --aika-nav-ring-color: var(--aika-nav-c-snooze, var(--aika-warn)); }
+html[data-aika-nav] .TitleBarControls .AccountMenu:is([data-aika-state="busy"], [data-aika-state="dnd"]) { --aika-nav-ring-color: var(--aika-nav-c-dnd, var(--aika-live)); }
+html[data-aika-nav] .TitleBarControls .AccountMenu[data-aika-state="invisible"] { --aika-nav-ring-color: var(--aika-nav-c-invisible, var(--aika-fg-subtle)); }
+html[data-aika-nav] .TitleBarControls .AccountMenu[data-aika-state="offline"] { --aika-nav-ring-color: var(--aika-nav-c-offline, var(--aika-fg-subtle)); }
 
 /* Only the avatar: the name, the wallet and the chevron go (the menu shows the name) */
 html[data-aika-nav] .TitleBarControls .AccountMenu > :not(.avatarHolder) {
@@ -185,6 +220,7 @@ html[data-aika-nav] .TitleBarControls .AccountMenu > :not(.avatarHolder) {
 
 html[data-aika-nav] .TitleBarControls .AccountMenu .avatarHolder {
     position: relative;
+    flex: none;
     margin: 0;
 }
 
@@ -200,88 +236,361 @@ html[data-aika-nav] .TitleBarControls .AccountMenu .avatarHolder img.avatar {
     border-radius: var(--aika-fl-avatar-radius);
     box-shadow:
         0 0 0 var(--aika-nav-ring) var(--aika-bg-base),
-        0 0 0 calc(var(--aika-nav-ring) * 2) var(--aika-nav-ring-color);
+        0 0 0 calc(var(--aika-nav-ring) + var(--aika-nav-ring-w, var(--aika-nav-ring))) var(--aika-nav-ring-color);
     transition:
-        box-shadow var(--aika-dur-base) var(--aika-ease),
-        transform var(--aika-dur-base) var(--aika-ease);
+        box-shadow var(--aika-nav-base) var(--aika-ease),
+        transform var(--aika-nav-base) var(--aika-ease);
 }
 
 html[data-aika-nav] .TitleBarControls .AccountMenu:is(:hover, [aria-expanded="true"]) .avatarHolder img.avatar {
     transform: scale(var(--aika-dock-hover-scale));
     box-shadow:
         0 0 0 var(--aika-nav-ring) var(--aika-bg-base),
-        0 0 0 calc(var(--aika-nav-ring) * 2) var(--aika-nav-ring-color),
-        0 0 12px rgb(from var(--aika-nav-ring-color) r g b / 0.45);
+        0 0 0 calc(var(--aika-nav-ring) + var(--aika-nav-ring-w, var(--aika-nav-ring))) var(--aika-nav-ring-color),
+        0 0 12px rgb(from var(--aika-nav-ring-color) r g b / var(--aika-nav-glow, 0.45));
+}
+
+html[data-aika-nav-look~="round"] .TitleBarControls .AccountMenu .avatarHolder img.avatar {
+    border-radius: var(--aika-radius-full);
+}
+
+html[data-aika-nav-look~="noring"] .TitleBarControls .AccountMenu .avatarHolder img.avatar,
+html[data-aika-nav-look~="noring"] .TitleBarControls .AccountMenu:is(:hover, [aria-expanded="true"]) .avatarHolder img.avatar {
+    box-shadow: none;
+}
+
+/* The extra status dot at the avatar's corner */
+html[data-aika-nav-look~="indicator"] .TitleBarControls .AccountMenu .avatarHolder::after {
+    content: "";
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    width: 9px;
+    height: 9px;
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-nav-ring-color);
+    box-shadow: 0 0 0 2px var(--aika-bg-base);
+    transition: background-color var(--aika-nav-base) var(--aika-ease);
+}
+
+/* A status change: the ring pulses once */
+html[data-aika-nav] .TitleBarControls .AccountMenu[data-aika-nav-pulse] .avatarHolder img.avatar {
+    animation: aika-nav-ring-pulse calc(900ms * var(--aika-nav-speed, 1)) var(--aika-ease);
+}
+
+@keyframes aika-nav-ring-pulse {
+    40% {
+        box-shadow:
+            0 0 0 var(--aika-nav-ring) var(--aika-bg-base),
+            0 0 0 calc(var(--aika-nav-ring) + var(--aika-nav-ring-w, var(--aika-nav-ring)) + 2px) var(--aika-nav-ring-color),
+            0 0 14px rgb(from var(--aika-nav-ring-color) r g b / 0.5);
+    }
+}
+
+/* New notifications, unread news: the glyph rings once */
+html[data-aika-nav] .TitleBarControls :is(.AnnouncementsButton, .NotificationsButton)[data-aika-nav-ping]::before {
+    animation: aika-nav-ping calc(900ms * var(--aika-nav-speed, 1)) var(--aika-ease);
+}
+
+@keyframes aika-nav-ping {
+    20% { transform: rotate(-12deg) scale(1.08); }
+    40% { transform: rotate(10deg) scale(1.08); }
+    60% { transform: rotate(-6deg); }
+    80% { transform: rotate(3deg); }
 }
 
 /* --------------------------------------------------------------------------
-   Top Bar: the buttons in the header's row, before the account
+   Names beside the buttons (Buttons › Labels), the profile's caption
+   (Profile › name / status / game): Steam's buttons can't take children, so
+   a name is the button's ::after (data-aika-label); a dot (a background)
+   stands for the unread badge while a name shows, the count in the name.
+   -------------------------------------------------------------------------- */
+
+html[data-aika-nav="rail"][data-aika-nav-look~="wide"] :is(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton, .AccountMenu)[data-aika-label]:not(#aika-none)::after,
+html[data-aika-nav="rail"][data-aika-nav-look~="hoverlabels"][data-aika-nav-expanded] :is(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton, .AccountMenu)[data-aika-label]:not(#aika-none)::after,
+html[data-aika-nav="top"][data-aika-nav-look~="labels"] :is(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton, .AccountMenu)[data-aika-label]:not(#aika-none)::after,
+html[data-aika-nav="top"][data-aika-nav-look~="hoverlabels"] :is(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton, .AccountMenu)[data-aika-label]:is(:hover, :focus-visible):not(#aika-none)::after,
+html[data-aika-nav="top"][data-aika-nav-look~="caption"] .AccountMenu[data-aika-label]:not(#aika-none)::after {
+    content: attr(data-aika-label);
+    position: static;
+    display: block;
+    flex: 0 1 auto;
+    width: auto;
+    min-width: 0;
+    height: auto;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: inherit;
+    font: var(--aika-weight-semibold) 12px/1.3 var(--aika-font-ui);
+    text-align: start;
+    text-overflow: ellipsis;
+    white-space: pre;
+    animation: aika-nav-fade var(--aika-nav-fast) var(--aika-ease);
+}
+
+html[data-aika-nav] .AccountMenu[data-aika-label]:not(#aika-none)::after {
+    color: var(--aika-fg-muted);
+}
+
+/* The buttons that show a name: as wide as it */
+html[data-aika-nav="top"][data-aika-nav-look~="labels"] :is(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton)[data-aika-label]:not(#aika-none),
+html[data-aika-nav="top"][data-aika-nav-look~="hoverlabels"] :is(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton)[data-aika-label]:is(:hover, :focus-visible):not(#aika-none) {
+    width: auto;
+    gap: 6px;
+    padding: 0 10px 0 calc((var(--aika-nav-btn) - var(--aika-nav-glyph)) / 2);
+}
+
+html[data-aika-nav="top"][data-aika-nav-look~="labels"] .AccountMenu[data-aika-label]:not(#aika-none),
+html[data-aika-nav="top"][data-aika-nav-look~="caption"] .AccountMenu[data-aika-label]:not(#aika-none),
+html[data-aika-nav="top"][data-aika-nav-look~="hoverlabels"] .AccountMenu[data-aika-label]:hover:not(#aika-none) {
+    width: auto;
+    gap: 8px;
+    padding: 0 8px 0 calc((var(--aika-nav-btn) - var(--aika-nav-avatar)) / 2);
+}
+
+/* The rail's wide buttons (names always, or while the rail is open on hover) */
+html[data-aika-nav="rail"][data-aika-nav-look~="wide"] [data-aika-nav-slot]:not(#aika-none),
+html[data-aika-nav="rail"][data-aika-nav-look~="hoverlabels"][data-aika-nav-expanded] [data-aika-nav-slot]:not(#aika-none) {
+    width: var(--aika-nav-wide-w);
+    justify-content: flex-start;
+    gap: 10px;
+    padding-inline-start: calc((var(--aika-nav-btn) - var(--aika-nav-glyph)) / 2);
+}
+
+html[data-aika-nav="rail"][data-aika-nav-look~="wide"] [data-aika-nav-slot="profile"]:not(#aika-none),
+html[data-aika-nav="rail"][data-aika-nav-look~="hoverlabels"][data-aika-nav-expanded] [data-aika-nav-slot="profile"]:not(#aika-none) {
+    padding-inline-start: calc((var(--aika-nav-btn) - var(--aika-nav-avatar)) / 2);
+}
+
+/* A Steam slot wrapper fills its slot */
+html[data-aika-nav="rail"] [data-aika-nav-slot]:not(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton, .AccountMenu) > * {
+    flex: 1 1 auto;
+}
+
+/* While a name shows, unread is a dot at the button's end */
+html[data-aika-nav="rail"]:is([data-aika-nav-look~="wide"], [data-aika-nav-expanded]) :is(.AnnouncementsButton[data-se-unread], .NotificationsButton[data-aika-unread]):not(#aika-none),
+html[data-aika-nav="top"][data-aika-nav-look~="labels"] :is(.AnnouncementsButton[data-se-unread], .NotificationsButton[data-aika-unread]):not(#aika-none),
+html[data-aika-nav="top"][data-aika-nav-look~="hoverlabels"] :is(.AnnouncementsButton[data-se-unread], .NotificationsButton[data-aika-unread]):hover:not(#aika-none) {
+    padding-inline-end: 22px;
+    background-image: radial-gradient(circle at calc(100% - 11px) 50%, var(--aika-nav-a-bright) 3.5px, transparent 4px);
+}
+
+html[data-aika-nav-look~="nounread"] :is(.AnnouncementsButton, .NotificationsButton):not(#aika-none) {
+    background-image: none;
+}
+
+/* --------------------------------------------------------------------------
+   Buttons › background, borders (off); Appearance › glow
+   -------------------------------------------------------------------------- */
+
+html[data-aika-nav-look~="nobg"] :is(.aika-nav-btn, .TitleBarControls :is(.AnnouncementsButton, .NotificationsButton):not(.GamepadUIToggle)):not(:hover, :focus-visible, [aria-expanded="true"]) {
+    background-color: var(--aika-transparent);
+}
+
+html[data-aika-nav-look~="noborder"] :is(.aika-nav-btn, .TitleBarControls :is(.AnnouncementsButton, .NotificationsButton):not(.GamepadUIToggle), .AccountMenu) {
+    box-shadow: none;
+}
+
+html[data-aika-nav-look~="glow"] :is(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton):is(:hover, [aria-expanded="true"]):not(.GamepadUIToggle) {
+    box-shadow:
+        inset 0 0 0 var(--aika-nav-border-w, var(--aika-hairline)) var(--aika-nav-a-edge),
+        0 0 14px rgb(from var(--aika-nav-a) r g b / 0.3);
+}
+
+/* --------------------------------------------------------------------------
+   Animations › hover, press, the open button, the ring, tooltips, all
+   -------------------------------------------------------------------------- */
+
+html[data-aika-nav-look~="hover-lift"] :is(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton):hover:not(:active, .GamepadUIToggle) {
+    transform: translateY(-1px);
+}
+
+html[data-aika-nav-look~="hover-scale"] :is(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton):hover:not(:active, .GamepadUIToggle) {
+    transform: scale(1.06);
+}
+
+html[data-aika-nav-look~="hover-glow"] :is(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton):hover:not(.GamepadUIToggle) {
+    box-shadow:
+        inset 0 0 0 var(--aika-nav-border-w, var(--aika-hairline)) var(--aika-nav-a-edge),
+        0 0 12px rgb(from var(--aika-nav-a) r g b / 0.28);
+}
+
+html[data-aika-nav-look~="hover-none"] :is(.aika-nav-btn, .TitleBarControls :is(.AnnouncementsButton, .NotificationsButton):not(.GamepadUIToggle)):hover:not([aria-expanded="true"]) {
+    background-color: rgb(from var(--aika-surface) r g b / calc(alpha * var(--aika-nav-btn-k, 1)));
+    color: var(--aika-fg-muted);
+}
+
+html[data-aika-nav-look~="hover-none"] .AccountMenu:hover:not([aria-expanded="true"]) .avatarHolder img.avatar {
+    transform: none;
+}
+
+html[data-aika-nav-look~="nopress"] :is(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton):active {
+    transform: none;
+}
+
+html[data-aika-nav-look~="noactive"] :is(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton, .AccountMenu)[aria-expanded="true"] {
+    transition: none;
+}
+
+html[data-aika-nav-look~="noringanim"] .AccountMenu .avatarHolder img.avatar {
+    transition: none;
+}
+
+html[data-aika-nav-look~="notipanim"] .aika-nav-tip {
+    transition: none;
+    animation: none;
+}
+
+html[data-aika-nav-look~="still"] :is([data-aika-nav-slot], .aika-nav-rail, .aika-nav-bar, .aika-nav-tip, .aika-nav-sep, .AccountMenu img.avatar),
+html[data-aika-nav-look~="still"] :is([data-aika-nav-slot], .AnnouncementsButton, .NotificationsButton)::before,
+html[data-aika-nav-look~="still"] [data-aika-nav-slot]::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* Hidden buttons free their room */
+html[data-aika-nav] [data-aika-nav-hidden]:not(#aika-none) {
+    display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   Top Bar: the right area in the header's row (2.1.0's place, before the
+   account), the left and middle areas placed over the row
    -------------------------------------------------------------------------- */
 
 html[data-aika-nav="top"] .TitleBarControls {
     align-items: center;
-    gap: var(--aika-space-1);
+    gap: var(--aika-nav-gap);
 }
 
-html[data-aika-nav="top"] [data-aika-nav-slot="settings"] { order: 1; }
-html[data-aika-nav="top"] [data-aika-nav-slot="games"] { order: 2; }
-html[data-aika-nav="top"] [data-aika-nav-slot="news"] { order: 3; }
-html[data-aika-nav="top"] [data-aika-nav-slot="alerts"] { order: 4; }
-html[data-aika-nav="top"] [data-aika-nav-slot="profile"] { order: 5; margin-inline-start: var(--aika-space-1); }
+html[data-aika-nav="top"] [data-aika-nav-zone="end"] {
+    order: var(--aika-nav-order, 1);
+}
+
+html[data-aika-nav="top"] [data-aika-nav-slot="profile"] { margin-inline-start: var(--aika-space-1); }
+
+html[data-aika-nav="top"][data-aika-nav-look~="align-start"] [data-aika-nav-zone="end"] { align-self: flex-start; }
+html[data-aika-nav="top"][data-aika-nav-look~="align-end"] [data-aika-nav-zone="end"] { align-self: flex-end; }
+
+html[data-aika-nav="top"] [data-aika-nav-zone]:is([data-aika-nav-zone="start"], [data-aika-nav-zone="center"]):not(#aika-none) {
+    position: fixed;
+    left: var(--aika-nav-x);
+    top: var(--aika-nav-y);
+    z-index: 31;
+    margin: 0;
+}
+
+html[data-aika-nav="top"][data-aika-nav-switching] [data-aika-nav-zone] {
+    animation: aika-nav-fade var(--aika-nav-base) var(--aika-ease);
+}
+
+/* The bars behind the top bar's areas (Appearance: any mode but Aika's own) */
+html[data-aika-nav="top"] .aika-nav-bar {
+    position: fixed;
+    z-index: 0;
+    box-sizing: border-box;
+    border-radius: var(--aika-nav-panel-radius, 10px);
+    background: rgb(from var(--aika-nav-panel-base, var(--aika-surface)) r g b / calc(alpha * var(--aika-nav-panel-k, 1)));
+    box-shadow: inset 0 0 0 var(--aika-nav-border-w, var(--aika-hairline)) rgb(from var(--aika-border) r g b / calc(alpha * var(--aika-nav-edge-k, 1)));
+    -webkit-backdrop-filter: var(--aika-nav-blur, none);
+    backdrop-filter: var(--aika-nav-blur, none);
+    pointer-events: none;
+}
+
+html[data-aika-nav="top"][data-aika-nav-look~="noborder"] .aika-nav-bar { box-shadow: none; }
+html[data-aika-nav="top"][data-aika-nav-look~="shadow"] .aika-nav-bar { box-shadow: var(--aika-shadow-menu); }
+
+/* Auto-hide: the buttons fold away until the pointer comes over the header's row */
+html[data-aika-nav="top"][data-aika-nav-concealed] :is([data-aika-nav-zone], .aika-nav-bar):not(#aika-none) {
+    width: 0 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
 
 /* --------------------------------------------------------------------------
    Left Sidebar: a rail under the header — the left game list's surface and
-   edge (sections/library.css) — with the buttons at its foot, the avatar at
-   the bottom (Steam Enhanced's order: profile, Settings, then the rest)
+   edge (sections/library.css) — with the buttons in its areas (2.1.0: all at
+   its foot, the avatar at the bottom)
    -------------------------------------------------------------------------- */
 
 html[data-aika-nav="rail"] .aika-nav-rail {
     position: fixed;
-    top: var(--aika-nav-top, var(--aika-supernav-height));
-    bottom: 0;
-    left: 0;
+    top: calc(var(--aika-nav-top, var(--aika-supernav-height)) + var(--aika-nav-margin, 0px));
+    bottom: var(--aika-nav-margin, 0px);
+    left: var(--aika-nav-margin, 0px);
     z-index: 30;
     width: var(--aika-nav-rail);
     box-sizing: border-box;
-    background: var(--aika-surface);
-    border-right: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-nav-panel-radius, 0);
+    background: rgb(from var(--aika-nav-panel-base, var(--aika-surface)) r g b / calc(alpha * var(--aika-nav-panel-k, 1)));
+    border-right: var(--aika-nav-border-w, var(--aika-hairline)) solid rgb(from var(--aika-border) r g b / calc(alpha * var(--aika-nav-edge-k, 1)));
     box-shadow: var(--aika-highlight-top);
+    -webkit-backdrop-filter: var(--aika-nav-blur, none);
+    backdrop-filter: var(--aika-nav-blur, none);
     pointer-events: none;
+    transition:
+        width var(--aika-nav-base) var(--aika-ease),
+        translate var(--aika-nav-base) var(--aika-ease),
+        opacity var(--aika-nav-base) var(--aika-ease);
 }
 
-/* The content gives up the rail's width — beside the Friends Dock's on the right */
+/* A floating rail (an outer margin or a radius): an edge all round */
+html[data-aika-nav="rail"]:is([style*="--aika-nav-margin:"], [style*="--aika-nav-panel-radius:"]) .aika-nav-rail {
+    border: var(--aika-nav-border-w, var(--aika-hairline)) solid rgb(from var(--aika-border) r g b / calc(alpha * var(--aika-nav-edge-k, 1)));
+}
+
+html[data-aika-nav="rail"][data-aika-nav-look~="noborder"] .aika-nav-rail { border: 0; }
+html[data-aika-nav="rail"][data-aika-nav-look~="shadow"] .aika-nav-rail { box-shadow: var(--aika-highlight-top), var(--aika-shadow-menu); }
+html[data-aika-nav="rail"][data-aika-nav-look~="glow"] .aika-nav-rail { box-shadow: var(--aika-highlight-top), 0 0 24px rgb(from var(--aika-nav-a) r g b / 0.12); }
+
+/* Labels on hover: the rail opens over the content while the pointer is on it */
+html[data-aika-nav="rail"][data-aika-nav-expanded] .aika-nav-rail {
+    width: var(--aika-nav-panel-w, var(--aika-nav-rail));
+}
+
+html[data-aika-nav="rail"][data-aika-nav-switching] .aika-nav-rail {
+    animation: aika-nav-fade var(--aika-nav-base) var(--aika-ease);
+}
+
+/* The content gives up the rail's room — beside the Friends Dock's on the right */
 html[data-aika-nav="rail"] .OuterFrame > .ContentFrame {
     min-width: 0;
-    margin-inline-start: var(--aika-nav-rail);
+    margin-inline-start: var(--aika-nav-room, var(--aika-nav-rail));
 }
 
 html[data-aika-nav="rail"][data-aika-fdock] .OuterFrame > .ContentFrame {
     transition:
         margin-inline-end var(--aika-fdock-dur) var(--aika-ease),
-        margin-inline-start var(--aika-dur-base) var(--aika-ease);
+        margin-inline-start var(--aika-nav-base) var(--aika-ease);
 }
 
 /* Aika's floating library icons keep to the content (Downloads stays where Aika puts it) */
 html[data-aika-nav="rail"] .OuterFrame > .BottomBarContainer {
-    left: var(--aika-nav-rail);
+    left: var(--aika-nav-room, var(--aika-nav-rail));
 }
 
 /* :not(#aika-none) — an id's weight, past the tile rules above (Steam Enhanced's way) */
 html[data-aika-nav="rail"] [data-aika-nav-slot]:not(#aika-none) {
-    --aika-nav-n: 0;
     position: fixed;
-    left: calc((var(--aika-nav-rail) - var(--aika-nav-btn)) / 2);
-    bottom: calc(var(--aika-space-3) + var(--aika-nav-n) * (var(--aika-nav-btn) + var(--aika-nav-gap)));
+    left: var(--aika-nav-x, calc((var(--aika-nav-rail) - var(--aika-nav-btn)) / 2));
+    top: var(--aika-nav-y, auto);
+    bottom: auto;
     z-index: 31;
     margin: 0;
-    animation: aika-dock-in var(--aika-dur-enter) var(--aika-ease) backwards;
+    animation: aika-dock-in var(--aika-nav-enter) var(--aika-ease) backwards;
+    animation-delay: calc(var(--aika-nav-n, 0) * var(--aika-stagger));
 }
 
-html[data-aika-nav="rail"] [data-aika-nav-slot="profile"]:not(#aika-none)  { --aika-nav-n: 0; }
-html[data-aika-nav="rail"] [data-aika-nav-slot="settings"]:not(#aika-none) { --aika-nav-n: 1; animation-delay: var(--aika-stagger); }
-html[data-aika-nav="rail"] [data-aika-nav-slot="games"]:not(#aika-none)    { --aika-nav-n: 2; animation-delay: calc(2 * var(--aika-stagger)); }
-html[data-aika-nav="rail"] [data-aika-nav-slot="news"]:not(#aika-none)     { --aika-nav-n: 3; animation-delay: calc(3 * var(--aika-stagger)); }
-html[data-aika-nav="rail"] [data-aika-nav-slot="alerts"]:not(#aika-none)   { --aika-nav-n: 4; animation-delay: calc(4 * var(--aika-stagger)); }
+html[data-aika-nav="rail"][data-aika-nav-look~="noswitch"] :is([data-aika-nav-slot], .aika-nav-rail):not(#aika-none) {
+    animation: none;
+}
 
 /* A Steam slot wrapper (a tooltip host around its button) lays its button out at the tile's size */
 html[data-aika-nav="rail"] [data-aika-nav-slot]:not(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton, .AccountMenu) {
@@ -290,15 +599,92 @@ html[data-aika-nav="rail"] [data-aika-nav-slot]:not(.aika-nav-btn, .Announcement
     height: var(--aika-nav-btn);
 }
 
+/* Auto-hide: the rail slides out to the left; a strip at the window's edge brings it back */
+html[data-aika-nav="rail"][data-aika-nav-concealed] :is(.aika-nav-rail, [data-aika-nav-slot], .aika-nav-sep):not(#aika-none) {
+    translate: calc(-1 * (var(--aika-nav-rail) + var(--aika-nav-margin, 0px) + 12px)) 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+html[data-aika-nav="rail"] .aika-nav-edge {
+    position: fixed;
+    top: var(--aika-nav-top, var(--aika-supernav-height));
+    bottom: 0;
+    left: 0;
+    z-index: 32;
+    width: 6px;
+    pointer-events: none;
+}
+
+html[data-aika-nav="rail"][data-aika-nav-concealed] .aika-nav-edge {
+    pointer-events: auto;
+    background: linear-gradient(90deg, rgb(from var(--aika-nav-a) r g b / 0.18), transparent);
+}
+
+/* --------------------------------------------------------------------------
+   Separators (a hairline across the area) and gaps (room only)
+   -------------------------------------------------------------------------- */
+
+.aika-nav-sep,
+.aika-nav-gap {
+    flex: none;
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+html[data-aika-nav="rail"] .aika-nav-sep {
+    position: fixed;
+    left: var(--aika-nav-x);
+    top: var(--aika-nav-y);
+    z-index: 31;
+    width: var(--aika-nav-btn);
+    height: var(--aika-nav-len, 9px);
+    background: linear-gradient(var(--aika-border), var(--aika-border)) center / calc(100% - 8px) var(--aika-hairline) no-repeat;
+    transition: translate var(--aika-nav-base) var(--aika-ease), opacity var(--aika-nav-base) var(--aika-ease);
+}
+
+html[data-aika-nav="rail"]:is([data-aika-nav-look~="wide"], [data-aika-nav-expanded]) .aika-nav-sep {
+    width: var(--aika-nav-wide-w, var(--aika-nav-btn));
+}
+
+html[data-aika-nav="top"] .aika-nav-sep {
+    order: var(--aika-nav-order, 1);
+    width: var(--aika-nav-len, 9px);
+    height: calc(var(--aika-nav-btn) * 0.6);
+    background: linear-gradient(var(--aika-border), var(--aika-border)) center / var(--aika-hairline) 100% no-repeat;
+}
+
+html[data-aika-nav="top"] .aika-nav-gap {
+    order: var(--aika-nav-order, 1);
+    width: var(--aika-nav-len, 16px);
+    height: 1px;
+}
+
+html[data-aika-nav="top"] :is(.aika-nav-sep, .aika-nav-gap):is([data-aika-nav-zone="start"], [data-aika-nav-zone="center"]) {
+    position: fixed;
+    left: var(--aika-nav-x);
+    top: var(--aika-nav-y);
+    z-index: 31;
+}
+
+html[data-aika-nav="rail"] .aika-nav-gap,
+html:not([data-aika-nav]) :is(.aika-nav-sep, .aika-nav-gap, .aika-nav-bar, .aika-nav-edge) {
+    display: none;
+}
+
 /* The rail's tooltip: the dock's (Steam's tooltip in Aika's look), beside the button */
 .aika-nav-tip {
     position: fixed;
     z-index: var(--aika-z-fdock-pop);
 }
 
+@keyframes aika-nav-fade {
+    from { opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     html[data-aika-nav] [data-aika-nav-slot],
-    html[data-aika-nav] :is(.aika-nav-btn, .AccountMenu img.avatar) {
+    html[data-aika-nav] :is(.aika-nav-btn, .AccountMenu img.avatar, .aika-nav-rail) {
         animation: none !important;
         transition-duration: 0s !important;
     }

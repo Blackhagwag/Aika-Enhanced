@@ -124,6 +124,9 @@
     for (const [key, def] of Object.entries(theme.conditions)) {
       values[key] = key in saved ? String(saved[key]) : String(def.default ?? '');
     }
+    /* The Navigation editor's configuration, kept by Millennium beside the conditions
+       (client/navigation/nav-config.js): taken up when this window has none */
+    if (saved.__aika_nav) run(() => window.__aikaNavConfig?.adoptMillennium(saved.__aika_nav));
     colorOptions = (await call('Core_GetThemeColorOptions', { theme_name: active.native }).catch(() => [])) || [];
     build();
     ready = true;
@@ -339,6 +342,7 @@
     },
     readOn: {},
     title: 'Aika Enhanced',
+    themeNative: () => theme?.native || null,
     get ready() {
       return ready;
     },

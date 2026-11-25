@@ -2,7 +2,7 @@
 
 # Aika Enhanced
 
-**[Aika](https://github.com/hatewxb/Aika), the warm dark Steam theme by hatewxb — with a Friends Dock and its built-in chat on every page, and [Steam Enhanced](https://github.com/NVHT/Steam-Enhanced)'s Millennium Settings** · [Millennium](https://steambrew.app) · 2.1.0
+**[Aika](https://github.com/hatewxb/Aika), the warm dark Steam theme by hatewxb — with a Friends Dock and its built-in chat on every page, and [Steam Enhanced](https://github.com/NVHT/Steam-Enhanced)'s Millennium Settings** · [Millennium](https://steambrew.app) · 2.2.0
 
 ![The Friends Dock, expanded](docs/friends-dock/expanded.jpg)
 
@@ -80,6 +80,51 @@ Dock stay where they are.
 |:--:|:--:|
 | ![Sidebar](docs/friends-dock/nav-sidebar-profile-greeny.jpg) | ![Top bar](docs/friends-dock/nav-topbar-games-rose-ash.jpg) |
 
+### Customising the navigation (2.2)
+
+**Theme settings › Navigation** is an editor with a live preview that uses your real avatar and
+status. Every change also applies to the real navigation at once. The Left Sidebar and the Top Bar
+each keep their own sizes, order and visible buttons. The categories:
+
+- **General** — the layout, which layout you're editing, and a full reset back to 2.1.0's look.
+- **Layout** — width / bar height; button, icon and avatar size; spacing; inner padding; outer
+  margin; button and panel radius; border; alignment.
+- **Buttons**:
+  - drag and drop (or arrow keys) between the rail's top / middle / bottom, or the top bar's
+    left / middle / right;
+  - separators and gaps;
+  - hide any button, and the rest close up;
+  - unread indicators, tooltips, separators, button background and borders on or off.
+- **Profile** — squircle or round; the ring with its width, gap and glow; a pulse on status change;
+  name / status / game beside the avatar; a status dot; a colour for each Steam state.
+- **Appearance** — Aika (default), Minimal, Glass, Transparent, Solid or Custom: panel and button
+  opacity, blur, hover and active intensity, borders, shadow, glow, accent.
+- **Animations** — on/off, speed, hover style, press, menu opening, tooltips, the ring, new
+  notifications, the layout switch.
+- **Behaviour** — auto-hide (the rail comes back at the window's left edge), delays, compact mode,
+  icons / icons and names / names on hover, closing menus, tooltip delay.
+- **Pop-up menus** — width, radius, opacity, blur, font, row height, icons, speed, separators for
+  My Profile, Settings, Games and Announcements.
+- **Presets**:
+  - built-ins: Original Aika Enhanced, Steam Enhanced Style, Minimal Sidebar, Compact Top Bar,
+    Glass Navigation;
+  - your own: save, rename, duplicate, update, delete;
+  - JSON export and import, checked value by value.
+
+Each category has its own reset button. If Settings is hidden, the theme's settings are still in
+My Profile's menu, the dock's sliders button, Millennium's *All Aika Enhanced settings* and
+Ctrl+Shift+`.
+
+| Buttons, Glass Navigation | Profile, Steam Enhanced Style |
+|:--:|:--:|
+| ![Buttons](docs/friends-dock/nav-editor-buttons-glass.jpg) | ![Profile](docs/friends-dock/nav-editor-profile.jpg) |
+
+**What it can't change:**
+- Steam's own Notifications and account menus are Steam's windows, so the pop-up menu settings
+  don't reach them.
+- Over Store and Community pages nothing can be drawn over the page. There, an auto-hidden rail
+  moves the page aside when it comes out, and *names on hover* falls back to tooltips.
+
 ## Settings
 
 Two ways, both saving to the same place (Millennium's theme config):
@@ -120,7 +165,7 @@ only touches Millennium's window: Steam Settings and Game Properties keep Aika's
 Requires [Millennium](https://steambrew.app) and theme scripts enabled (the dock, the chat and the
 settings window are scripts).
 
-**Updating from 0.1.8-enhanced.1**: run the installer again. It keeps the same folder
+**Updating** (from any earlier version): run the installer again, or replace the folder with the one from the zip. It keeps the same folder
 (`Aika-Enhanced`), so Millennium keeps your settings; the old folder goes to
 `aika-enhanced-backups/<time>/`.
 
@@ -175,6 +220,7 @@ python3 -m http.server 8765 --bind 127.0.0.1 --directory /
 node --test tests/friends-dock.e2e.cjs           # the dock (needs Playwright + Chromium)
 AIKA_ORIGINAL=/path/to/Aika node --test tests/friends-dock.e2e.cjs   # + pixel parity with Aika
 node --test tests/navigation.e2e.cjs             # 2.1: the navigation, both layouts
+node --test tests/nav-custom.e2e.cjs             # 2.2: customisation (+ AIKA_21=<2.1.0 checkout>, REACT_UMD=… for the editor)
 REACT_UMD=/path/to/node_modules node --test tests/friends-dock-2.e2e.cjs   # 2.0: pages, chat wiring,
                                                   # Steam Enhanced parts, settings (React 18 UMD for the window)
 node --test tests/*.test.mjs tests/*.test.cjs    # Aika's own tests

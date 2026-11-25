@@ -94,7 +94,8 @@
     gifts: 'Подарки и гостевые пропуски', giftsHint: 'Ваш инвентарь подарков',
     nonSteam: 'Добавить стороннюю игру', nonSteamHint: 'Игра на этом компьютере',
     restore: 'Восстановить из резервной копии', restoreHint: 'Установить из файлов копии',
-    ingame: 'В игре',
+    ingame: 'В игре', news: 'Новости', alerts: 'Уведомления',
+    online: 'В сети', away: 'Нет на месте', snooze: 'Спит', busy: 'Занят', dnd: 'Не беспокоить', invisible: 'Невидимка', offline: 'Не в сети',
   } : {
     settings: 'Settings', games: 'Games', profile: 'My Profile', steam: 'Steam', theme: 'Aika Enhanced',
     steamSettings: 'Settings', steamSettingsHint: 'Account, downloads, display',
@@ -114,8 +115,25 @@
     gifts: 'Gifts and Guest Passes', giftsHint: 'Your gift inventory',
     nonSteam: 'Add a Non-Steam Game', nonSteamHint: 'A game on this PC',
     restore: 'Restore a Backup', restoreHint: 'Install from backup files',
-    ingame: 'In game',
+    ingame: 'In game', news: 'Announcements', alerts: 'Notifications',
+    online: 'Online', away: 'Away', snooze: 'Snooze', busy: 'Busy', dnd: 'Do Not Disturb', invisible: 'Invisible', offline: 'Offline',
   };
+  // A state's name: Steam's word where it has one
+  const STATE_TOKENS = {
+    online: ['#PersonaStateOnline'], away: ['#PersonaStateAway'], snooze: ['#PersonaStateSnooze'], busy: ['#PersonaStateBusy'],
+    invisible: ['#PersonaStateInvisible'], offline: ['#PersonaStateOffline'], ingame: [], dnd: [],
+  };
+  const stateName = (st) => (english || RU ? T[st] : firstOf(STATE_TOKENS[st] || [], T[st])) || '';
+
+  /* ---------- The configuration (nav-config.js; the Navigation editor sets it) ---------- */
+
+  const NC = () => window.__aikaNavConfig;
+  let conf = run(() => NC().get()) || null;
+  const offConfig = NC()?.on((next) => {
+    conf = structuredClone(next);
+    schedule();
+  });
+  const B = () => conf?.behavior || {};
 
   /* ---------- The layout setting ---------- */
 
@@ -134,6 +152,7 @@
     button.setAttribute('aria-label', label);
     button.setAttribute('aria-haspopup', 'menu');
     button.dataset.aikaTip = label;
+    button.dataset.aikaName = label;
     const glyph = document.createElement('span');
     glyph.className = 'aika-nav-glyph';
     glyph.setAttribute('aria-hidden', 'true');
@@ -164,7 +183,14 @@
     if (!reopen) return null;
     const items = rows();
     if (!items?.length) return null;
-    menu = SE.layer?.menu(items, SE.layer.besideRail(button, { foot: true }), { owner: button, closeOnLeave: true }) || null;
+    const b = B();
+    menu =
+      SE.layer?.menu(items, SE.layer.besideRail(button, { foot: true }), {
+        owner: button,
+        closeOnLeave: b.closeLeave !== false,
+        closeOutside: b.closeOutside !== false,
+        mark: 'aika-nav-menu',
+      }) || null;
     if (menu) menuKey = key;
     return menu;
   }
@@ -350,6 +376,10 @@
     if (change) rows.push({ label: firstOf(['#Menu_ChangeAccount', '#AccountMenu_ChangeAccount'], T.changeAccount), icon: '--se-icon-switch-account', run: change });
     if (signOut) rows.push({ label: firstOf(['#Menu_SignOut', '#AccountMenu_SignOut', '#Menu_Logout'], T.signOut), icon: '--se-icon-sign-out', danger: true, run: signOut });
     rows.push({ label: T.moreAccount, hint: T.moreAccountHint, icon: '--se-icon-external', run: openNativeAccountMenu });
+    // Settings hidden from the navigation: the theme's settings stay one row away
+    if (isHidden('settings')) {
+      rows.push({ separator: true }, { label: T.themeSettings, hint: T.themeSettingsHint, icon: '--se-icon-sliders', keys: 'Ctrl+Shift+`', run: () => window.__seThemeSettings?.open() });
+    }
     return rows;
   }
 
@@ -436,7 +466,7 @@
     patchedManagers.set(manager, { original, wrapped });
   }
 
-  /* ---------- Tooltips beside the rail ---------- */
+  /* ---------- Tooltips ---------- */
 
   let tip = null;
   let tipPanel = null;
@@ -448,10 +478,13 @@
     tipPanel?.release();
     tipPanel = null;
   }
+  // A tooltip beside a rail button, when its name isn't on show already
+  const tipsWanted = () =>
+    root.dataset.aikaNav === 'rail' && conf?.buttons?.tooltips !== false && !looks.has('wide') && !(looks.has('hoverlabels') && !SE.browserShown?.());
   function showTip(target) {
     hideTip();
     const text = target.dataset.aikaTip || target.getAttribute('aria-label') || target.getAttribute('title') || '';
-    if (!text || root.dataset.aikaNav !== 'rail' || (menu && !menu.released)) return;
+    if (!text || !tipsWanted() || (menu && !menu.released)) return;
     const node = document.createElement('div');
     node.className = 'aika-fdock-tip aika-nav-tip is-on';
     const nameNode = document.createElement('div');
@@ -473,24 +506,51 @@
     node.style.top = `${Math.round(Math.max(8, top))}px`;
     tip = node;
   }
-  const tipTarget = (event) => event.target.closest?.(`.aika-nav-btn, ${NEWS}, ${BELL}, ${ACCOUNT}`);
+  const ITEM = () => `.aika-nav-btn, ${NEWS}, ${BELL}, ${ACCOUNT}`;
+  const tipTarget = (event) => event.target.closest?.(ITEM());
   function onOver(event) {
     const t = tipTarget(event);
-    if (!t || root.dataset.aikaNav !== 'rail') return;
-    clearTimeout(tipTimer);
-    tipTimer = setTimeout(() => showTip(t), 350);
+    if (t && tipsWanted()) {
+      clearTimeout(tipTimer);
+      tipTimer = setTimeout(() => showTip(t), B().tipDelay ?? 350);
+    }
+    hoverEnter(event);
   }
   function onOut(event) {
     const t = tipTarget(event);
     if (t && !t.contains(event.relatedTarget)) hideTip();
+    hoverLeave(event);
   }
 
-  /* ---------- The pass: buttons in place, slots numbered, the ring, the counts ---------- */
+  /* ---------- The layout engine ---------- */
 
+  /*
+   * Each button sits in an area of its layout (the rail: top / middle / foot; the top bar: left /
+   * middle / right), in the order the configuration gives, with separators and gaps between.
+   * Steam's own buttons stay where React mounted them: the engine only gives each one its place
+   * (custom properties and data attributes; sections/navigation.css lays them out). The top bar's
+   * right area keeps the buttons in the header's row (CSS order); every other area places them
+   * over its spot (position: fixed, at the point worked out here).
+   *
+   * Defaults (nav-config.js) are 2.1.0's layout: every value equal to its default writes nothing
+   * and the stylesheet's own (2.1.0) values stand.
+   */
   const rail = document.createElement('div');
   rail.className = 'aika-nav-rail';
   rail.setAttribute('aria-hidden', 'true');
+  const edge = document.createElement('div');
+  edge.className = 'aika-nav-edge';
+  edge.setAttribute('aria-hidden', 'true');
+  const topPanels = ['start', 'center', 'end'].map((zone) => {
+    const node = document.createElement('div');
+    node.className = 'aika-nav-bar';
+    node.dataset.aikaNavZone = zone;
+    node.setAttribute('aria-hidden', 'true');
+    return node;
+  });
+
   const marked = new Set();
+  const styled = new Set();
   const slotOf = (button, controls) => {
     if (!button) return null;
     let el = button;
@@ -502,9 +562,432 @@
     SE.attr(el, 'data-aika-nav-slot', key);
     marked.add(el);
   }
+  const prop = (el, name, value) => {
+    if (!el) return;
+    const v = value == null ? '' : String(value);
+    if (el.style.getPropertyValue(name) !== v) {
+      if (v) el.style.setProperty(name, v);
+      else el.style.removeProperty(name);
+    }
+    if (v) styled.add(el);
+  };
+  const ROOT_VARS = new Set();
+  const rootVarOn = (name, value) => {
+    ROOT_VARS.add(name);
+    prop(root, name, value);
+  };
+  const rootVar = rootVarOn;
+
+  // Separators and gaps: the theme's own nodes, reused pass to pass
+  const fillers = { sep: [], gap: [] };
+  function filler(kind, index) {
+    let node = fillers[kind][index];
+    if (!node) {
+      node = document.createElement('div');
+      node.className = `aika-nav-${kind}`;
+      node.setAttribute('aria-hidden', 'true');
+      fillers[kind][index] = node;
+    }
+    return node;
+  }
+
+  const isHidden = (key, mode = layout()) => Boolean(conf?.[mode]?.hidden?.[key]);
+
+  // A layout's areas as they show: hidden buttons gone, separators only between buttons, once
+  function areas(mode) {
+    const zones = conf?.[mode]?.zones || { start: [], center: [], end: [] };
+    const seps = conf?.buttons?.separators !== false;
+    const out = {};
+    for (const zone of ['start', 'center', 'end']) {
+      const list = [];
+      for (const item of zones[zone] || []) {
+        if (item === 'sep') {
+          if (seps && list.length && list.at(-1) !== 'sep') list.push('sep');
+        } else if (item === 'gap') list.push('gap');
+        else if (!isHidden(item, mode)) list.push(item);
+      }
+      while (list.at(-1) === 'sep' || list.at(-1) === 'gap') list.pop();
+      while (list[0] === 'gap') list.shift();
+      out[zone] = list;
+    }
+    return out;
+  }
+
+  // The numbers a layout draws with: its own values, compact mode, the names beside the buttons
+  function metrics(mode) {
+    const L = conf?.[mode] || {};
+    const d = run(() => NC().defaults()[mode]) || {};
+    const compact = Boolean(B().compact);
+    const m = {
+      size: L.size ?? d.size, btn: L.btn ?? d.btn, icon: L.icon ?? d.icon, avatar: L.avatar ?? d.avatar,
+      gap: L.gap ?? d.gap, pad: L.pad ?? d.pad, margin: L.margin ?? d.margin,
+      btnRadius: L.btnRadius ?? 8, panelRadius: L.panelRadius ?? d.panelRadius, border: L.border ?? 1, align: L.align || 'center',
+    };
+    if (compact) {
+      m.btn = Math.max(24, m.btn - 8);
+      m.icon = Math.max(12, m.icon - 2);
+      m.avatar = Math.max(18, m.avatar - 6);
+      m.gap = Math.round(m.gap / 2);
+      m.pad = Math.round(m.pad / 2);
+      if (mode === 'rail') m.size = Math.max(m.btn + 8, m.size - 12);
+    }
+    m.avatar = Math.min(m.avatar, m.btn + 8);
+    if (mode === 'rail') m.size = Math.max(m.size, m.btn + 4);
+    m.d = d;
+    return m;
+  }
+
+  const SEP = 9; // a separator's room along the rail: a hairline in 9 px
+  const extent = (item, m) => (item === 'sep' ? SEP : item === 'gap' ? Math.round(m.btn / 2) : m.btn);
+
+  // The flags sections/navigation.css reads off html[data-aika-nav-look]
+  let looks = new Set();
+  const lookOf = (mode, m) => {
+    const c = conf || {};
+    const b = c.buttons || {};
+    const a = c.appearance || {};
+    const an = c.animations || {};
+    const p = c.profile || {};
+    const out = new Set();
+    if (b.background === false) out.add('nobg');
+    if (b.borders === false || a.borders === false) out.add('noborder');
+    if (b.unread === false) out.add('nounread');
+    const caption = p.showName || p.showStatus || p.showGame;
+    if (b.labels === 'labels') out.add('labels');
+    if (b.labels === 'hover') out.add('hoverlabels');
+    if (mode === 'rail' && (b.labels === 'labels' || caption)) out.add('wide');
+    if (caption) out.add('caption');
+    if (p.shape === 'round') out.add('round');
+    if (p.ring === false) out.add('noring');
+    if (p.indicator) out.add('indicator');
+    if (a.shadow) out.add('shadow');
+    if (a.glow) out.add('glow');
+    if (a.mode && a.mode !== 'default') out.add(`mode-${a.mode}`);
+    if (an.enabled === false) out.add('still');
+    else {
+      if (an.hover && an.hover !== 'color') out.add(`hover-${an.hover}`);
+      if (an.press === false) out.add('nopress');
+      if (an.active === false) out.add('noactive');
+      if (an.tooltip === false) out.add('notipanim');
+      if (an.ring === false) out.add('noringanim');
+      if (an.switch === false) out.add('noswitch');
+    }
+    if (B().compact) out.add('compact');
+    if (m.align !== 'center') out.add(`align-${m.align}`);
+    return out;
+  };
+
+  const pct = (v, def = 100) => (v == null || v === def ? null : String(v / 100));
+  const px = (v, def) => (v == null || v === def ? null : `${v}px`);
+
+  // Everything not about places: sizes, the look, the ring, the menus — custom properties on the root
+  function paint(mode, m, rootVar = rootVarOn) {
+    const c = conf || {};
+    const a = c.appearance || {};
+    const p = c.profile || {};
+    const an = c.animations || {};
+    const mn = c.menus || {};
+    const d = m.d;
+    rootVar('--aika-nav-btn', px(m.btn, mode === 'rail' ? 40 : 32));
+    rootVar('--aika-nav-glyph', px(m.icon, mode === 'rail' ? 18 : 16));
+    rootVar('--aika-nav-avatar', px(m.avatar, mode === 'rail' ? 32 : 24));
+    rootVar('--aika-nav-gap', px(m.gap, mode === 'rail' ? 8 : 4));
+    rootVar('--aika-nav-btn-radius', px(m.btnRadius, 8));
+    rootVar('--aika-nav-panel-radius', px(m.panelRadius, d.panelRadius));
+    rootVar('--aika-nav-border-w', px(m.border, 1));
+    rootVar('--aika-nav-margin', px(m.margin, 0));
+    // The ring: its gap, its band, the hover glow
+    rootVar('--aika-nav-ring', px(p.ringGap, 2));
+    rootVar('--aika-nav-ring-w', px(p.ringWidth, 2));
+    rootVar('--aika-nav-glow', p.glow == null || p.glow === 45 ? null : String(p.glow / 100));
+    for (const st of ['online', 'ingame', 'away', 'snooze', 'dnd', 'invisible', 'offline']) rootVar(`--aika-nav-c-${st}`, p.colors?.[st] || null);
+    // The look: the panel's and the buttons' surfaces scaled from Aika's own, the edges, the accent
+    // (factors on Aika's own colours; sections/navigation.css scales them)
+    rootVar('--aika-nav-panel-base', a.mode === 'solid' ? 'var(--aika-bg-elevated)' : null);
+    rootVar('--aika-nav-panel-k', pct(a.panelOpacity));
+    rootVar('--aika-nav-blur', a.blur ? `blur(${a.blur}px)` : null);
+    rootVar('--aika-nav-btn-k', pct(a.btnOpacity));
+    rootVar('--aika-nav-hover-k', pct(a.hover));
+    rootVar('--aika-nav-active-k', pct(a.active));
+    rootVar('--aika-nav-edge-k', pct(a.borderOpacity));
+    rootVar('--aika-nav-accent', a.accent || null);
+    // Motion: Aika's durations scaled
+    const speed = an.enabled === false || !an.speed || an.speed === 100 ? null : String(100 / an.speed);
+    rootVar('--aika-nav-speed', speed);
+    // Steam Enhanced's menus opened here (data-aika-nav-menu): copied into its popup windows
+    // with the root's state (popup-layer.js copyRootState)
+    rootVar('--aika-menu-w', mn.width ? `${mn.width}px` : null);
+    rootVar('--aika-menu-r', px(mn.radius, 12));
+    rootVar('--aika-menu-a', mn.opacity == null || mn.opacity === 100 ? null : String(mn.opacity / 100));
+    rootVar('--aika-menu-blur', mn.blur ? `blur(${mn.blur}px)` : null);
+    rootVar('--aika-menu-fs', px(mn.font, 13));
+    rootVar('--aika-menu-row', px(mn.spacing, 34));
+    rootVar('--aika-menu-icon', px(mn.icon, 18));
+    const menuSpeed = an.enabled === false ? null : mn.speed && mn.speed !== 100 ? String(100 / mn.speed) : null;
+    rootVar('--aika-menu-k', menuSpeed);
+    const menuFlags = [
+      mn.separators === false && 'nosep',
+      (an.enabled === false || an.menu === 'none') && 'still',
+      an.enabled !== false && an.menu === 'fade' && 'fade',
+    ].filter(Boolean).join(' ');
+    if (rootVar === rootVarOn) SE.attr(root, 'data-se-aika-menu', menuFlags || null);
+  }
+
+  // The window's spots the areas go to
+  const frameNode = () => document.querySelector('.OuterFrame > .ContentFrame') || document.querySelector('.ContentFrame');
+  let navTop = -1;
+
+  function placeRail(nodes, list, m) {
+    const W = m.size;
+    const wide = looks.has('wide');
+    const width = wide ? Math.max(W, 184) : W;
+    const margin = m.margin;
+    const top = navTop + margin;
+    const bottom = innerHeight - margin;
+    const inset = Math.max(0, Math.round((W - m.btn) / 2)); // 2.1.0: a 40 px tile centred in 56
+    const x = margin + (m.align === 'start' ? Math.min(inset, 6) : m.align === 'end' ? W - m.btn - Math.min(inset, 6) : inset);
+    rootVar('--aika-nav-rail', px(width, 56));
+    rootVar('--aika-nav-wide-w', wide || looks.has('hoverlabels') ? `${Math.max(184, W) - 2 * inset}px` : null);
+    rootVar('--aika-nav-panel-w', looks.has('hoverlabels') ? `${Math.max(184, W)}px` : null);
+    const length = (items) => items.reduce((sum, item, i) => sum + extent(item, m) + (i ? m.gap : 0), 0);
+    const startLen = length(list.start);
+    const endLen = length(list.end);
+    const midLen = length(list.center);
+    let y = {
+      start: top + m.pad,
+      end: bottom - m.pad - endLen,
+      center: Math.round((top + bottom - midLen) / 2),
+    };
+    // The middle area between the others, never over them
+    y.center = Math.max(y.start + startLen + (startLen ? m.gap : 0), Math.min(y.center, y.end - midLen - (endLen ? m.gap : 0)));
+    const counts = { sep: 0, gap: 0 };
+    const placed = [];
+    // The entrance's order: from the foot up (2.1.0: the avatar first)
+    let n = [...list.start, ...list.center, ...list.end].filter((item) => item !== 'sep' && item !== 'gap').length;
+    for (const zone of ['start', 'center', 'end']) {
+      let at = y[zone];
+      for (const item of list[zone]) {
+        const node = item === 'sep' || item === 'gap' ? filler(item, counts[item]++) : nodes[item];
+        const size = extent(item, m);
+        if (node) {
+          SE.attr(node, 'data-aika-nav-zone', zone);
+          prop(node, '--aika-nav-x', `${x}px`);
+          prop(node, '--aika-nav-y', `${Math.round(at)}px`);
+          prop(node, '--aika-nav-order', null);
+          if (item !== 'sep' && item !== 'gap') prop(node, '--aika-nav-n', String(--n));
+          if (item === 'sep' || item === 'gap') {
+            prop(node, '--aika-nav-len', `${size}px`);
+            if (node.parentElement !== document.body) document.body.append(node);
+          }
+          placed.push(node);
+        }
+        at += size + m.gap;
+      }
+    }
+    // The room the content gives up: the rail and its margin (auto-hide: the edge's strip; out
+    // over a browser page: the rail's again, as nothing can be drawn over the page)
+    const full = (looks.has('hoverlabels') ? W : width) + margin;
+    const room = !autohide() ? full : concealed || !SE.browserShown?.() ? EDGE : full;
+    rootVar('--aika-nav-room', room === 56 ? null : `${room}px`);
+    return { placed, counts };
+  }
+
+  function placeTop(nodes, list, m, controls) {
+    const counts = { sep: 0, gap: 0 };
+    const placed = [];
+    const row = controls.getBoundingClientRect();
+    const mid = row.top + row.height / 2;
+    const menuBar = document.querySelector(cls(C.RootMenuBar, 'RootMenuBar'));
+    const startX = Math.round((menuBar ? menuBar.getBoundingClientRect().right : 0) + 8 + m.margin);
+    const extentX = (item) => (item === 'sep' ? SEP : item === 'gap' ? Math.round(m.btn / 2) : nodes[item]?.getBoundingClientRect().width || m.btn);
+    let order = 1;
+    for (const zone of ['start', 'center', 'end']) {
+      const items = list[zone];
+      const total = items.reduce((sum, item, i) => sum + extentX(item) + (i ? m.gap : 0), 0);
+      let x = zone === 'start' ? startX : Math.round(innerWidth / 2 - total / 2);
+      for (const item of items) {
+        const node = item === 'sep' || item === 'gap' ? filler(item, counts[item]++) : nodes[item];
+        if (!node) continue;
+        SE.attr(node, 'data-aika-nav-zone', zone);
+        const size = extentX(item);
+        if (zone === 'end') {
+          // In the header's row, in order, before nothing of Steam's own (2.1.0: orders 1–5)
+          prop(node, '--aika-nav-x', null);
+          prop(node, '--aika-nav-y', null);
+          prop(node, '--aika-nav-order', String(order++));
+          if ((item === 'sep' || item === 'gap') && node.parentElement !== controls) controls.append(node);
+        } else {
+          prop(node, '--aika-nav-order', null);
+          prop(node, '--aika-nav-x', `${x}px`);
+          prop(node, '--aika-nav-y', `${Math.round(mid - (item === 'sep' ? m.btn * 0.6 : m.btn) / 2)}px`);
+          if ((item === 'sep' || item === 'gap') && node.parentElement !== document.body) document.body.append(node);
+        }
+        prop(node, '--aika-nav-len', item === 'sep' || item === 'gap' ? `${size}px` : null);
+        x += size + m.gap;
+        placed.push(node);
+      }
+    }
+    // The bars behind each area, when the look draws one (any mode but Aika's default)
+    const drawBars = Boolean(conf?.appearance?.mode && conf.appearance.mode !== 'default');
+    requestAnimationFrame(() => {
+      for (const bar of topPanels) {
+        const zone = bar.dataset.aikaNavZone;
+        const members = placed.filter((node) => node.dataset.aikaNavZone === zone && node.isConnected);
+        if (!drawBars || !members.length || root.dataset.aikaNav !== 'top') {
+          bar.remove();
+          continue;
+        }
+        const rects = members.map((node) => node.getBoundingClientRect()).filter((r) => r.width);
+        if (!rects.length) {
+          bar.remove();
+          continue;
+        }
+        const pad = Math.max(2, m.pad);
+        const left = Math.min(...rects.map((r) => r.left)) - pad;
+        const right = Math.max(...rects.map((r) => r.right)) + pad;
+        const h = conf.top?.size || Math.max(...rects.map((r) => r.height)) + 2 * pad;
+        bar.style.cssText = `left:${Math.round(left)}px;top:${Math.round(mid - h / 2)}px;width:${Math.round(right - left)}px;height:${Math.round(h)}px`;
+        if (bar.parentElement !== document.body) document.body.append(bar);
+      }
+    });
+    return { placed, counts };
+  }
+
+  /* ---------- Names beside the buttons, the profile's caption ---------- */
+
+  function labelFor(key, bell) {
+    if (key === 'settings') return T.settings;
+    if (key === 'games') return T.games;
+    if (key === 'news') return T.news;
+    if (key === 'alerts') {
+      const n = parseInt(bell?.dataset.aikaCount || '', 10);
+      return n ? `${T.alerts} · ${bell.dataset.aikaCount}` : T.alerts;
+    }
+    return '';
+  }
+  function captionFor(st) {
+    const p = conf?.profile || {};
+    const self = run(() => friendStore().self);
+    const name = run(() => self.display_name) || run(() => self.persona.m_strPlayerName) || T.profile;
+    const lines = [];
+    const labels = conf?.buttons?.labels;
+    if (p.showName || ((labels === 'labels' || labels === 'hover') && !p.showStatus && !p.showGame)) lines.push(name);
+    if (p.showStatus) lines.push(stateName(st));
+    if (p.showGame && st === 'ingame') {
+      const game = run(() => self.persona.GetCurrentGameName());
+      if (game) lines.push(game);
+    }
+    return lines.join('\n');
+  }
+
+  /* ---------- Auto-hide ---------- */
+
+  /*
+   * The rail slides away and comes back when the pointer reaches the window's left edge (a strip
+   * of the window kept for it); the top bar's buttons fold away and come back over the header's
+   * row. Never while a menu of theirs is open. Over a browser page (Steam's view covers the main
+   * window) the rail pushes the page aside while out, as nothing can be drawn over the page.
+   */
+  const EDGE = 6;
+  let concealed = false;
+  let revealTimer = 0;
+  let hideTimer = 0;
+  let nativeOpen = false; // Steam's own menu (the bell's, the account's) is open: stay
+  const autohide = () => Boolean(B().autohide);
+  const menuUp = () => Boolean((menu && !menu.released) || nativeOpen || document.querySelector('.se-menu[data-aika-nav-menu]'));
+  function setConcealed(next) {
+    clearTimeout(revealTimer);
+    clearTimeout(hideTimer);
+    revealTimer = hideTimer = 0;
+    if (concealed === next) return;
+    concealed = next;
+    if (next) hideTip();
+    schedule();
+  }
+  function wantReveal() {
+    clearTimeout(hideTimer);
+    hideTimer = 0;
+    if (!concealed || revealTimer) return;
+    revealTimer = setTimeout(() => setConcealed(false), B().showDelay ?? 150);
+  }
+  function wantHide() {
+    clearTimeout(revealTimer);
+    revealTimer = 0;
+    if (concealed || hideTimer || !autohide() || menuUp()) return;
+    hideTimer = setTimeout(() => {
+      hideTimer = 0;
+      if (!menuUp()) setConcealed(true);
+    }, B().hideDelay ?? 700);
+  }
+  const railRight = () => (metrics('rail').margin || 0) + (parseFloat(getComputedStyle(root).getPropertyValue('--aika-nav-rail')) || 56);
+  const inNav = (target) => Boolean(target?.closest?.(`${ITEM()}, .aika-nav-rail, .aika-nav-edge, .aika-nav-sep, .aika-nav-gap, .aika-nav-bar`));
+  function onMove(event) {
+    if (!autohide() || !root.dataset.aikaNav) return;
+    if (root.dataset.aikaNav === 'rail') {
+      if (event.clientX <= (concealed ? EDGE : railRight() + 16) && event.clientY >= navTop) wantReveal();
+      else if (!concealed) {
+        nativeOpen = false;
+        wantHide();
+      } else {
+        clearTimeout(revealTimer);
+        revealTimer = 0;
+      }
+    } else {
+      const controls = document.querySelector(CONTROLS);
+      if (event.target.closest?.(CONTROLS) || inNav(event.target)) wantReveal();
+      else if (!concealed && controls) {
+        nativeOpen = false;
+        wantHide();
+      }
+    }
+  }
+  // Out of the window (onto a browser page, a popup): out of the rail when past its edge
+  function onLeaveWindow(event) {
+    if (!autohide() || event.relatedTarget || concealed) return;
+    if (root.dataset.aikaNav === 'rail' ? event.clientX > railRight() : event.clientY > (document.querySelector(CONTROLS)?.getBoundingClientRect().bottom || 0)) wantHide();
+  }
+  function onNativeOpen(event) {
+    if (event.target.closest?.(`${BELL}, ${ACCOUNT}`)) nativeOpen = true;
+  }
+
+  /* ---------- Labels on hover (the rail grows while the pointer is over it) ---------- */
+
+  let expanded = false;
+  let expandTimer = 0;
+  function setExpanded(next) {
+    clearTimeout(expandTimer);
+    if (expanded === next) return;
+    expanded = next;
+    SE.attr(root, 'data-aika-nav-expanded', next ? '' : null);
+    if (next) hideTip();
+  }
+  function hoverEnter(event) {
+    if (!looks.has('hoverlabels') || root.dataset.aikaNav !== 'rail' || SE.browserShown?.()) return;
+    if (inNav(event.target)) {
+      clearTimeout(expandTimer);
+      expandTimer = setTimeout(() => setExpanded(true), B().tipDelay ?? 350);
+    }
+  }
+  function hoverLeave(event) {
+    if (!expanded && !expandTimer) return;
+    if (inNav(event.relatedTarget) || menuUp()) return;
+    clearTimeout(expandTimer);
+    expandTimer = setTimeout(() => setExpanded(false), 120);
+  }
+
+  /* ---------- The pass ---------- */
 
   let frame = 0;
-  let lastTop = -1;
+  let lastState = '';
+  let lastCount = -1;
+  let lastNews = false;
+  let lastMode = '';
+  const pulse = (el, name, ms = 900) => {
+    if (!el) return;
+    el.setAttribute(name, '');
+    setTimeout(() => el.removeAttribute(name), ms);
+  };
+
   function sync() {
     frame = 0;
     const news = document.querySelector(NEWS);
@@ -515,6 +998,8 @@
       settingsButton.remove();
       gamesButton.remove();
       rail.remove();
+      edge.remove();
+      topPanels.forEach((b) => b.remove());
       delete root.dataset.aikaNav;
       return;
     }
@@ -523,50 +1008,113 @@
       root.dataset.aikaNav = mode;
       menu?.release();
       hideTip();
+      setExpanded(false);
+      concealed = false;
+      if (lastMode && conf?.animations?.switch !== false && conf?.animations?.enabled !== false) pulse(root, 'data-aika-nav-switching', 400);
+      lastMode = mode;
     }
     // Settings and Games beside Steam's own buttons (Steam Enhanced's place: before Announcements)
     const before = slotOf(news || bell || account, controls);
     if (gamesButton.parentElement !== controls) controls.insertBefore(gamesButton, before);
     if (settingsButton.parentElement !== controls) controls.insertBefore(settingsButton, gamesButton);
-    mark(slotOf(news, controls), 'news');
-    mark(slotOf(bell, controls), 'alerts');
-    mark(slotOf(account, controls), 'profile');
-    // The bell's count, read off Steam's own button
+    const nodes = {
+      settings: settingsButton,
+      games: gamesButton,
+      news: slotOf(news, controls),
+      alerts: slotOf(bell, controls),
+      profile: slotOf(account, controls),
+    };
+    mark(nodes.news, 'news');
+    mark(nodes.alerts, 'alerts');
+    mark(nodes.profile, 'profile');
+
+    // The bell's count, read off Steam's own button; a pulse when it grows
     if (bell) {
       const n = parseInt((bell.textContent || '').replace(/\D+/g, ''), 10) || 0;
       const unread = n > 0 || bell.classList.contains(BELL_UNREAD);
       SE.attr(bell, 'data-aika-unread', unread ? '' : null);
       SE.attr(bell, 'data-aika-count', n > 0 ? (n > 99 ? '99+' : String(n)) : null);
+      if (lastCount >= 0 && n > lastCount && conf?.animations?.notify !== false) pulse(bell, 'data-aika-nav-ping');
+      lastCount = n;
     }
-    // The ring: your real status
+    if (news) {
+      const unread = news.hasAttribute('data-se-unread');
+      if (unread && !lastNews && conf && conf.animations?.notify !== false) pulse(news, 'data-aika-nav-ping');
+      lastNews = unread;
+    }
+    // The ring: your real status; a pulse when it changes
+    let st = 'offline';
     if (account) {
-      const st = selfState() || 'offline';
+      st = selfState() || 'offline';
+      if (lastState && st !== lastState && conf?.profile?.statusAnim !== false) pulse(account, 'data-aika-nav-pulse');
+      lastState = st;
       SE.attr(account, 'data-aika-state', st);
       SE.attr(account, 'aria-haspopup', 'menu');
       SE.attr(account, 'data-aika-tip', `${run(() => friendStore().self.display_name) || T.profile}`);
     }
+
+    const m = metrics(mode);
+    looks = lookOf(mode, m);
+    SE.attr(root, 'data-aika-nav-look', [...looks].join(' ') || null);
+    SE.attr(root, 'data-aika-nav-autohide', autohide() ? '' : null);
+    if (!autohide()) concealed = false;
+    SE.attr(root, 'data-aika-nav-concealed', concealed ? '' : null);
+    if (!looks.has('hoverlabels')) setExpanded(false);
+    paint(mode, m);
+
+    // Hidden buttons free their room
+    for (const key of KEYS) SE.attr(nodes[key], 'data-aika-nav-hidden', isHidden(key) ? '' : null);
+    // Names beside the buttons (labels), the profile's caption
+    const named = looks.has('labels') || looks.has('hoverlabels') || looks.has('wide');
+    for (const key of ['settings', 'games', 'news', 'alerts']) {
+      const target = key === 'news' ? news : key === 'alerts' ? bell : nodes[key];
+      SE.attr(target, 'data-aika-label', named ? labelFor(key, bell) : null);
+    }
+    SE.attr(account, 'data-aika-label', looks.has('caption') || named ? captionFor(st) || null : null);
+
+    if (mode === 'rail') {
+      const f = frameNode();
+      const top = f ? Math.round(f.getBoundingClientRect().top) : navTop;
+      if (top >= 0) navTop = top;
+      rootVar('--aika-nav-top', navTop >= 0 ? `${navTop}px` : null);
+    } else {
+      rootVar('--aika-nav-rail', null);
+      rootVar('--aika-nav-wide-w', null);
+      rootVar('--aika-nav-panel-w', null);
+    }
+
+    const list = areas(mode);
+    const { placed, counts } = mode === 'rail' ? placeRail(nodes, list, m) : placeTop(nodes, list, m, controls);
+    // Fillers not used this pass go
+    for (const kind of ['sep', 'gap']) fillers[kind].slice(counts[kind]).forEach((node) => node.remove());
+    for (const key of KEYS) if (!placed.includes(nodes[key])) SE.attr(nodes[key], 'data-aika-nav-zone', null);
+
     if (mode === 'rail') {
       if (rail.parentElement !== document.body) document.body.append(rail);
-      const frameNode = document.querySelector('.OuterFrame > .ContentFrame') || document.querySelector('.ContentFrame');
-      const top = frameNode ? Math.round(frameNode.getBoundingClientRect().top) : lastTop;
-      if (top >= 0 && top !== lastTop) {
-        lastTop = top;
-        root.style.setProperty('--aika-nav-top', `${top}px`);
-      }
+      if (autohide()) {
+        if (edge.parentElement !== document.body) document.body.append(edge);
+      } else edge.remove();
+      topPanels.forEach((b) => b.remove());
     } else {
+      rootVar('--aika-nav-room', null);
       rail.remove();
+      edge.remove();
     }
     patchManager();
   }
-  const schedule = () => {
+  const KEYS = ['profile', 'settings', 'games', 'news', 'alerts'];
+  function schedule() {
     if (!frame) frame = requestAnimationFrame(sync);
-  };
+  }
 
   const onSetting = () => schedule();
   addEventListener('click', onAccountClick, true);
   addEventListener('keydown', onAccountKey, true);
+  addEventListener('pointerdown', onNativeOpen, true);
   document.addEventListener('mouseover', onOver);
   document.addEventListener('mouseout', onOut);
+  document.addEventListener('pointermove', onMove, { passive: true });
+  document.documentElement.addEventListener('mouseleave', onLeaveWindow);
   addEventListener('resize', schedule);
   addEventListener('aika-visual-setting', onSetting);
   // Structure changes (Steam re-rendering its buttons) and, slowly, the persona's state (no event)
@@ -575,17 +1123,37 @@
   sync();
 
   state.layout = () => root.dataset.aikaNav || '';
+  // What a layout draws with, for the Navigation editor's preview (nothing is changed here)
+  state.preview = (mode) => {
+    const m = metrics(mode);
+    const vars = {};
+    paint(mode, m, (name, value) => {
+      if (value != null) vars[name] = value;
+    });
+    return { m, looks: [...lookOf(mode, m)], vars, areas: areas(mode), label: (key) => labelFor(key, document.querySelector(BELL)), caption: () => captionFor(selfState() || 'offline'), state: () => selfState() || 'offline' };
+  };
   state.refresh = schedule;
+  state.sync = sync;
+  state.concealed = () => concealed;
+  state.reveal = () => setConcealed(false);
+  state.conceal = () => autohide() && setConcealed(true);
   state.destroy = () => {
     removeEventListener('click', onAccountClick, true);
     removeEventListener('keydown', onAccountKey, true);
+    removeEventListener('pointerdown', onNativeOpen, true);
     document.removeEventListener('mouseover', onOver);
     document.removeEventListener('mouseout', onOut);
+    document.removeEventListener('pointermove', onMove);
+    document.documentElement.removeEventListener('mouseleave', onLeaveWindow);
     removeEventListener('resize', schedule);
     removeEventListener('aika-visual-setting', onSetting);
+    offConfig?.();
     watcher?.disconnect();
     poll?.disconnect();
     if (frame) cancelAnimationFrame(frame);
+    clearTimeout(revealTimer);
+    clearTimeout(hideTimer);
+    clearTimeout(expandTimer);
     menu?.release();
     hideTip();
     for (const [manager, saved] of patchedManagers) {
@@ -594,18 +1162,19 @@
     patchedManagers.clear();
     for (const a of anchors.values()) a.remove();
     anchors.clear();
-    for (const el of marked) el.removeAttribute('data-aika-nav-slot');
+    const attrs = ['data-aika-nav-slot', 'data-aika-nav-zone', 'data-aika-nav-hidden', 'data-aika-label', 'data-aika-state', 'data-aika-unread', 'data-aika-count'];
+    for (const el of document.querySelectorAll(attrs.map((a) => `[${a}]`).join(','))) for (const a of attrs) el.removeAttribute(a);
     marked.clear();
-    for (const el of document.querySelectorAll('[data-aika-state], [data-aika-unread], [data-aika-count]')) {
-      el.removeAttribute('data-aika-state');
-      el.removeAttribute('data-aika-unread');
-      el.removeAttribute('data-aika-count');
-    }
+    for (const el of styled) for (const name of ['--aika-nav-x', '--aika-nav-y', '--aika-nav-order', '--aika-nav-n', '--aika-nav-len']) el.style.removeProperty(name);
+    styled.clear();
+    for (const name of ROOT_VARS) root.style.removeProperty(name);
+    for (const kind of ['sep', 'gap']) fillers[kind].forEach((node) => node.remove());
     settingsButton.remove();
     gamesButton.remove();
     rail.remove();
-    delete root.dataset.aikaNav;
-    root.style.removeProperty('--aika-nav-top');
+    edge.remove();
+    topPanels.forEach((b) => b.remove());
+    for (const a of ['data-aika-nav', 'data-aika-nav-look', 'data-aika-nav-autohide', 'data-aika-nav-concealed', 'data-aika-nav-expanded', 'data-se-aika-menu', 'data-aika-nav-switching']) root.removeAttribute(a);
     delete window.__aikaNav;
   };
 })(window.__se);

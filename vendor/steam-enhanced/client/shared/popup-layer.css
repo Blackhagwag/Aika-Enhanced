@@ -413,3 +413,43 @@ html.se-layer-document .se-layer-wrap > *:not(#se-none) {
   font: 500 var(--se-fs-sm) / 1.3 var(--se-font);
   color: var(--se-text-faint);
 }
+
+/* --------------------------------------------------------------------------
+   Aika Enhanced: the Navigation's menus (Profile, Settings, Games,
+   Announcements: data-aika-nav-menu) take the Navigation editor's Pop-up menu
+   settings — custom properties on the root, copied into popup windows with the
+   root's state (popup-layer.js copyRootState). Unset, each falls back to the
+   menu's own value above: nothing changes until a setting is moved.
+   -------------------------------------------------------------------------- */
+.se-menu[data-aika-nav-menu] {
+  --se-menu-row-h: var(--aika-menu-row, var(--se-control-h));
+  --se-icon-glyph: var(--aika-menu-icon, 18px);
+  border-radius: var(--aika-menu-r, var(--se-radius-menu));
+  background: rgb(from var(--se-surface) r g b / calc(alpha * var(--aika-menu-a, 1)));
+  -webkit-backdrop-filter: var(--aika-menu-blur, none);
+  backdrop-filter: var(--aika-menu-blur, none);
+  animation-duration: calc(var(--se-dur) * var(--aika-menu-k, 1));
+}
+.se-menu[data-aika-nav-menu][data-se-closing] {
+  animation-duration: calc(var(--se-dur-fast) * var(--aika-menu-k, 1));
+}
+html[style*="--aika-menu-w"] .se-menu[data-aika-nav-menu] {
+  box-sizing: border-box;
+  width: var(--aika-menu-w);
+  min-width: 0;
+}
+html[style*="--aika-menu-fs"] .se-menu[data-aika-nav-menu] button {
+  font-size: var(--aika-menu-fs) !important;
+}
+html[data-se-aika-menu~="nosep"] .se-menu[data-aika-nav-menu] .se-menu-sep {
+  display: none;
+}
+html[data-se-aika-menu~="fade"] .se-menu[data-aika-nav-menu] {
+  animation-name: aika-nav-menu-fade;
+}
+html[data-se-aika-menu~="still"] .se-menu[data-aika-nav-menu] {
+  animation: none;
+}
+@keyframes aika-nav-menu-fade {
+  from { opacity: 0; }
+}

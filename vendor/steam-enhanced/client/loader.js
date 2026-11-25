@@ -51,7 +51,7 @@
     ['main', 'client/header/', ['header-shortcuts.js']],
     ['main', 'client/shared/', ['news-feed.js']],
     ['main', 'client/header/', ['announcements.js']],
-    ['main', 'client/navigation/', ['aika-nav.js']],
+    ['main', 'client/navigation/', ['nav-config.js', 'aika-nav.js']],
     // Steam's notifications menu (its own popup window): each row's kind and the days (Steam Enhanced)
     ['menu', 'client/header/', ['notifications.css', 'notifications.js']],
     // The Friends dock chat: Steam Enhanced's engine (Steam's own Friends & Chat tree, its chat
@@ -82,8 +82,8 @@
     // Millennium Settings in a popup of its own, the theme's settings window (Aika's settings and
     // the Friends Dock's, through aika-settings.js), Millennium's library manager
     ['main', 'client/settings/millennium/', ['millennium-window.js']],
-    ['desktop', 'client/settings/theme/', ['theme-settings.css']],
-    ['main', 'client/settings/theme/', ['aika-settings.js', 'theme-settings.js']],
+    ['desktop', 'client/settings/theme/', ['theme-settings.css', 'nav-editor.css']],
+    ['main', 'client/settings/theme/', ['aika-settings.js', 'nav-editor.js', 'theme-settings.js']],
     ['main', 'client/settings/library-manager/', ['library-manager.css', 'library-manager.js']],
   ];
 

@@ -1,5 +1,95 @@
 # Changelog
 
+## 2.2.0 — 2026-11-25
+
+The navigation, customisable: a Navigation editor in the theme settings window with a live preview,
+drag-and-drop order, presets and JSON import/export. With nothing changed the navigation is
+2.1.0's, pixel for pixel. The 2.1.0 state is the git tag `v2.1.0` (branch
+`backup/aika-enhanced-2.1.0`).
+
+### Added
+- **Navigation editor** (theme settings › Navigation), with categories General, Layout, Buttons,
+  Profile, Appearance, Animations, Behaviour, Pop-up menus and Presets. Each control is a real
+  setting, applied at once to the real navigation and to the live preview, which uses your
+  avatar and status. Each category has its own reset, and General has a full reset back to
+  2.1.0's navigation.
+- **Per-layout settings**: the Left Sidebar and the Top Bar each keep their own sizes, order and
+  visible buttons. You can edit either one while the other is in use.
+- **Layout**:
+  - sidebar width / bar height;
+  - button, icon and avatar size;
+  - spacing; inner padding; outer margin (a floating rail);
+  - button radius, panel radius, border thickness;
+  - alignment.
+- **Buttons**:
+  - areas: the rail's top, middle and bottom; the top bar's left, middle and right;
+  - drag and drop between areas, or arrow keys;
+  - separators and gaps, added from a palette and removed with Delete;
+  - each button can be hidden, and the rest close up;
+  - unread indicators, tooltips, separators, button background and borders on or off.
+  - With Settings hidden, the theme's settings are in My Profile's menu, the dock's button,
+    Millennium's sidebar and Ctrl+Shift+`.
+- **Profile**:
+  - avatar shape (squircle / round);
+  - status ring on or off, its width, its gap and the hover glow;
+  - a pulse on status change;
+  - caption: name, status, the game you're in;
+  - a status dot;
+  - colours per state: Online, In game, Away, Snooze, Do Not Disturb, Invisible, Offline.
+    These are Steam's own states; Steam's legacy Busy uses the Do Not Disturb colour.
+- **Appearance**:
+  - styles: Aika (the default), Minimal, Glass, Transparent, Solid, Custom;
+  - panel opacity and blur;
+  - button opacity; hover and active intensity;
+  - borders and their opacity; shadow; glow; accent colour.
+- **Animations**: on/off; speed; hover style (colour, lift, grow, glow, none); press; the open
+  button; menu opening (slide, fade, none); tooltips; the avatar ring; new notifications; the
+  layout switch.
+- **Behaviour**:
+  - auto-hide: the rail comes back at the window's left edge, the top bar's buttons over the
+    header's row; there are hide and show delays, and nothing hides while a menu is open;
+  - compact mode;
+  - icons only / icons and names / names on hover (the rail opens over the content);
+  - closing menus on an outside click or when the pointer leaves;
+  - tooltip delay.
+- **Pop-up menus** (My Profile, Settings, Games, Announcements): width, radius, opacity, blur,
+  font size, row height, icon size, opening speed, separators. These also apply in Steam's popup
+  windows.
+- **Presets**:
+  - built-ins: Original Aika Enhanced, Steam Enhanced Style, Minimal Sidebar, Compact Top Bar,
+    Glass Navigation;
+  - your own: save, rename, duplicate, update, delete, switch;
+  - JSON export (copy) and import. Bad JSON is refused with a message, and wrong values fall back
+    to their defaults.
+- Stored in localStorage and in Millennium's theme config (`__aika_nav`), and restored on a
+  cleared profile.
+
+### Not possible, left out
+- Steam's own Notifications menu and its account menu are Steam's windows, so the pop-up menu
+  settings don't reach them.
+- The panel and menu blur shows only over what is behind it in the same window. Over Store and
+  Community pages (Steam's browser view) the rail can't be drawn over the page: with auto-hide or
+  names on hover it moves the page aside, or shows tooltips instead.
+- The editor's settings aren't in the window's search.
+
+### Kept as they were
+The Friends Dock, the chat, the Millennium Settings, Downloads, the library, the store, the
+community, Aika's presets and existing settings.
+
+### Files
+- Added: `vendor/steam-enhanced/client/navigation/nav-config.js`,
+  `vendor/steam-enhanced/client/settings/theme/nav-editor.js` and `nav-editor.css`,
+  `tests/nav-custom.e2e.cjs`, `CLAUDE.md`.
+- Changed: `vendor/.../navigation/aika-nav.js` (the layout engine), `sections/navigation.css`,
+  `vendor/.../client/loader.js`, `vendor/.../settings/theme/aika-settings.js` (Millennium's copy),
+  `skin.json` (2.2.0), `.gitignore`, tests stub.
+- Patched Steam Enhanced files:
+  - `client/settings/theme/theme-settings.js` (`customTabs`);
+  - `client/shared/popup-layer-menu.js` (`mark`, `closeOutside`);
+  - `client/shared/popup-layer.js` (copies `--aika-menu-*` into popup windows);
+  - `client/shared/popup-layer.css` (the navigation menus' settings);
+  - `client/header/announcements.js`.
+
 ## 2.1.0 — 2026-11-25
 
 Steam Enhanced's navigation, the parts asked for, in Aika's look: **My Profile**, **Settings**,

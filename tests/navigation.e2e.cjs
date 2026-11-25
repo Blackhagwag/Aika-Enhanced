@@ -66,6 +66,7 @@ test("Top Bar: the five buttons in the header's row, once each, in Steam Enhance
 
 test("Left Sidebar: a rail at the left, the avatar at its foot, the content beside it", async () => {
   const page = await open("nav-sidebar");
+  await settle(page); // the content's room eases in
   assert.equal(await page.getAttribute("html", "data-aika-nav"), "rail");
   const railBox = await rect(page, ".aika-nav-rail");
   assert.equal(railBox.x, 0);

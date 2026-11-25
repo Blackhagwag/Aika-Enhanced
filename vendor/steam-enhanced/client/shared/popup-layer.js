@@ -458,7 +458,16 @@
       for (const name of last?.attrs.keys() || []) if (!attrs.has(name)) to.removeAttribute(name);
       for (const name of classes) to.classList.add(name);
       for (const [name, value] of attrs) to.setAttribute(name, value);
-      after.set(to, { classes, attrs });
+      /* Aika Enhanced: the Navigation's menu settings (--aika-menu-*, set on the root by
+         client/navigation/aika-nav.js) go along, so its menus look the same in a popup window */
+      const vars = new Map();
+      for (let i = 0; i < from.style.length; i++) {
+        const name = from.style[i];
+        if (name.startsWith('--aika-menu-')) vars.set(name, from.style.getPropertyValue(name));
+      }
+      for (const name of last?.vars?.keys() || []) if (!vars.has(name)) to.style.removeProperty(name);
+      for (const [name, value] of vars) to.style.setProperty(name, value);
+      after.set(to, { classes, attrs, vars });
     }
     copiedState.set(doc, after);
   }

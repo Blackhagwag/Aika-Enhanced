@@ -455,8 +455,14 @@
       return parts;
     };
 
+    /* Aika Enhanced: a tab the settings draw themselves (settings.customTabs[tab]: the Navigation
+       editor, client/settings/theme/nav-editor.js), given this window's parts; what it leaves
+       running is undone before the next page */
+    let cleanups = [];
+    const toolkit = () => ({ doc, make, button, row, heading, header, range, ui, settings, rerender: () => render() });
     // The page: the tab's, or every match of the search
     const render = () => {
+      cleanups.splice(0).forEach(run);
       updates = [];
       const words = query.toLowerCase().split(/\s+/).filter(Boolean);
       const matches = (item) => {
@@ -477,7 +483,12 @@
         parts = [header(`${found.length} ${ui(found.length === 1 ? 'setting' : 'settings')}`), rows];
       } else {
         const items = settings.schema.filter((item) => item.tab === tab && !item.hidden);
-        const body = tab === 'Appearance' ? appearance(items) : sections(items);
+        const custom = settings.customTabs?.[tab];
+        const body = custom
+          ? custom({ ...toolkit(), items, cleanup: (fn) => cleanups.push(fn), refresh: (fn) => updates.push(fn) })
+          : tab === 'Appearance'
+            ? appearance(items)
+            : sections(items);
         const info = settings.tabInfo?.[tab] || TABS[tab];
         parts = [header(info?.[2] || tab, info?.[1]), ...body];
       }
@@ -528,6 +539,7 @@
     view = { doc, destroy: null };
     const destroy = () => {
       cancelAnimationFrame(frame);
+      cleanups.splice(0).forEach(run);
       off();
       host.replaceChildren();
       if (view?.doc === doc) view = null;

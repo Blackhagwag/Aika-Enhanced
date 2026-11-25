@@ -109,7 +109,10 @@
     };
   }
 
-  function menu(items, at, { sheets = [], owner = null, closeOnLeave = false } = {}) {
+  /* Aika Enhanced: `mark` names the menu (data-<mark> on it: the Navigation's menus take their
+     look from the Navigation settings), `closeOutside: false` keeps it open on a click elsewhere
+     (Escape, its button and its rows still close it) */
+  function menu(items, at, { sheets = [], owner = null, closeOnLeave = false, closeOutside = true, mark = '' } = {}) {
     openMenu?.release();
     const open = panel({ sheets });
     if (!open) return null;
@@ -151,7 +154,7 @@
         released = true;
         if (openMenu === handle) openMenu = null;
         removeEventListener('keydown', onKey, true);
-        removeEventListener('pointerdown', onPointer, true);
+        if (closeOutside) removeEventListener('pointerdown', onPointer, true);
         leaving?.dispose();
         SE.attr(owner, 'aria-expanded', 'false');
         // In the page it fades out first; a popup window's goes at once (its spare is reused)
@@ -174,6 +177,7 @@
       list.className = 'se-menu';
       list.setAttribute('role', 'menu');
       if (redraw) list.setAttribute('data-se-redraw', '');
+      if (mark) list.setAttribute(`data-${mark}`, '');
       const part = (tag, className, text) => {
         const node = doc.createElement(tag);
         node.className = className;
@@ -287,7 +291,7 @@
 
     openMenu = handle;
     addEventListener('keydown', onKey, true);
-    addEventListener('pointerdown', onPointer, true);
+    if (closeOutside) addEventListener('pointerdown', onPointer, true);
     SE.attr(owner, 'aria-expanded', 'true');
     return handle;
   }

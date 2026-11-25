@@ -146,7 +146,13 @@
       entries(),
       // Beside the rail, its bottom level with the button's, as every foot menu opens
       SE.layer.besideRail(button, { foot: true }),
-      { owner: button, closeOnLeave: true }
+      /* Aika Enhanced: the Navigation's menu look and closing behaviour (nav-config.js) */
+      {
+        owner: button,
+        closeOnLeave: window.__aikaNavConfig?.get().behavior.closeLeave !== false,
+        closeOutside: window.__aikaNavConfig?.get().behavior.closeOutside !== false,
+        mark: 'aika-nav-menu',
+      }
     );
     // No panel could open: the news hub instead
     if (!menu) SE.news.openHub();

@@ -7,7 +7,7 @@ const NATIVE = "Aika-Enhanced";
 const skin = await (await fetch("../../skin.json")).json();
 const state = {
   calls: [],
-  conditions: { "Color preset": "Aika", "Dock width": "264" },
+  conditions: { "Color preset": "Aika", "Dock width": "264", ...(window.__aikaTestStartConditions || {}) },
   colors: {
     "--aika-user-accent": "#8B7FF0", "--aika-user-accent-bright": "#A497F5",
     "--aika-user-light-1": "#8B7FF0", "--aika-user-light-2": "#C77DBA", "--aika-user-light-3": "#D9906A",
