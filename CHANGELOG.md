@@ -4,7 +4,7 @@ Format: one `## X.Y.Z — date — title` section per release (MAJOR = big chang
 features, PATCH = fixes), each with **New** / **Fixed** lists. Work in progress goes under
 `## Unreleased`; `tools/release.ps1` turns it into the release heading.
 
-## Unreleased
+## 2.0.1 — 2026-11-25 — Updates through Millennium
 
 Updates through Millennium. No change to the theme's look or settings.
 

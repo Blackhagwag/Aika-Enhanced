@@ -2,7 +2,7 @@
     "name": "Aika Enhanced",
     "author": "hatewxb (Aika), NVHT (Steam Enhanced Friends dock)",
     "description": "Aika, a warm dark theme for Steam (Fluent structure, file-system-style panels and soft spots of light on a near-black background), with a Friends Dock and its built-in chat on every page, and Steam Enhanced's Millennium Settings.",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "tags": ["Fluent", "Dark", "Warm", "Minimal", "Friends", "Chat", "WIP"],
     "header_image": "https://raw.githubusercontent.com/Blackhagwag/Aika-Enhanced/main/docs/friends-dock/expanded.jpg",
     "splash_image": "https://raw.githubusercontent.com/Blackhagwag/Aika-Enhanced/main/docs/friends-dock/settings-window-aika.jpg",
