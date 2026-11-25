@@ -188,13 +188,22 @@
     return id != null && !String(id).startsWith('cg') ? String(id).replace(/^f/, '') : null;
   }
 
+  // Called on every placement pass: writes only what changed
+  let keptChat = null;
   function chatChanged() {
     const open = dock.dataset.chat === '1';
-    chatPopout.hidden = !open || dock.dataset.chatMinimized === '1' || aika()?.setting?.('popout') === '0';
+    const noPopout = !open || dock.dataset.chatMinimized === '1' || aika()?.setting?.('popout') === '0';
+    if (chatPopout.hidden !== noPopout) chatPopout.hidden = noPopout;
     followHistory();
-    try {
-      if (open && activeFriend()) localStorage.setItem('aika-fdock-chat', activeFriend());
-    } catch {}
+    const id = open ? activeFriend() : null;
+    if (id && id !== keptChat) {
+      keptChat = id;
+      try { localStorage.setItem('aika-fdock-chat', id); } catch {}
+    } else if (!open && keptChat && !live.chatNavigation) {
+      // closed by its own ×: not brought back at the next start
+      keptChat = null;
+      try { localStorage.removeItem('aika-fdock-chat'); } catch {}
+    }
   }
 
   // The open conversation in Steam's window: Steam Enhanced's openWindow(), then Steam's own
@@ -207,6 +216,7 @@
       const ctx = run(() => a.GetDefaultBrowserContext());
       if (f && ctx) run(() => f.OpenChatDialog(ctx));
     });
+    keptChat = null;
     try { localStorage.removeItem('aika-fdock-chat'); } catch {}
     aika()?.refresh?.();
   }
@@ -228,6 +238,7 @@
     },
     close() {
       if (dock.dataset.chat === '1') closeChat();
+      keptChat = null;
       try { localStorage.removeItem('aika-fdock-chat'); } catch {}
     },
     minimize() {

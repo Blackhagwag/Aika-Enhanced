@@ -849,7 +849,8 @@
   let versionRequest = null;
   const themeVersion = () =>
     (versionRequest ??= coreSrc
-      ? fetch(new URL('../skin.json', coreSrc), { cache: 'no-store' })
+      ? /* Aika Enhanced: the theme's skin.json is at its root, above vendor/steam-enhanced/ */
+        fetch(new URL('../../../skin.json', coreSrc), { cache: 'no-store' })
           .then(response => response.json())
           .then(skin => (typeof skin?.version === 'string' && skin.version ? skin.version : null))
           .catch(() => null)

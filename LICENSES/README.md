@@ -10,12 +10,15 @@ f411d9a57612ece59a56aa8d112cef44ac03d9be).
 | --- | --- | --- |
 | Everything from Aika (CSS, JS, options, assets, docs, tools, tests) | hatewxb | **No license file is published in the Aika repository** — see the note below |
 | Friends Dock behaviour adapted in `js/friends-dock.js` (the FriendStore data pass, persona states, chat/profile actions, the reserved column beside the library, the small-window fold) | NVHT | MIT — [`Steam-Enhanced-MIT.txt`](Steam-Enhanced-MIT.txt) |
+| `vendor/steam-enhanced/` — Steam Enhanced 1.4.4 parts copied from NVHT/Steam-Enhanced@7d8439c: the runtime, the popup layer, menus, the Friends dock chat engine, the Millennium Settings design, the theme settings window, the library manager, Brew Hub's page, icons and tokens. Patches are marked "Aika Enhanced" in the files; `client/loader.js`, `aika-*.js`, `friends-dock-aika*.css`, `aika-foundation.css` are Aika Enhanced's own | NVHT (copied parts) | MIT — `vendor/steam-enhanced/LICENSE` |
+| Millennium's backend calls used by the settings window (Core_GetStartConfig, Core_ChangeCondition, Core_GetThemeColorOptions, Core_ChangeColor) — called, not copied | Project Millennium | (MIT, not bundled) |
 | Inter, Onest, Geist Mono, Fraunces, Unbounded, UnifrakturMaguntia, Shojumaru, Great Vibes, Yuji Syuku, Yuji Mai fonts (bundled by Aika) | their authors | SIL OFL 1.1 — `assets/fonts/OFL-*.txt` |
 | hyalite liquid glass (bundled by Aika) | VII-Cae | MIT — `js/vendor/LICENSE-hyalite.txt` |
 | Aika Enhanced additions (Friends Dock markup, styling, settings, installers, tests) | Aika Enhanced contributors | Offered under the same terms as the rest of the project |
 
-No markup, stylesheet or artwork of Steam Enhanced is included: the dock's look is
-built only from Aika's own tokens and components.
+The Friends Dock's own look is built only from Aika's tokens and components. The parts
+copied from Steam Enhanced keep their structure and take Aika's palette, type, radii and motion
+through the token bridge at the end of `vendor/steam-enhanced/core/tokens.css`.
 
 ## Note on Aika's license
 

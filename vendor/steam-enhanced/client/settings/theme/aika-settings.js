@@ -287,8 +287,37 @@
     'Scroll to new messages': 'arrow-top', 'Keep the open chat': 'pause',
   };
 
+  // The window's own words in Russian, with Steam in Russian (js/settings-l10n.js is loaded)
+  const UI_RU = {
+    Version: 'Версия', 'Search settings': 'Поиск настроек', Colours: 'Цвета', 'Fine-tune': 'Тонкая настройка',
+    'No settings match.': 'Ничего не найдено.', setting: 'настройка', settings: 'настроек',
+  };
+
+  /*
+   * Millennium's own editor for the theme (its sidebar, "Configure" in Millennium › Themes) stays
+   * as it is, in Aika's look and in Russian (js/settings-l10n.js); a button at its top opens this
+   * window with every setting.
+   */
+  const OPEN_LABEL = () => (L10N() ? 'Все настройки Aika Enhanced' : 'All Aika Enhanced settings');
+  function sidebarButton() {
+    const side = document.querySelector('.MillenniumDesktopSidebar');
+    const title = side?.querySelector('.MillenniumDesktopSidebar_Title')?.textContent.trim() || '';
+    const host = side?.querySelector('.MillenniumDesktopSidebar_EditorContent');
+    if (!host || !THEME_TITLE.test(title) || !ready || host.querySelector('.aika-open-settings')) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'aika-open-settings';
+    button.textContent = OPEN_LABEL();
+    button.addEventListener('click', () => window.__seThemeSettings?.open());
+    host.prepend(button);
+  }
+  const sideWatch = SE.watch(sidebarButton, { throttle: 250 });
+
   const api = {
     icons: ICONS,
+    get ui() {
+      return L10N() ? UI_RU : null;
+    },
     get schema() {
       return schema;
     },
@@ -324,6 +353,8 @@
     reload: () => load().catch((error) => console.warn('[Aika Enhanced] settings:', error)),
     destroy() {
       destroyed = true;
+      sideWatch?.disconnect?.();
+      document.querySelectorAll('.aika-open-settings').forEach((b) => b.remove());
       listeners.clear();
       if (SE.settings === api) delete SE.settings;
       delete window.__aikaSettings;

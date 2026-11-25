@@ -296,3 +296,28 @@ html:not([data-se-qce]) .MillenniumQuickCss_Popup .cm-editor .cm-selectionBackgr
 html:not([data-se-qce]) .MillenniumQuickCss_Popup .cm-editor.cm-focused .cm-selectionBackground {
     background: var(--aika-accent-soft);
 }
+
+/* --- Aika Enhanced: "All Aika Enhanced settings" in Millennium's theme editor ------------------- */
+/* Opens the theme's settings window (Steam Enhanced's, vendor/steam-enhanced/client/settings/
+   theme/); a secondary button (components/button.css), the whole width over the conditions */
+html .MillenniumDesktopSidebar .aika-open-settings {
+    display: block;
+    width: 100%;
+    margin: 0 0 var(--aika-space-3);
+    padding: var(--aika-space-2) var(--aika-space-3);
+    border: none;
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    box-shadow: var(--aika-shadow-secondary);
+    color: var(--aika-fg);
+    font: var(--aika-weight-medium) var(--aika-text-body) var(--aika-font-ui);
+    cursor: pointer;
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html .MillenniumDesktopSidebar .aika-open-settings:hover {
+    background: var(--aika-surface-hover);
+    box-shadow: var(--aika-shadow-secondary-hover);
+}

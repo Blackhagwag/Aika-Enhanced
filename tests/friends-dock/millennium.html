@@ -1,0 +1,91 @@
+<!doctype html>
+<!--
+  TEST HARNESS ONLY (not part of the theme). A skeleton of Millennium's settings window (the
+  .MillenniumSettings paged dialog, with the CSS-module classes of Steam's PagedSettingsDialog
+  that Steam Enhanced's design reads, vendor/steam-enhanced/core/classmap.js) on its Themes page,
+  with Aika's main.css (what a Steam dialog window gets) and the Steam Enhanced parts' loader, to
+  look at Steam Enhanced's Millennium design in Aika's palette.
+  Query: ?preset=aika|hello-bert|greeny|rose-ash  &page=themes|plugins
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Millennium</title>
+<script>
+  const q = new URLSearchParams(location.search);
+  document.write(`<link rel="stylesheet" href="../../options/presets/${q.get("preset") || "aika"}.css">`);
+  document.write('<link rel="stylesheet" href="../../main.css">');
+  window.__aikaTestClient = true;
+</script>
+<style>
+  /* Steam's own dialog layout, roughly */
+  html, body { margin: 0; height: 100%; }
+  .MillenniumSettings { display: flex; height: 100vh; }
+  ._2kwFFHckg8jvnwJfg9-la8 { display: flex; flex-direction: column; }
+  ._1-vlriAtKYDViAEunue4VO { display: flex; align-items: center; padding: 8px 12px; cursor: pointer; }
+  .CFTLX2wIKOK3hNV-fS7_V { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+  .DialogHeader { font: 600 24px var(--aika-font-ui); padding: 24px 36px 8px; color: var(--aika-fg); }
+  .DialogBody { flex: 1; overflow: auto; padding: 0 36px 24px; }
+  .eKmEXJCm_lgme24Fp_HWt { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--aika-border); }
+  .DialogButton { padding: 6px 14px; border-radius: 4px; border: 0; font: inherit; }
+</style>
+</head>
+<body class="DesktopUI">
+<div class="MillenniumSettings PagedSettingsDialog">
+  <div class="_2kwFFHckg8jvnwJfg9-la8">
+    <div class="_2rjVTGz8aLvqOdz5v2gq5C">Millennium</div>
+    <div class="_18QCu-7MTzd51UpVbYysDy" id="list"></div>
+  </div>
+  <div class="CFTLX2wIKOK3hNV-fS7_V" id="content"></div>
+</div>
+<script type="module">
+  const q = new URLSearchParams(location.search);
+  const page = q.get("page") || "themes";
+  const pages = ["General", "Themes", "Quick CSS", "Plugins", "Updates", "Logs"];
+  const list = document.getElementById("list");
+  for (const name of pages) {
+    const item = document.createElement("div");
+    item.className = "_1-vlriAtKYDViAEunue4VO" + (name.toLowerCase() === page ? " _2DpXjzK3WWsOtUWUrcuOG7" : "");
+    item.innerHTML = `<div class="_2PPbMrzl8PKBwpkjYs9b0i"></div>`;
+    item.firstChild.textContent = name;
+    list.append(item);
+  }
+  const content = document.getElementById("content");
+  const themes = [
+    ["Aika Enhanced", "2.0.0", "hatewxb, NVHT", true],
+    ["Aika", "0.1.8", "hatewxb", false],
+    ["Steam Enhanced", "1.4.4", "NVHT", false],
+    ["Space Theme", "1.6.0", "SpaceTheme", false],
+  ];
+  const header = document.createElement("div");
+  header.className = "DialogHeader";
+  header.textContent = page === "plugins" ? "Plugins" : "Themes";
+  const body = document.createElement("div");
+  body.className = "DialogBody";
+  const buttons = document.createElement("div");
+  buttons.className = "MillenniumButtonsSection";
+  buttons.innerHTML = '<button class="DialogButton MillenniumButton" data-button-type="install-theme">Install a theme</button>';
+  body.append(buttons);
+  for (const [name, version, author, active] of themes) {
+    const field = document.createElement("div");
+    field.className = "eKmEXJCm_lgme24Fp_HWt MillenniumThemes_ThemeItem";
+    field.dataset.themeName = name;
+    field.innerHTML = `<div class="_2tALpM7z8naXJ35Pp5fNAG"><div class="_3jMlJm4PQCA8SfNlUR99Fo"><div class="MillenniumThemes_ThemeLabel"><span></span><div class="MillenniumItem_Version"></div></div></div>
+      <div class="MillenniumThemes_Description"></div></div><div><button class="DialogButton MillenniumButton"></button></div>`;
+    field.querySelector(".MillenniumThemes_ThemeLabel span").textContent = name;
+    field.querySelector(".MillenniumItem_Version").textContent = `v${version}`;
+    field.querySelector(".MillenniumThemes_Description").textContent = `by ${author}`;
+    field.querySelector("button").textContent = active ? "Disable" : "Use";
+    body.append(field);
+  }
+  content.append(header, body);
+  const s = document.createElement("script");
+  s.type = "module";
+  s.src = "../../vendor/steam-enhanced/client/loader.js";
+  document.head.append(s);
+  window.__errors = [];
+  addEventListener("error", (e) => window.__errors.push(String(e.message)));
+  setTimeout(() => document.documentElement.dataset.ready = "1", 1500);
+</script>
+</body>
+</html>

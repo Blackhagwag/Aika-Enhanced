@@ -2,84 +2,112 @@
 
 # Aika Enhanced
 
-**[Aika](https://github.com/hatewxb/Aika), the warm dark Steam theme by hatewxb, with a Friends Dock at the right of the library** · [Millennium](https://steambrew.app) · 0.1.8-enhanced.1
+**[Aika](https://github.com/hatewxb/Aika), the warm dark Steam theme by hatewxb — with a Friends Dock and its built-in chat on every page, and [Steam Enhanced](https://github.com/NVHT/Steam-Enhanced)'s Millennium Settings** · [Millennium](https://steambrew.app) · 2.0.0
 
 ![The Friends Dock, expanded](docs/friends-dock/expanded.jpg)
 
 </div>
 
-Aika Enhanced is the original Aika 0.1.8 (library, header, game cards and pages,
-store, profiles, friends window, overlay, presets, motion, settings) with one
-addition: a friends column at the right edge of the library. Its behaviour comes
-from the Friends dock of [Steam Enhanced](https://github.com/NVHT/Steam-Enhanced)
-by NVHT; its look is Aika's own. It is the left game list mirrored on the right:
-the same translucent surface and hairline edge, rows with the same inset, radius
-and hover, the friends window's status badges cut out of squircle faces, its mono
-group captions, Steam's tooltip and Aika's menu. Every color comes from the
-current preset (or your custom colors), so switching the preset recolors the dock
-with the rest of the window.
+Aika Enhanced is the original Aika 0.1.8 (library, header, game cards and pages, store,
+profiles, friends window, overlay, presets, motion, settings) with what Steam Enhanced does best,
+drawn in Aika's look:
 
-For everything Aika does, see the [original README](https://github.com/hatewxb/Aika#readme).
+- **The Friends Dock** — a friends column at the right edge of the window: beside the library,
+  the Store, the Community (profiles, Workshop, inventory, Market) and the other pages. One dock and
+  one state for every page.
+- **Its built-in chat** — a click on a friend opens the conversation beside the dock, Steam
+  Enhanced's way: Steam's own chat, in an Aika panel.
+- **Steam Enhanced's Millennium Settings** — its whole design of Millennium's window, and its theme
+  settings window holding every Aika Enhanced setting — in the colours of your Aika preset.
+
+The dock is Aika's left game list mirrored on the right: the same translucent surface and hairline
+edge, rows with the same inset, radius and hover, the friends window's status badges cut out of
+squircle faces, its mono group captions, Steam's tooltip and Aika's menu. Every colour comes from the
+current preset (or your custom colours). For everything Aika does, see the
+[original README](https://github.com/hatewxb/Aika#readme).
 
 ## Friends Dock
 
 | Expanded | Collapsed (with the tooltip) |
 |:--:|:--:|
 | ![Expanded](docs/friends-dock/expanded.jpg) | ![Collapsed](docs/friends-dock/collapsed.jpg) |
-| **Grouped by game, offline shown, Greeny** | **A friend's menu, Hello Bert** |
-| ![By game](docs/friends-dock/by-game-greeny.jpg) | ![Menu](docs/friends-dock/menu-hello-bert.jpg) |
+| **Grouped by game, offline shown, Greeny** | **Unread messages** |
+| ![By game](docs/friends-dock/by-game-greeny.jpg) | ![Unread](docs/friends-dock/unread-badges.jpg) |
 
-<sub>The screenshots come from the test harness (`tests/friends-dock/`), with
-placeholder friends and covers, not from a Steam client.</sub>
+<sub>Screenshots from the test harness (`tests/friends-dock/`) with placeholder friends and covers,
+not from a Steam client.</sub>
 
-- **Your real friends**, read from the Steam client itself (its Friends store): names
-  and nicknames, avatars, status, the game and what they do in it. No Steam Web API
-  key, no network requests.
-- **Two states.** Expanded (264 px by default): faces, names, the game or status,
-  the online count, groups **In game** and **Online** (and **Offline**, off by
-  default). Collapsed: a 52 px rail of faces with status badges; hovering a face
-  shows the name and the game.
-- **Live.** Friends appear when they sign in, leave when they sign out, move
-  between groups when they start or stop a game; only the rows that changed are
-  touched.
-- **Click** a friend to open the Steam chat. **Right-click** for Send message,
-  View profile and View game in Library. Keyboard: Tab, Enter, the menu key,
-  arrows and Escape in the menu.
-- **Part of the library**: it starts under the header, the library gives up
-  exactly its width (no overlap, no horizontal scroll), the floating library
-  icons move with it, it leaves on store and community pages and in the mini
-  "Steam Games List" window, and the window below 1100 px folds it to its rail.
-- **Remembers** expanded / collapsed and the folded groups across restarts.
-- **Animations** in Aika's timing: the width and the library room ease together,
-  names fade in after the dock opens, faces grow under the cursor like the
-  library icons, new friends rise in like Aika's panels. *Performance: Low*,
-  the dock's own switch and the system's "reduce motion" turn them off.
+- **Your real friends**, read from the Steam client itself (its Friends store): names and
+  nicknames, avatars, status, the game and what they do in it, unread messages. No Steam Web API
+  key, no network requests, nothing sent anywhere.
+- **Two states.** Expanded (264 px by default): faces, names, the game or status, the online count,
+  groups **In game**, **Online** (and **Offline**, off by default). Collapsed: a 52 px rail of faces;
+  hovering a face shows the name and the game.
+- **On every page.** Store, Community and the other pages are Steam's native browser view, laid out
+  in the window's content frame: the frame narrows by the dock's width and Steam fits the page
+  beside it (the way Steam Enhanced places its dock). Tooltips and menus over a page are drawn in
+  Steam's popup windows. Expanded/collapsed, the scroll position and the open chat stay as you move
+  between pages. Each kind of page can be switched off.
+- **Live**: friends appear and leave, move between groups, unread counts pulse when a message
+  arrives; only the rows that changed are touched.
+- **Right-click**: Send message, View profile, Open in a Steam chat window, View game in Library.
+- **Remembers** expanded / collapsed, the folded groups and the open conversation across restarts.
 
-### Settings — Millennium → Themes → Aika Enhanced → ⚙ → **Friends Dock**
+## Built-in chat
 
-| Setting | Values | |
-| --- | --- | --- |
-| Friends Dock | **On** / Off | Off: the library exactly as in Aika, no room left over |
-| Dock at startup | **Last state** / Expanded / Collapsed | |
-| Expand on hover | On / **Off** | The rail opens over the library while hovered |
-| Dock: friends in game | **On** / Off | |
-| Dock: friends online | **On** / Off | |
-| Dock: offline friends | On / **Off** | Folded until opened, last seen first |
-| Dock: group by game | On / **Off** | Each game with its icon and player count |
-| Dock: friend count | **On** / Off | |
-| Dock animations | **On** / Off | |
-| Dock width | 240–320 px, **264** | |
-| Dock avatar size | 28–40 px, **32** | The rail follows (face + padding) |
-| Dock opacity | 0–100 %, **0** | 0 % = the game list's surface, 100 % = an opaque panel |
+A click on a friend opens the conversation in a panel beside the dock (on Store and Community pages,
+in a Steam popup window over the page). This is **Steam Enhanced's chat engine**, carried over
+unchanged: Steam's own Friends & Chat tree mounted in the dock and its chat shown as a flyout, so
+what's inside is Steam's chat itself — history, new messages, sending, timestamps, avatars and
+names, pictures, stickers, emoticons, links, game invites, the typing indicator, message menus,
+several conversations as tabs. Minimize it to a chip, close it, or move it to Steam's chat window
+with the button in its corner. The look is **Aika's own chat style** (the one Aika gives Steam's
+chat window) inside an Aika floating panel. If a Steam update stops the chat from being embedded, a
+click opens Steam's chat window instead.
 
-The dropdowns apply at once in the open window (Aika's live settings bridge,
-extended); the sliders are applied by Millennium — if one does not change the
-dock right away, restart Steam. Settings are in English and, with Steam in
-Russian, in Russian, like the rest of Aika's settings.
+## Settings
+
+Two ways, both saving to the same place (Millennium's theme config):
+
+- **Steam Enhanced's settings window** (the sliders button in the dock's header, or *All Aika
+  Enhanced settings* at the top of Millennium's theme editor): a sidebar with search and tabs, the
+  presets as swatch tiles, Custom colours with its editor, every setting as a row; changes apply at
+  once.
+- **Millennium's own editor** (Millennium › Themes › Aika Enhanced › Configure), as before.
+
+| | |
+|:--:|:--:|
+| ![Settings window, Aika](docs/friends-dock/settings-window-aika.jpg) | ![Chat settings, Greeny](docs/friends-dock/settings-window-chat-greeny.jpg) |
+| **Millennium Settings › Themes, Rose Ash** | |
+| ![Millennium Settings](docs/friends-dock/millennium-themes-rose-ash.jpg) | |
+
+<sub>Drawn in the test harness (`tests/friends-dock/millennium.html`, React standing in for
+Steam's popup runtime).</sub>
+
+**Friends Dock** tab: Friends Dock On/Off · Dock at startup (Last state / Expanded / Collapsed) ·
+Expand on hover · friends in game / online / offline · group by game · friend count · animations ·
+the dock in the library / store / community / other pages · width (240–320 px) · avatar size
+(28–40 px) · opacity. **Chat** tab: Built-in chat · Chat window button · Unread badges · Message
+alerts · Scroll to new messages · Keep the open chat. Every other Aika setting is in its usual tab.
+Labels are in Russian when Steam is.
+
+## Millennium Settings
+
+Steam Enhanced's design of Millennium's window, whole: Millennium Settings in a popup of its own
+instead of over the library, its sidebar, General as a status card, Themes as cards with a pager,
+the inline Quick CSS editor, Plugins with stat tiles, an All/On/Off filter, cards and a save bar,
+Updates as a status card over a list, Logs as a table, Brew Hub's page, the library manager. Every
+Millennium function stays Millennium's (switching themes, plugins on and off, updates, logs). It
+only touches Millennium's window: Steam Settings and Game Properties keep Aika's look.
 
 ## Installation
 
-Requires [Millennium](https://steambrew.app) and theme scripts enabled.
+Requires [Millennium](https://steambrew.app) and theme scripts enabled (the dock, the chat and the
+settings window are scripts).
+
+**Updating from 0.1.8-enhanced.1**: run the installer again. It keeps the same folder
+(`Aika-Enhanced`), so Millennium keeps your settings; the old folder goes to
+`aika-enhanced-backups/<time>/`.
 
 ### With the installer
 
@@ -119,7 +147,7 @@ at a time.
 
 ## Compatibility
 
-Built on Aika 0.1.8 and tested against its structure. Windows 10/11 and Linux,
+Built on Aika 0.1.8 and Steam Enhanced 1.4.4 and tested against their structure. Windows 10/11 and Linux,
 like Aika (on Linux the dock waits for Aika's class compatibility adapter, as
 Aika's own scripts do). Any window size and UI scale: the dock measures the header
 and the window instead of assuming sizes. All four presets and custom colors.
@@ -129,12 +157,18 @@ No Steam files are modified and no protections are touched.
 
 ```sh
 python3 -m http.server 8765 --bind 127.0.0.1 --directory /
-node --test tests/friends-dock.e2e.cjs          # needs Playwright + Chromium
+node --test tests/friends-dock.e2e.cjs           # the dock (needs Playwright + Chromium)
 AIKA_ORIGINAL=/path/to/Aika node --test tests/friends-dock.e2e.cjs   # + pixel parity with Aika
-node --test tests/*.test.mjs tests/*.test.cjs   # Aika's own tests
+REACT_UMD=/path/to/node_modules node --test tests/friends-dock-2.e2e.cjs   # 2.0: pages, chat wiring,
+                                                  # Steam Enhanced parts, settings (React 18 UMD for the window)
+node --test tests/*.test.mjs tests/*.test.cjs    # Aika's own tests
+node tools/build-fdock-chat-css.cjs              # after changing sections/friends.css
+NODE_PATH=/path/to/node_modules node tools/scope-settings-css.cjs   # after updating the vendored settings CSS (postcss)
 ```
 
-Files added or changed compared with Aika 0.1.8: see [CHANGELOG.md](CHANGELOG.md).
+The tests run in a browser against a harness and stubs (Steam's Friends store, Millennium's backend),
+not inside Steam: Steam's own chat tree, its webpack modules and popup windows exist only in the
+client. See [CHANGELOG.md](CHANGELOG.md) for every file added or changed.
 
 ## Authors and licenses
 

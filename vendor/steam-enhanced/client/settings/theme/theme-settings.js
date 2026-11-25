@@ -105,6 +105,8 @@
       return node;
     };
     const tabNames = settings.tabs;
+    /* Aika Enhanced: the window's own words may come with the settings (Russian Steam) */
+    const ui = (text) => settings.ui?.[text] || text;
 
     let tab = tabNames[0];
     let query = '';
@@ -122,7 +124,7 @@
     names.append(make('div', 'se-ts-name', TITLE), version);
     brand.append(mark, names);
     SE.themeVersion?.().then((v) => {
-      if (v) version.textContent = `Version ${v}`;
+      if (v) version.textContent = `${ui('Version')} ${v}`;
     });
 
     const search = make('label', 'se-ts-search');
@@ -130,8 +132,8 @@
     icon.setAttribute('aria-hidden', 'true');
     const input = make('input');
     input.type = 'search';
-    input.placeholder = 'Search settings';
-    input.setAttribute('aria-label', 'Search settings');
+    input.placeholder = ui('Search settings');
+    input.setAttribute('aria-label', ui('Search settings'));
     search.append(icon, input);
 
     const tabList = make('div', 'se-ts-tabs');
@@ -445,11 +447,11 @@
         const value = settings.get('palette');
         status.textContent = value === 'custom' ? 'Custom' : settings.presets.find((p) => p.v === value)?.label || '';
       });
-      const parts = [heading('Colours', status), paletteCards()];
+      const parts = [heading(ui('Colours'), status), paletteCards()];
       if (settings.get('palette') === 'custom') parts.push(customEditor());
       const rows = make('div', 'se-ts-rows');
       rows.append(...items.filter((item) => item.key !== 'palette').map((item) => row(item)));
-      parts.push(heading('Fine-tune'), rows);
+      parts.push(heading(ui('Fine-tune')), rows);
       return parts;
     };
 
@@ -471,8 +473,8 @@
         const found = settings.schema.filter((item) => !item.hidden && matches(item));
         const rows = make('div', 'se-ts-rows');
         rows.append(...found.map((item) => row(item, true)));
-        if (!found.length) rows.append(make('p', 'se-ts-empty', 'No settings match.'));
-        parts = [header(`${found.length} ${found.length === 1 ? 'setting' : 'settings'}`), rows];
+        if (!found.length) rows.append(make('p', 'se-ts-empty', ui('No settings match.')));
+        parts = [header(`${found.length} ${ui(found.length === 1 ? 'setting' : 'settings')}`), rows];
       } else {
         const items = settings.schema.filter((item) => item.tab === tab && !item.hidden);
         const body = tab === 'Appearance' ? appearance(items) : sections(items);
