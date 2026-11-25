@@ -97,7 +97,7 @@ Say "Committed, main fast-forwarded, tagged v$Version ($((Invoke-Git rev-parse -
 # --- 6. Push ------------------------------------------------------------------------------
 if ($Push) {
   Invoke-Git push --atomic $Remote main dev "v$Version" | Out-Null
-  Say "Pushed. GitHub Actions builds the Release; Millennium -> Updates offers $Version now."
+  Say "Pushed. GitHub Actions builds the Release. Millennium -> Updates offers $Version once steambrew sees the new main (listed themes only, cache up to ~30 min)."
 } else {
   Say "Not pushed. To publish:"
   Write-Host "    git push --atomic $Remote main dev v$Version"
