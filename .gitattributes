@@ -1,0 +1,20 @@
+# Line endings: the repository stores LF.
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.jpg binary
+*.png binary
+*.gif binary
+*.ttf binary
+*.woff2 binary
+
+# Left out of GitHub's source archives (git archive / codeload zip).
+# Millennium installs and updates the theme from exactly that archive
+# (https://codeload.github.com/<owner>/<repo>/zip/<commit>), so these
+# development-only files never reach users' theme folders.
+.github/        export-ignore
+tests/          export-ignore
+tools/          export-ignore
+CLAUDE.md       export-ignore
+ROADMAP.md      export-ignore
+.gitattributes  export-ignore
+.gitignore      export-ignore

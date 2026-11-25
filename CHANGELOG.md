@@ -1,5 +1,29 @@
 # Changelog
 
+Format: one `## X.Y.Z — date — title` section per release (MAJOR = big changes, MINOR = new
+features, PATCH = fixes), each with **New** / **Fixed** lists. Work in progress goes under
+`## Unreleased`; `tools/release.ps1` turns it into the release heading.
+
+## Unreleased
+
+Updates through Millennium. No change to the theme's look or settings.
+
+### New
+- Aika Enhanced is updated from Millennium → Updates: the `github` block of `skin.json` names this
+  repository exactly (`Blackhagwag/Aika-Enhanced`, case included — Millennium matches it as written).
+- Manual installs (`install/install.ps1`, `install/install.sh`) write `metadata.json`, so
+  Millennium can tell which version is installed.
+- Release tooling: `tools/release.ps1` (version sync, tag, `main`), GitHub Actions checks on every
+  push and a GitHub Release with a ready archive for every version tag.
+- `tools/backup-local.ps1` / `tools/restore-local.ps1`: back up and roll back the installed theme
+  and its settings.
+- Listing images (`header_image`, `splash_image`) from this repository.
+
+### Fixed
+- `metadata.json` is no longer part of the repository (Millennium writes it on install/update; a
+  committed copy pointed at an old commit).
+- Development files (tests, tools, notes) are left out of the archive Millennium downloads.
+
 ## 2.0.0 — 2026-11-25
 
 The dock everywhere, its chat inside it, and Steam Enhanced's Millennium Settings — in Aika's look.

@@ -145,6 +145,17 @@ asked. Fully restart Steam after the first install. Aika Enhanced is a separate
 theme: the original Aika (if installed) stays as it is; only one theme is active
 at a time.
 
+## Updates
+
+Steam → **Millennium** → **Updates** → **Check for updates**. When a new version is out,
+*Aika Enhanced* is listed with its release title; press **Update**, then restart Steam. Your
+settings (preset, colours, Friends Dock, chat, top bar and layout, everything in the theme's
+settings window) are kept: Millennium stores them outside the theme folder.
+
+Millennium installs the newest commit of the `main` branch, which only ever holds released
+versions (see [docs/UPDATES.md](docs/UPDATES.md)). Release notes and archives:
+[Releases](https://github.com/Blackhagwag/Aika-Enhanced/releases) and [CHANGELOG.md](CHANGELOG.md).
+
 ## Compatibility
 
 Built on Aika 0.1.8 and Steam Enhanced 1.4.4 and tested against their structure. Windows 10/11 and Linux,
@@ -155,7 +166,12 @@ No Steam files are modified and no protections are touched.
 
 ## Development
 
+Branches: `dev` for work, `main` for releases only (every commit on `main` reaches users through
+Millennium). Rules, release and test procedures: [CLAUDE.md](CLAUDE.md).
+
 ```sh
+node tools/validate.mjs                          # all project checks (CI runs the same)
+node tools/simulate-update.mjs --theme "<installed theme folder>" --ref dev   # replay a Millennium update in a sandbox
 python3 -m http.server 8765 --bind 127.0.0.1 --directory /
 node --test tests/friends-dock.e2e.cjs           # the dock (needs Playwright + Chromium)
 AIKA_ORIGINAL=/path/to/Aika node --test tests/friends-dock.e2e.cjs   # + pixel parity with Aika

@@ -77,6 +77,15 @@ if [ "$DRY" = 0 ]; then
      --exclude=./node_modules --exclude=./.github .) | (cd "$DEST" && tar xf -)
   [ -f "$DEST/skin.json" ] && python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$DEST/skin.json" 2>/dev/null \
     && say "skin.json is valid" || say "Check $DEST/skin.json"
+  # metadata.json: how Millennium -> Updates knows the installed commit (see install.ps1).
+  COMMIT="$(git -C "$SRC" rev-parse HEAD 2>/dev/null || echo unknown)"
+  python3 - "$DEST" "$COMMIT" <<'PY' && say "metadata.json written ($COMMIT)" || say "metadata.json not written"
+import json, sys, os
+dest, commit = sys.argv[1], sys.argv[2]
+gh = json.load(open(os.path.join(dest, "skin.json"))).get("github") or {}
+if gh.get("owner") and gh.get("repo_name"):
+    json.dump({"commit": commit, "owner": gh["owner"], "repo": gh["repo_name"]}, open(os.path.join(dest, "metadata.json"), "w"), indent=4)
+PY
 fi
 
 # --- Steam restart (optional, asks first) --------------------------------------

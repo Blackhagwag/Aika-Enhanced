@@ -25,9 +25,21 @@ diagnostics/
 SSforClaude/
 screenshots.txt
 
-# Local-only docs (design notes and agent instructions)
+# Local-only design notes (CLAUDE.md IS committed: it carries the project rules)
 DESIGN.md
-CLAUDE.md
 
 # Local color theme concepts (author drafts for presets)
 color-concepts/
+
+# Written by Millennium on install/update (owner, repo, installed commit) — never commit it
+metadata.json
+
+# Never commit secrets, Steam account data or Millennium configs
+.env
+.env.*
+*.pem
+*.key
+config.json
+loginusers.vdf
+userdata/
+release/

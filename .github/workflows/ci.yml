@@ -1,0 +1,60 @@
+name: Checks
+
+# Runs on every push and pull request. It never publishes anything.
+on:
+  push:
+    branches: ["**"]
+    tags-ignore: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # tags are needed for the settings-compatibility check
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Project checks (structure, JSON, skin.json, version sync, settings, JS syntax)
+        run: node tools/validate.mjs
+
+      - name: Unit tests that need no browser
+        run: |
+          set -e
+          for t in tests/*.test.mjs tests/*.test.cjs; do
+            [ -f "$t" ] || continue
+            echo "::group::$t"
+            node "$t"
+            echo "::endgroup::"
+          done
+
+  # main is what Millennium installs: every push there reaches users through
+  # Millennium → Updates. Only the release script should move it, with a new version.
+  main-guard:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: main must point at a release tag
+        run: |
+          v=$(jq -r .version skin.json)
+          if ! git rev-parse -q --verify "refs/tags/v$v" >/dev/null; then
+            echo "::warning::main moved to a commit whose version ($v) has no tag v$v yet. Users of Millennium will be offered this commit as an update. Push the tag (the release script does both)."
+            exit 0
+          fi
+          if [ "$(git rev-list -n1 "v$v")" != "$(git rev-parse HEAD)" ]; then
+            echo "::error::main is at $(git rev-parse --short HEAD) but tag v$v is at $(git rev-list -n1 --abbrev-commit "v$v"). Something was pushed to main outside a release — Millennium users will get it as an update."
+            exit 1
+          fi
+          echo "main = v$v"

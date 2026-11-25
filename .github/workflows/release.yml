@@ -1,0 +1,103 @@
+name: Release
+
+# Publishes a GitHub Release ONLY when a version tag vMAJOR.MINOR.PATCH is pushed
+# (tools/release.ps1 does that after the owner's confirmation). Ordinary commits never
+# create a release.
+#
+# Note: Millennium's own updater does not read Releases. It installs the newest commit of
+# the default branch (main). The Release is the human-readable record (notes, CHANGELOG,
+# a ready archive for manual installs); the tag and main must point at the same commit.
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Checks (the tag must equal skin.json's version)
+        run: node tools/validate.mjs --tag "${GITHUB_REF_NAME}"
+
+      - name: The tag must be the head of main
+        run: |
+          git fetch origin main
+          tag_commit=$(git rev-list -n1 "$GITHUB_REF_NAME")
+          main_commit=$(git rev-parse origin/main)
+          if [ "$tag_commit" != "$main_commit" ]; then
+            echo "::error::$GITHUB_REF_NAME is $tag_commit but main is $main_commit. Millennium installs main, so a release must be main's head. Use tools/release.ps1."
+            exit 1
+          fi
+
+      - name: Build the theme archive (the same files Millennium downloads)
+        id: build
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          mkdir -p release
+          # git archive honours .gitattributes export-ignore, exactly like GitHub's codeload
+          # zip that Millennium installs — so this archive has the same file list.
+          git archive --format=zip --prefix=Aika-Enhanced/ -o "release/Aika-Enhanced-$v.zip" "$GITHUB_REF_NAME"
+          (cd release && sha256sum "Aika-Enhanced-$v.zip" > "Aika-Enhanced-$v.zip.sha256")
+          unzip -l "release/Aika-Enhanced-$v.zip" | tail -1
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Release notes from CHANGELOG.md
+        run: |
+          v="${{ steps.build.outputs.version }}"
+          # The section of CHANGELOG.md for this version: from "## v" to the next "## ".
+          awk -v v="$v" '
+            $0 ~ "^## " v "([^0-9.]|$)" { on=1; next }
+            on && /^## / { exit }
+            on { print }
+          ' CHANGELOG.md > release/section.md
+          if [ ! -s release/section.md ]; then echo "::error::CHANGELOG.md has no section for $v"; exit 1; fi
+          {
+            cat release/section.md
+            echo
+            echo "---"
+            echo "### Update"
+            echo "Steam → **Millennium → Updates → Check for updates** → **Update** next to *Aika Enhanced*, then restart Steam (or reload the theme). Your settings (preset, colours, Friends Dock, chat, layout) are kept: Millennium stores them outside the theme folder."
+            echo
+            echo "### Manual install"
+            echo "Unpack \`Aika-Enhanced-$v.zip\` into \`Steam/millennium/themes/\` (or run \`install/install.ps1\`), then pick *Aika Enhanced* in Millennium → Themes."
+            echo
+            echo "Full history: [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/CHANGELOG.md)"
+          } > release/notes.md
+
+      - name: Release title from the tag message
+        id: title
+        run: |
+          t=$(git tag -l --format='%(contents:subject)' "$GITHUB_REF_NAME")
+          [ -n "$t" ] || t="Aika Enhanced ${{ steps.build.outputs.version }}"
+          echo "title=$t" >> "$GITHUB_OUTPUT"
+
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          v="${{ steps.build.outputs.version }}"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME exists — uploading assets again"
+            gh release upload "$GITHUB_REF_NAME" release/Aika-Enhanced-$v.zip release/Aika-Enhanced-$v.zip.sha256 --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              --title "${{ steps.title.outputs.title }}" \
+              --notes-file release/notes.md \
+              --verify-tag --latest \
+              release/Aika-Enhanced-$v.zip release/Aika-Enhanced-$v.zip.sha256
+          fi

@@ -69,8 +69,19 @@ if (-not $DryRun) {
   New-Item -ItemType Directory -Force -Path $Dest | Out-Null
   Get-ChildItem $Src -Force | Where-Object { $skip -notcontains $_.Name } |
     ForEach-Object { Copy-Item $_.FullName -Destination $Dest -Recurse -Force }
-  try { Get-Content (Join-Path $Dest "skin.json") -Raw | ConvertFrom-Json | Out-Null; Say "skin.json is valid" }
-  catch { Say "Check $Dest\skin.json: $_" }
+  try { $skinData = Get-Content (Join-Path $Dest "skin.json") -Raw | ConvertFrom-Json; Say "skin.json is valid" }
+  catch { Say "Check $Dest\skin.json: $_"; $skinData = $null }
+  # metadata.json is how Millennium -> Updates knows which commit is installed (it compares it
+  # with the newest commit of the repository's default branch). Millennium writes it itself when
+  # it installs or updates a theme; a manual install writes it here so updates are offered.
+  # An unknown commit makes Millennium offer the newest version once, which resyncs it.
+  if ($skinData -and $skinData.github) {
+    $commit = "unknown"
+    try { $c = (& git -C $Src rev-parse HEAD 2>$null); if ($LASTEXITCODE -eq 0 -and $c) { $commit = "$c".Trim() } } catch {}
+    $meta = [ordered]@{ commit = $commit; owner = $skinData.github.owner; repo = $skinData.github.repo_name }
+    [IO.File]::WriteAllText((Join-Path $Dest "metadata.json"), ($meta | ConvertTo-Json), (New-Object System.Text.UTF8Encoding $false))
+    Say "metadata.json: $($meta.owner)/$($meta.repo) @ $commit"
+  }
 }
 
 # --- Steam restart (optional, asks first) ---------------------------------------------
