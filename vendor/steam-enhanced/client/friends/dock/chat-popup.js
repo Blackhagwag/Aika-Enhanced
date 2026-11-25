@@ -179,6 +179,8 @@
       run(() => entry.detachChatEnhancements?.());
       run(disposeGroupFlyouts);
       run(() => dock.append(chatBack, chatMinimize, chatChip));
+      /* Aika Enhanced: its "open in a Steam window" button comes back with them */
+      if (ns.chatPopout) run(() => dock.append(ns.chatPopout));
     }
   }
 
@@ -338,6 +340,8 @@
     shell.className = 'se-fd-steam friendsui-container client_chat_frame fullheight';
     shell.innerHTML = '<div class="chat_main"><div class="chat_main_flex"></div></div>';
     node.append(shell, chatBack, chatMinimize);
+    /* Aika Enhanced: its "open in a Steam window" button goes with them */
+    if (ns.chatPopout) node.append(ns.chatPopout);
     entry.chatHost = shell;
     for (const type of interactionEvents) {
       shell.addEventListener(type, markDockInteraction, true);

@@ -722,3 +722,155 @@ html[data-aika-fdock-instant] :is(.OuterFrame > .ContentFrame, .OuterFrame > .Bo
         animation: none !important;
     }
 }
+
+/* ==========================================================================
+   Aika Enhanced 2.0 — the dock's chat and its pages
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   The settings gear: the toggle's tile, at the header's end; it fades with
+   the title in the rail
+   -------------------------------------------------------------------------- */
+
+.aika-fdock__gear {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: var(--aika-menu-icon-box);
+    height: var(--aika-menu-icon-box);
+    margin-inline-end: calc(-1 * var(--aika-space-1));
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-subtle);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover),
+        opacity var(--aika-fdock-dur-text) var(--aika-ease-hover) var(--aika-fdock-text-delay);
+}
+
+.aika-fdock__gear[hidden] {
+    display: none;
+}
+
+.aika-fdock__gear:hover {
+    background-color: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+.aika-fdock__gear-icon {
+    width: var(--aika-menu-icon);
+    height: var(--aika-menu-icon);
+    background: currentColor;
+    -webkit-mask: var(--aika-icon-sliders) center / contain no-repeat;
+    mask: var(--aika-icon-sliders) center / contain no-repeat;
+}
+
+.aika-fdock[data-mode="rail"]:not([data-peek]) .aika-fdock__gear {
+    opacity: 0;
+    pointer-events: none;
+    transition-delay: 0s;
+}
+
+/* --------------------------------------------------------------------------
+   Unread messages: a count on the face's top corner — the accent pill of
+   Aika's badges, ringed in the dock's ground so it reads on any picture;
+   a new message pulses it once (Aika's live-dot pulse)
+   -------------------------------------------------------------------------- */
+
+.aika-fdock__av > .aika-fdock__unread {
+    grid-area: auto;
+    position: absolute;
+    top: calc(-1 * var(--aika-fdock-badge-out) - 2px);
+    right: calc(-1 * var(--aika-fdock-badge-out) - 4px);
+    z-index: 2;
+    width: auto;
+    min-width: var(--aika-fdock-badge);
+    height: calc(var(--aika-fdock-badge) + 3px);
+    padding: 0 4px;
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent-fill);
+    box-shadow: 0 0 0 2px var(--aika-bg-base);
+    color: var(--aika-on-accent);
+    font-family: var(--aika-font-mono);
+    font-size: 9px;
+    font-weight: var(--aika-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    -webkit-mask: none;
+    mask: none;
+}
+
+.aika-fdock__av > .aika-fdock__unread[hidden] {
+    display: none;
+}
+
+@keyframes aika-fdock-alert {
+    40% {
+        transform: scale(calc(1 + 0.35 * var(--aika-motion)));
+        box-shadow: 0 0 0 2px var(--aika-bg-base), 0 0 12px var(--aika-accent-glow);
+    }
+}
+
+.aika-fdock__unread.is-alert {
+    animation: aika-fdock-alert calc(var(--aika-fdock-dur-enter) * 1.4) var(--aika-ease) 2;
+}
+
+/* The friend's line says it, unread: the name brightens */
+.aika-fdock__row[data-unread] .aika-fdock__name {
+    font-weight: var(--aika-weight-semibold);
+}
+
+/* --------------------------------------------------------------------------
+   The friend whose chat is open: the game list's selected row (components/
+   nav.css) — the soft accent ground and the Fluent indicator rising in
+   -------------------------------------------------------------------------- */
+
+.aika-fdock__row[aria-current],
+.aika-fdock__row[aria-current]:hover {
+    background-color: var(--aika-accent-soft);
+    color: var(--aika-fg);
+}
+
+.aika-fdock__row[aria-current]::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: var(--aika-indicator-inset);
+    bottom: var(--aika-indicator-inset);
+    width: var(--aika-indicator);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent);
+    animation: aika-indicator-in var(--aika-dur-base) var(--aika-ease);
+    pointer-events: none;
+}
+
+/* In the rail the face carries it: an accent ring */
+.aika-fdock[data-mode="rail"]:not([data-peek]) .aika-fdock__row[aria-current] {
+    background-color: var(--aika-transparent);
+}
+
+.aika-fdock[data-mode="rail"]:not([data-peek]) .aika-fdock__row[aria-current] .aika-fdock__av > img,
+.aika-fdock[data-mode="rail"]:not([data-peek]) .aika-fdock__row[aria-current] .aika-fdock__av > .aika-fdock__ini {
+    box-shadow: 0 0 0 2px var(--aika-accent-ring);
+}
+
+/* --------------------------------------------------------------------------
+   The tooltip and the menu in a popup window over a browser page: the same
+   pieces, laid out by the window instead of fixed in the page
+   -------------------------------------------------------------------------- */
+
+.aika-fdock-tip.is-layered,
+.aika-fdock-menu.is-layered {
+    position: relative;
+    inset: auto;
+    margin: 0;
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+}
+
+.aika-fdock-menu.is-layered {
+    display: inline-flex;
+}

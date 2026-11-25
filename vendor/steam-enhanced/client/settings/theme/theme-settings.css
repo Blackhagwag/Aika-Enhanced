@@ -963,3 +963,57 @@
   background-position: 54px 25px, center, center;
   background-size: 9px 10px, 24px 24px, 100% 100%;
 }
+
+/*
+ * Aika Enhanced: a slider row (skin.json "slider" settings — Steam Enhanced's window had none):
+ * Aika's range control (components/input.css "Number slider" tokens) over the window's palette.
+ */
+.se-ts-range {
+  display: flex;
+  align-items: center;
+  gap: var(--se-space-3);
+  min-width: 240px;
+}
+
+.se-ts-range input[type="range"] {
+  flex: 1 1 auto;
+  height: var(--aika-range-thumb, 20px);
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.se-ts-range input[type="range"]::-webkit-slider-runnable-track {
+  height: var(--aika-range-track, 3px);
+  border-radius: var(--se-radius-pill);
+  background: linear-gradient(to right, var(--se-accent) var(--se-ts-range-fill, 50%), var(--se-track) var(--se-ts-range-fill, 50%));
+}
+
+.se-ts-range input[type="range"]::-webkit-slider-thumb {
+  width: var(--aika-range-thumb, 20px);
+  height: var(--aika-range-thumb, 20px);
+  margin-top: calc((var(--aika-range-track, 3px) - var(--aika-range-thumb, 20px)) / 2);
+  border: var(--aika-range-thumb-border, 3px) solid var(--se-text-strong);
+  border-radius: 50%;
+  background: var(--se-accent);
+  box-shadow: 0 0 0 var(--aika-range-ring, 2px) var(--aika-range-glow, transparent);
+  -webkit-appearance: none;
+  appearance: none;
+  transition: box-shadow var(--se-dur) var(--se-ease);
+}
+
+.se-ts-range input[type="range"]:hover::-webkit-slider-thumb {
+  box-shadow: 0 0 0 var(--aika-range-ring-hover, 4px) var(--aika-range-glow, transparent);
+}
+
+.se-ts-range-value {
+  flex: none;
+  min-width: 56px;
+  font-family: var(--se-font-mono);
+  font-size: var(--se-fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--se-text-muted);
+  text-align: end;
+}

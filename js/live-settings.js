@@ -35,6 +35,16 @@
     "Dock: group by game": on("--aika-fdock-bygame"),
     "Dock: friend count": on("--aika-fdock-count"),
     "Dock animations": dockMotion,
+    "Dock: in the library": on("--aika-fdock-library"),
+    "Dock: in the store": on("--aika-fdock-store"),
+    "Dock: in the community": on("--aika-fdock-community"),
+    "Dock: on other pages": on("--aika-fdock-other"),
+    "Built-in chat": on("--aika-fdock-chat"),
+    "Chat window button": on("--aika-fdock-popout"),
+    "Unread badges": on("--aika-fdock-unread"),
+    "Message alerts": on("--aika-fdock-alerts"),
+    "Scroll to new messages": on("--aika-fdock-autoscroll"),
+    "Keep the open chat": on("--aika-fdock-keepchat"),
   };
   keys.push(...Object.keys(dockKeys));
   const markProps = {
@@ -104,5 +114,5 @@
     delete window.__aikaLiveSettingsBridge;
   };
   window.addEventListener("pagehide", destroy);
-  window.__aikaLiveSettingsBridge = {destroy};
+  window.__aikaLiveSettingsBridge = {destroy, publish, keys};
 })();

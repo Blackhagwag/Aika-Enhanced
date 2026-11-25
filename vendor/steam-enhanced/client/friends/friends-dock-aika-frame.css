@@ -1,0 +1,95 @@
+/*
+ * Aika Enhanced — the Friends Dock chat frame, after Steam Enhanced's friends-dock-chat*.css
+ * (its geometry: the flyout beside the dock, the popup over browser pages, the chip) and before
+ * friends-dock-aika.css (Aika's look of Steam's chat). Only what the Aika dock adds or needs:
+ *   - the dock's own list stays where it is while Steam's Friends & Chat tree lives in it, hidden;
+ *   - "open in a Steam window" beside minimize and close;
+ *   - the flyout in Aika's panel material (the menus' surface, blur and shadow, Aika's radius).
+ * Colours come from the palette bridge (core/tokens.css) and Aika's own tokens.
+ */
+
+/* Steam's tree: its friends list never shows (the Aika list is the list), only its chat */
+.aika-fdock.se-fdock > .se-fd-steam {
+  position: absolute;
+  inset: auto;
+  width: 0;
+  height: 0;
+  overflow: visible;
+}
+
+.aika-fdock.se-fdock .se-fd-steam .friendsListContainer,
+.aika-fdock.se-fdock .se-fd-steam .friendListHeaderContainer,
+.aika-fdock.se-fdock .se-fd-steam .friendListFooter {
+  display: none !important;
+}
+
+.aika-fdock.se-fdock:not([data-chat="1"]) > .se-fd-steam {
+  visibility: hidden;
+}
+
+/* While a chat shows, the dock lets its fixed flyout out (no containment, no peek blur, which
+   would make the dock the flyout's containing block) */
+.aika-fdock.se-fdock[data-chat="1"] {
+  contain: none;
+  overflow: visible;
+}
+
+.aika-fdock.se-fdock[data-chat="1"][data-peek] {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* The flyout: Aika's floating panel */
+.se-fdock[data-chat="1"] .se-fd-steam .chat_main .chat_main_flex > .multiChatDialog,
+.se-fdock.se-fd-popup-host .multiChatDialog {
+  border: 0 !important;
+  border-radius: var(--aika-radius-xl, 16px) !important;
+  background: var(--aika-surface-translucent, var(--se-sidebar)) !important;
+  -webkit-backdrop-filter: var(--aika-player-blur, none);
+  backdrop-filter: var(--aika-player-blur, none);
+  box-shadow: var(--aika-shadow-menu, var(--se-shadow-pop)) !important;
+  font-family: var(--aika-font-ui, var(--se-font));
+  animation: aika-fdock-chat-in var(--aika-fdock-dur-enter, .5s) var(--aika-ease, ease) backwards;
+}
+
+@keyframes aika-fdock-chat-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--aika-appear-shift, 12px) * var(--aika-motion, 1))) scale(var(--aika-appear-scale, .97));
+  }
+}
+
+/* "Open in a Steam window": left of minimize, the same quiet tile; never red (only close is) */
+.se-fdock .se-fd-chat-popout {
+  right: calc(var(--se-chat-right) + 10px + 2 * (var(--se-tile-sm) + var(--se-space-half)));
+  font-size: 0 !important;
+}
+
+.se-fdock .se-fd-chat-popout::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  -webkit-mask: var(--aika-icon-arrow-up-right, var(--se-icon-external)) center / contain no-repeat;
+  mask: var(--aika-icon-arrow-up-right, var(--se-icon-external)) center / contain no-repeat;
+}
+
+.se-fd-chat-back.se-fd-chat-popout:hover,
+.se-fdock[data-chat="1"] .se-fd-chat-back.se-fd-chat-popout:hover {
+  background: var(--se-hover) !important;
+  color: var(--se-text-strong) !important;
+}
+
+/* Room in the header for the third button */
+.se-fdock[data-chat="1"]:has(.se-fd-chat-popout:not([hidden])) .multiChatDialog .chatHeader {
+  padding-inline-end: 116px !important;
+}
+
+/* The minimized chip: Aika's floating material */
+.se-fdock .se-fd-chat-chip {
+  border-radius: var(--aika-radius-xl, 16px) !important;
+  background: var(--aika-surface-translucent, var(--se-sidebar)) !important;
+  -webkit-backdrop-filter: var(--aika-player-blur, none);
+  backdrop-filter: var(--aika-player-blur, none);
+  box-shadow: var(--aika-shadow-menu, var(--se-shadow-pop)) !important;
+}

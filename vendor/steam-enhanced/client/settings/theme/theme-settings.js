@@ -15,7 +15,8 @@
   window.__seThemeSettings?.destroy();
   const { run } = SE;
 
-  const TITLE = 'Steam Enhanced';
+  /* Aika Enhanced: the window's title from the settings it shows (client/settings/theme/aika-settings.js) */
+  const TITLE = SE.settings?.title || 'Steam Enhanced';
   const WIDTH = 1120;
   const HEIGHT = 820;
 
@@ -138,10 +139,12 @@
     tabList.setAttribute('aria-orientation', 'vertical');
     const tabButtons = new Map(
       tabNames.map((name) => {
-        const node = button('se-ts-tab', name);
+        /* Aika Enhanced: a tab's icon, line and (in Russian) name may come with the settings */
+        const info = settings.tabInfo?.[name] || TABS[name];
+        const node = button('se-ts-tab', info?.[2] || name);
         node.setAttribute('role', 'tab');
         node.dataset.tab = name;
-        node.style.setProperty('--se-ts-icon', `var(${TABS[name]?.[0] || '--se-icon-settings'})`);
+        node.style.setProperty('--se-ts-icon', `var(${info?.[0] || '--se-icon-settings'})`);
         tabList.append(node);
         return [name, node];
       })
@@ -235,6 +238,34 @@
       return group;
     };
 
+    /* Aika Enhanced: a slider setting (skin.json "slider"), its value beside it; it applies as it
+       moves and is saved when let go */
+    const range = (item) => {
+      const { min = 0, max = 100, step = 1, unit = '' } = item.slider || {};
+      const box = make('label', 'se-ts-range');
+      const input = make('input');
+      input.type = 'range';
+      input.min = String(min);
+      input.max = String(max);
+      input.step = String(step);
+      input.setAttribute('aria-label', item.label);
+      const out = make('output', 'se-ts-range-value');
+      const show = (v) => {
+        out.textContent = `${v}${unit === '%' ? ' %' : unit ? ` ${unit}` : ''}`;
+        const share = (Number(v) - min) / (max - min || 1);
+        box.style.setProperty('--se-ts-range-fill', `${Math.round(share * 100)}%`);
+      };
+      input.addEventListener('input', () => show(input.value));
+      input.addEventListener('change', () => settings.set(item.key, input.value));
+      box.append(input, out);
+      updates.push(() => {
+        const v = settings.get(item.key);
+        if (doc.activeElement !== input) input.value = String(v);
+        show(input.value);
+      });
+      return box;
+    };
+
     // Picking a palette's Custom brings back the colours kept, or starts from the palette in use
     const pick = (item, value) => {
       if (item.key === 'palette' && value === 'custom' && !settings.customColors()) settings.setCustom();
@@ -246,14 +277,14 @@
       const node = make('div', 'se-ts-row');
       const tile = make('span', 'se-ts-row-icon');
       tile.setAttribute('aria-hidden', 'true');
-      tile.style.setProperty('--se-ts-icon', `var(--se-icon-${ICONS[item.key] || 'settings'})`);
+      tile.style.setProperty('--se-ts-icon', `var(--se-icon-${ICONS[item.key] || settings.icons?.[item.key] || 'settings'})`);
       node.append(tile);
       const text = make('div', 'se-ts-text');
       if (withTab) text.append(make('div', 'se-ts-row-tab', item.tab));
       text.append(make('div', 'se-ts-label', item.label), make('div', 'se-ts-hint', item.hint));
       // Chips, or more than four choices: the control goes under the text, which keeps its line
       if (item.type === 'multi' || item.visual || item.values.length > 4) node.classList.add('se-ts-row-wide');
-      const control = item.type === 'multi' ? toggles(item) : item.visual ? pictures(item) : segmented(item);
+      const control = item.type === 'range' ? range(item) : item.type === 'multi' ? toggles(item) : item.visual ? pictures(item) : segmented(item);
       node.append(text, control);
       // A setting that applies only with others (requires) dims, its controls off, until they hold
       if (item.requires) {
@@ -445,7 +476,8 @@
       } else {
         const items = settings.schema.filter((item) => item.tab === tab && !item.hidden);
         const body = tab === 'Appearance' ? appearance(items) : sections(items);
-        parts = [header(tab, TABS[tab]?.[1]), ...body];
+        const info = settings.tabInfo?.[tab] || TABS[tab];
+        parts = [header(info?.[2] || tab, info?.[1]), ...body];
       }
       const [head, ...body] = parts;
       pageHead.replaceChildren(head);
@@ -510,7 +542,8 @@
       return true;
     }
     const runtime = window.__seMillenniumWindow?.popupRuntime?.();
-    if (!runtime || !SE.settings) {
+    /* Aika Enhanced: only once the settings have come from Millennium */
+    if (!runtime || !SE.settings || SE.settings.ready === false) {
       console.warn('[Steam Enhanced] Settings window:', !SE.settings ? 'no settings' : "Steam's popup runtime was not found");
       return false;
     }

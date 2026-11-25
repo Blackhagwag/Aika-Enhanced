@@ -66,7 +66,14 @@ export const friends = [
   friend({ id: 112, name: "Rarely Here", state: 0, hue: 150, last: now - 86400 * 9 }),
 ];
 
+// Steam's friend chats: unread counts by friend (ChatStore.FriendChatStore)
+export const chats = [
+  { m_unAccountIDFriend: 102, unread_message_count: 3, is_blocked_friend: false, time_last_message: now - 60 },
+  { m_unAccountIDFriend: 107, unread_message_count: 1, is_blocked_friend: false, time_last_message: now - 600 },
+];
+
 export const app = {
+  ChatStore: { FriendChatStore: { m_rgFriendChats: chats } },
   FriendStore: {
     all_friends: friends,
     self: { persona: { m_ePersonaState: 1 } },
@@ -77,7 +84,7 @@ export const app = {
   GetDefaultBrowserContext: () => ({ m_eBrowserType: 0 }),
 };
 
-export const route = { path: "/library/home" };
+export const route = { path: "/library/home", url: "" };
 
 window.g_FriendsUIApp = app;
 window.SteamUIStore = {
@@ -89,4 +96,6 @@ window.SteamUIStore = {
   },
 };
 window.SteamClient = { URL: { ExecuteSteamURL(u) { calls.push(["url", u]); } } };
-window.__fixture = { app, friends, calls, route, persona, GAMES };
+// The browser view's address (Store, Community pages in the main window)
+window.MainWindowBrowserManager = { get m_URL() { return route.url; } };
+window.__fixture = { app, friends, calls, route, persona, GAMES, chats };

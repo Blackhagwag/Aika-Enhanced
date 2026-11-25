@@ -1,9 +1,9 @@
 {
     "name": "Aika Enhanced",
     "author": "hatewxb (Aika), NVHT (Steam Enhanced Friends dock)",
-    "description": "Aika, a warm dark theme for Steam (Fluent structure, file-system-style panels and soft spots of light on a near-black background), with a Friends Dock at the right of the library.",
-    "version": "0.1.8-enhanced.1",
-    "tags": ["Fluent", "Dark", "Warm", "Minimal", "Friends", "WIP"],
+    "description": "Aika, a warm dark theme for Steam (Fluent structure, file-system-style panels and soft spots of light on a near-black background), with a Friends Dock and its built-in chat on every page, and Steam Enhanced's Millennium Settings.",
+    "version": "2.0.0",
+    "tags": ["Fluent", "Dark", "Warm", "Minimal", "Friends", "Chat", "WIP"],
     "header_image": "https://raw.githubusercontent.com/hatewxb/Aika/main/screenshots/preview.gif",
     "splash_image": "https://raw.githubusercontent.com/hatewxb/Aika/main/screenshots/store-app.jpg",
 
@@ -229,7 +229,7 @@
             }
         },
         "Friends Dock": {
-            "description": "A friends column at the right edge of the library: your Steam friends in game and online, with their games. Collapsed it is a rail of faces, expanded a list with names; a click opens the chat, a right-click the menu. Off: the library as in Aika, with no room left for it.",
+            "description": "A friends column at the right edge of the window, beside the library, the Store and the Community: your Steam friends in game and online, with their games and unread messages. Collapsed it is a rail of faces, expanded a list with names; a click opens the chat, a right-click the menu. Off: the window as in Aika, with no room left for it.",
             "tab": "Friends Dock",
             "default": "On",
             "values": {
@@ -310,6 +310,42 @@
                 "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-motion-off.css" } }
             }
         },
+        "Dock: in the library": {
+            "description": "The dock beside the library: home, collections, a game's page.",
+            "tab": "Friends Dock",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-page-library-off.css" } }
+            }
+        },
+        "Dock: in the store": {
+            "description": "The dock beside Store pages (store.steampowered.com): the page narrows to make room.",
+            "tab": "Friends Dock",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-page-store-off.css" } }
+            }
+        },
+        "Dock: in the community": {
+            "description": "The dock beside Community pages (steamcommunity.com): profiles, the Workshop, inventories, the Market, discussions.",
+            "tab": "Friends Dock",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-page-community-off.css" } }
+            }
+        },
+        "Dock: on other pages": {
+            "description": "The dock beside the other pages of the main window: Support, news, Downloads and the rest.",
+            "tab": "Friends Dock",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-page-other-off.css" } }
+            }
+        },
         "Dock width": {
             "description": "The width of the expanded dock, in pixels.",
             "tab": "Friends Dock",
@@ -344,6 +380,60 @@
                 "max": 100,
                 "step": 5,
                 "unit": "%"
+            }
+        },
+        "Built-in chat": {
+            "description": "A click on a friend opens the chat beside the dock, Steam Enhanced's way: Steam's own chat (history, sending, pictures, stickers, emoticons, invites, typing) in a flyout, in a popup over Store and Community pages. Off: Steam's chat window, as before.",
+            "tab": "Chat",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-chat-off.css" } }
+            }
+        },
+        "Chat window button": {
+            "description": "A button in the chat's corner that moves the conversation to Steam's own chat window. A friend's menu offers it too.",
+            "tab": "Chat",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-popout-off.css" } }
+            }
+        },
+        "Unread badges": {
+            "description": "How many messages wait, on each friend's face in the dock.",
+            "tab": "Chat",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-unread-off.css" } }
+            }
+        },
+        "Message alerts": {
+            "description": "A new message makes its badge pulse once. Steam's own message notifications stay as set in Steam's settings.",
+            "tab": "Chat",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-alerts-off.css" } }
+            }
+        },
+        "Scroll to new messages": {
+            "description": "The open conversation follows a new message even when it is scrolled up. Off: Steam's own scrolling (it follows only at the bottom).",
+            "tab": "Chat",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-autoscroll-off.css" } }
+            }
+        },
+        "Keep the open chat": {
+            "description": "The open conversation stays when the dock folds, when you go to another page and across a Steam restart (it comes back minimized). Off: folding the dock or leaving the page closes it.",
+            "tab": "Chat",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-keepchat-off.css" } }
             }
         },
         "Performance": {
@@ -496,6 +586,10 @@
     },
 
     "Patches": [
+        {
+            "MatchRegexString": ".*",
+            "TargetJs": "vendor/steam-enhanced/client/loader.js"
+        },
         {
             "MatchRegexString": "^(Steam|Steam Games List)$",
             "TargetCss": "main.css",

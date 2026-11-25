@@ -94,8 +94,15 @@
     const items = [...list.querySelectorAll(ITEM)];
     const content = document.querySelector(CONTENT);
     const mill = Boolean(list.closest('.MillenniumSettings'));
-    const isProps = !mill && isPropsDialog(items, content);
-    const steam = !mill && !isProps && isSteamSettings(list, items);
+    /* Aika Enhanced: only Millennium's window is taken over; Steam Settings and Game Properties
+       keep Aika's own look (sections/settings.css), so this pass leaves them alone. */
+    if (!mill) {
+      resetProps();
+      setAttr(root, 'data-se-mill', null);
+      return;
+    }
+    const isProps = false;
+    const steam = false;
     setAttr(root, 'data-se-settings', steam ? '' : null);
     setAttr(root, 'data-se-mill', mill ? '' : null);
     setAttr(root, 'data-se-props', isProps ? '' : null);

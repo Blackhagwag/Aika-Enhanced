@@ -9,24 +9,29 @@
      the library manager sidebar (Steam menu → "Millennium Library Manager") —
        .MillenniumDesktopSidebar_Overlay + .MillenniumDesktopSidebar
        (_Title, _Content > .PanelSection, _LibraryItemButton, _Editor > _EditorHeader).
+
+   Aika Enhanced: Millennium's settings window and Quick CSS editor are redrawn
+   by Steam Enhanced's design (vendor/steam-enhanced/client/settings/millennium/),
+   in Aika's palette; these rules stand back while it runs (html[data-se-mill],
+   html[data-se-qce]) and only apply if it cannot.
    ========================================================================== */
 
 /* --- Settings pages ---------------------------------------------------------- */
 
 /* The floating add / downloads / friends buttons (sections/library.css) hang
    over every page of the window — the last rows ran under them */
-html body .MillenniumSettings.PagedSettingsDialog .DialogBody {
+html:not([data-se-mill]) body .MillenniumSettings.PagedSettingsDialog .DialogBody {
     padding-bottom: var(--aika-dock-clearance);
 }
 
 /* Steam's .DialogContent sets "Motiva Sans" on the page — our face */
-html .MillenniumSettings .PagedSettingsDialog_PageContent {
+html:not([data-se-mill]) .MillenniumSettings .PagedSettingsDialog_PageContent {
     font-family: var(--aika-font-ui);
 }
 
 /* Plugins / Themes: the version and the memory / CPU chips after a name
    (Millennium: white 5 % with 4 px corners, gray #969696) — mono pills */
-html .MillenniumSettings :is(.MillenniumItem_Version, .MillenniumPlugins_Metrics) > span {
+html:not([data-se-mill]) .MillenniumSettings :is(.MillenniumItem_Version, .MillenniumPlugins_Metrics) > span {
     border-radius: var(--aika-radius-full);
     background: var(--aika-surface);
     color: var(--aika-fg-subtle);
@@ -36,37 +41,37 @@ html .MillenniumSettings :is(.MillenniumItem_Version, .MillenniumPlugins_Metrics
 }
 
 /* Logs: a plugin per full-width button, the name centered — a list row */
-html .MillenniumSettings .MillenniumLogs_LogItemButton {
+html:not([data-se-mill]) .MillenniumSettings .MillenniumLogs_LogItemButton {
     justify-content: flex-start !important;   /* .MillenniumButton: center !important */
     padding-inline: var(--aika-space-4);
     text-align: start;
 }
 
 /* Quick CSS "Status: loaded" — a check painted fill=green */
-html .MillenniumSettings .FieldIcon svg path[fill="green"] {
+html:not([data-se-mill]) .MillenniumSettings .FieldIcon svg path[fill="green"] {
     fill: var(--aika-ok);
 }
 
 /* General, About: versions and build dates — mono */
-html .MillenniumSettings .FieldChildrenInner:not(:has(> *)) {
+html:not([data-se-mill]) .MillenniumSettings .FieldChildrenInner:not(:has(> *)) {
     font-family: var(--aika-font-mono);
     font-size: var(--aika-text-meta);
     color: var(--aika-fg-muted);
 }
 
 /* Updates: "Released: <date>" / "Changes:" + the notes (markdown) */
-html .MillenniumSettings .MillenniumUpdates_Description b {
+html:not([data-se-mill]) .MillenniumSettings .MillenniumUpdates_Description b {
     font-family: var(--aika-font-ui);   /* Steam's own b rule: Motiva Sans */
     font-weight: var(--aika-weight-semibold);
     color: var(--aika-fg-muted);
 }
 
-html .MillenniumSettings .MillenniumUpdates_Description > div > div:first-child {
+html:not([data-se-mill]) .MillenniumSettings .MillenniumUpdates_Description > div > div:first-child {
     font-family: var(--aika-font-mono);
     font-size: var(--aika-text-meta);
 }
 
-html .MillenniumSettings .MillenniumUpdates_Description > div > div:last-child > div {
+html:not([data-se-mill]) .MillenniumSettings .MillenniumUpdates_Description > div > div:last-child > div {
     margin-top: var(--aika-space-2);
     padding: var(--aika-space-2) var(--aika-space-3);
     border-radius: var(--aika-radius-md);
@@ -75,7 +80,7 @@ html .MillenniumSettings .MillenniumUpdates_Description > div > div:last-child >
     box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
 }
 
-html .MillenniumSettings .MillenniumUpdates_Description p {
+html:not([data-se-mill]) .MillenniumSettings .MillenniumUpdates_Description p {
     margin: var(--aika-space-1) 0;
 }
 
@@ -230,7 +235,7 @@ html input.MillenniumColorPicker::-webkit-color-swatch {
 
 /* --- The "MILLENNIUM" title ------------------------------------------------------ */
 /* Unbounded 800 (author 2026-10-20) over our gradient heading (sections/settings.css) */
-html .MillenniumSettings .PagedSettingsDialog_Title {
+html:not([data-se-mill]) .MillenniumSettings .PagedSettingsDialog_Title {
     font-family: var(--aika-font-heavy);
     font-size: var(--aika-text-heavy-title);
     font-weight: var(--aika-weight-heavy);
@@ -244,19 +249,19 @@ html .MillenniumSettings .PagedSettingsDialog_Title {
    .DialogHeader + form.MillenniumQuickCss_CodeEditor > .cm-editor (CodeMirror 6,
    a VS Code Dark look: #1e1e1e, gutters #838383, white 6 % active line). The
    syntax colors are CodeMirror's generated classes (ͼ1l…) — left as they are. */
-html .MillenniumQuickCss_Popup .DialogContent {
+html:not([data-se-qce]) .MillenniumQuickCss_Popup .DialogContent {
     background: var(--aika-bg-elevated);
     font-family: var(--aika-font-ui);
 }
 
-html .MillenniumQuickCss_Popup .DialogHeader {
+html:not([data-se-qce]) .MillenniumQuickCss_Popup .DialogHeader {
     font-family: var(--aika-font-ui);
     font-weight: var(--aika-weight-semibold);
     letter-spacing: var(--aika-tracking-h2);
     color: var(--aika-fg);
 }
 
-html .MillenniumQuickCss_Popup .cm-editor {
+html:not([data-se-qce]) .MillenniumQuickCss_Popup .cm-editor {
     border-radius: var(--aika-radius-md);
     background: var(--aika-bg-base);
     font-family: var(--aika-font-mono);
@@ -265,29 +270,29 @@ html .MillenniumQuickCss_Popup .cm-editor {
     overflow: hidden;
 }
 
-html .MillenniumQuickCss_Popup .cm-editor .cm-scroller {
+html:not([data-se-qce]) .MillenniumQuickCss_Popup .cm-editor .cm-scroller {
     font-family: inherit;
 }
 
-html .MillenniumQuickCss_Popup .cm-editor .cm-gutters {
+html:not([data-se-qce]) .MillenniumQuickCss_Popup .cm-editor .cm-gutters {
     border: none;
     background: var(--aika-bg-base);
     color: var(--aika-fg-subtle);
 }
 
-html .MillenniumQuickCss_Popup .cm-editor :is(.cm-activeLine, .cm-activeLineGutter) {
+html:not([data-se-qce]) .MillenniumQuickCss_Popup .cm-editor :is(.cm-activeLine, .cm-activeLineGutter) {
     background: var(--aika-surface);
 }
 
-html .MillenniumQuickCss_Popup .cm-editor .cm-activeLineGutter {
+html:not([data-se-qce]) .MillenniumQuickCss_Popup .cm-editor .cm-activeLineGutter {
     color: var(--aika-fg);
 }
 
-html .MillenniumQuickCss_Popup .cm-editor .cm-cursor {
+html:not([data-se-qce]) .MillenniumQuickCss_Popup .cm-editor .cm-cursor {
     border-left-color: var(--aika-accent-bright);
 }
 
-html .MillenniumQuickCss_Popup .cm-editor .cm-selectionBackground,
-html .MillenniumQuickCss_Popup .cm-editor.cm-focused .cm-selectionBackground {
+html:not([data-se-qce]) .MillenniumQuickCss_Popup .cm-editor .cm-selectionBackground,
+html:not([data-se-qce]) .MillenniumQuickCss_Popup .cm-editor.cm-focused .cm-selectionBackground {
     background: var(--aika-accent-soft);
 }

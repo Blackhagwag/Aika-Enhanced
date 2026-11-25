@@ -104,8 +104,7 @@ test("status changes move friends between groups, touching only their rows", asy
   await page.evaluate(() => { __fixture.friends[10].persona.m_ePersonaState = 1; });
   await page.waitForSelector('[data-friend="111"]', { timeout: 2500 });
   assert.equal(await page.evaluate(() => document.querySelector('[data-friend="111"]').classList.contains("is-new")), true, "rises in");
-  await settle(page, 700);
-  assert.equal(await page.evaluate(() => document.querySelector('[data-friend="111"]').classList.contains("is-new")), false, "the mark goes after its animation");
+  await page.waitForFunction(() => !document.querySelector('[data-friend="111"]').classList.contains("is-new"), null, { timeout: 4000 });
   // a name change (nickname) updates text in place
   await page.evaluate(() => { __fixture.friends[0].display_name = "Mirelle ✦"; });
   await tick(page);
@@ -182,15 +181,16 @@ test("Dock at startup: Collapsed / Expanded override the last state", async () =
   await close(page);
 });
 
-test("only on the library: a store page, the mini Games List and Off restore Aika's layout", async () => {
+test("pages without the dock (page setting off, the mini Games List, Off) restore Aika's layout", async () => {
   const base = await open("nodock=1");
   const original = await base.evaluate(() => ({
     lib: document.querySelector(".Library").getBoundingClientRect().width,
     bar: document.querySelector(".BottomBarContainer").getBoundingClientRect().width,
   }));
   await close(base);
-  const page = await open();
-  await page.evaluate(() => { __fixture.route.path = "/browser/store"; });
+  // 2.0: the dock follows to the Store by default; "Dock: in the store" off takes it away there
+  const page = await open("opt=fdock-page-store-off");
+  await page.evaluate(() => { __fixture.route.path = "/browser/store"; __fixture.route.url = "https://store.steampowered.com/app/730/"; });
   await tick(page);
   assert.equal(await page.locator(".aika-fdock").count(), 0);
   assert.equal(await page.getAttribute("html", "data-aika-fdock"), null);
@@ -233,15 +233,13 @@ test("Off from the start: the original Aika DOM and layout", async () => {
 test("a narrow window folds the dock to its rail without changing the saved state", async () => {
   const page = await open("", { width: 1000 });
   assert.equal(await page.getAttribute("html", "data-aika-fdock"), "rail");
+  const mode = (m) => page.waitForFunction((m) => document.documentElement.dataset.aikaFdock === m, m, { timeout: 3000 });
   await page.setViewportSize({ width: 1440, height: 860 });
-  await tick(page, 500);
-  assert.equal(await page.getAttribute("html", "data-aika-fdock"), "open");
+  await mode("open");
   await page.setViewportSize({ width: 1000, height: 700 });
-  await tick(page, 500);
-  assert.equal(await page.getAttribute("html", "data-aika-fdock"), "rail");
+  await mode("rail");
   await page.click(".aika-fdock__toggle");   // opened by hand on the small window
-  await tick(page, 400);
-  assert.equal(await page.getAttribute("html", "data-aika-fdock"), "open");
+  await mode("open");
   assert.equal(await page.evaluate(() => localStorage.getItem("aika-fdock-mode")), null);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   await close(page);

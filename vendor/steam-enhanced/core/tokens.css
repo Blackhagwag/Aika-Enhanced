@@ -503,3 +503,106 @@
    */
 
 }
+
+/*
+ * ===========================================================================================
+ * Aika Enhanced — the palette bridge. Not part of Steam Enhanced.
+ *
+ * Every Steam Enhanced part ported into Aika Enhanced (the Millennium Settings redesign, the
+ * theme settings window, the popup layer, the Friends dock chat frame) draws from the tokens
+ * above. Here their colours, type, radii, shadows, blur and timing are taken from Aika's design
+ * system (colors.css, tokens.css of the theme), so they follow the Aika preset, the custom
+ * colours and Performance like the rest of the window. Layout, sizes and structure stay Steam
+ * Enhanced's. Each value falls back to Steam Enhanced's own when a window has no Aika tokens.
+ * :root:root outranks the block above whatever the order the sheets arrive in.
+ * ===========================================================================================
+ */
+:root:root {
+  /* Grounds, darkest to lightest: Aika's background steps */
+  --se-bg: var(--aika-bg-base, #171a20);
+  --se-sidebar: var(--aika-bg-elevated, #1d2128);
+  --se-surface: var(--aika-bg-raised, #1f242b);
+  --se-surface-2: var(--aika-bg-hover, #262c35);
+  --se-hover: var(--aika-bg-high, #2c3440);
+  --se-selected: var(--aika-accent-dim, #33404f);
+  --se-hairline: var(--aika-border, rgba(255, 255, 255, .06));
+  --se-divider: var(--aika-border-strong, rgba(255, 255, 255, .08));
+  --se-track: var(--aika-bg-line, #3a424d);
+  --se-border-strong: var(--aika-bg-line, #4a525e);
+  --se-field: var(--aika-bg-deep, #15181d);
+  --se-bg-ink: var(--aika-bg-deep, #0f1115);
+
+  /* Text */
+  --se-text: var(--aika-fg, #e6e8eb);
+  --se-text-muted: var(--aika-fg-muted, #a2acb7);
+  --se-text-dim: color-mix(in oklab, var(--aika-fg, #e6e8eb) 70%, var(--aika-fg-muted, #b8c0c8));
+  --se-text-faint: var(--aika-fg-subtle, #8994a2);
+  --se-text-strong: var(--aika-ink, #fff);
+  --se-on-accent: var(--aika-on-accent, #0f1115);
+
+  /* The accent and the statuses: the preset's */
+  --se-accent: var(--aika-accent, #7cc4ff);
+  --se-accent-hover: var(--aika-accent-bright, #9fd3ff);
+  --se-accent-surface: color-mix(in srgb, var(--aika-accent, #7cc4ff) 18%, var(--aika-bg-base, #171a20));
+  --se-running: var(--aika-ok, #6cc24a);
+  --se-online: var(--aika-accent-bright, #4cb4ff);
+  --se-offline: var(--aika-fg-subtle, #848e99);
+  --se-danger: var(--aika-live, #ef8f95);
+  --se-danger-text: color-mix(in oklab, var(--aika-live, #ef8f95) 70%, var(--aika-ink, #fff));
+  --se-warning: var(--aika-warn, #f0c060);
+  --se-gold: var(--aika-warn, #f0c060);
+  --se-gold-text: color-mix(in oklab, var(--aika-warn, #f0c060) 80%, var(--aika-ink, #fff));
+  --se-link: var(--aika-accent-bright, #7cc4ff);
+  --se-play: var(--aika-accent-fill, #388620);
+
+  /* Translucent whites: Aika's warm ink */
+  --se-white-02: rgb(from var(--aika-ink, #fff) r g b / .02);
+  --se-white-03: rgb(from var(--aika-ink, #fff) r g b / .03);
+  --se-white-04: rgb(from var(--aika-ink, #fff) r g b / .04);
+  --se-white-07: rgb(from var(--aika-ink, #fff) r g b / .07);
+  --se-white-10: rgb(from var(--aika-ink, #fff) r g b / .1);
+  --se-white-12: rgb(from var(--aika-ink, #fff) r g b / .12);
+  --se-white-14: rgb(from var(--aika-ink, #fff) r g b / .14);
+  --se-white-18: rgb(from var(--aika-ink, #fff) r g b / .18);
+  --se-white-25: rgb(from var(--aika-ink, #fff) r g b / .25);
+  --se-white-32: rgb(from var(--aika-ink, #fff) r g b / .32);
+
+  /* Glass and depth: Aika's floating material (menus, library icons) */
+  --se-panel-bg: var(--aika-surface-translucent, color-mix(in srgb, #1f242b 96%, transparent));
+  --se-glass: var(--aika-overlay-material, color-mix(in srgb, #0f1115 80%, transparent));
+  --se-blur-panel: var(--aika-player-blur, blur(16px));
+  --se-shadow-pop: var(--aika-shadow-menu, 0 18px 40px -10px rgba(0, 0, 0, .8), inset 0 0 0 1px rgba(255, 255, 255, .07));
+  --se-shadow-tooltip: var(--aika-shadow-menu, 0 10px 24px -8px rgba(0, 0, 0, .8));
+  --se-panel-shadow: var(--aika-shadow-panel, inset 0 0 0 1px rgba(255, 255, 255, .06), 0 24px 48px -16px rgba(0, 0, 0, .9));
+  --se-focus-outline: calc(var(--aika-focus-ring, 4px) - var(--aika-focus-gap, 2px)) solid var(--aika-accent-ring, #7cc4ff);
+  --se-focus-offset: var(--aika-focus-gap, 2px);
+
+  /* Type: Aika's faces */
+  --se-font: var(--aika-font-ui, "SN Pro", "Motiva Sans", Arial, sans-serif);
+  --se-font-mono: var(--aika-font-mono, "Cascadia Mono", Consolas, monospace);
+  --se-label-font: var(--aika-weight-medium, 500) var(--aika-text-label, 11px)/14px var(--aika-font-mono, monospace);
+  --se-label-spacing: var(--aika-tracking-label, .1em);
+  --se-eyebrow-color: var(--aika-accent-bright, #7cc4ff);
+
+  /* Corners: Aika's radii */
+  --se-radius-xs: var(--aika-radius-xs, 4px);
+  --se-radius-sm: var(--aika-radius-md, 8px);
+  --se-radius-md: var(--aika-radius-md, 10px);
+  --se-radius-ml: var(--aika-radius-lg, 12px);
+  --se-radius-lg: var(--aika-radius-lg, 14px);
+  --se-radius-xl: var(--aika-radius-xl, 18px);
+  --se-avatar-radius: var(--aika-fl-avatar-radius, 23%);
+
+  /* Motion: Aika's curve and durations (Performance: Low zeroes them) */
+  --se-ease: var(--aika-ease, cubic-bezier(.2, .8, .2, 1));
+  --se-dur-fast: var(--aika-dur-fast, .12s);
+  --se-dur: var(--aika-dur-fast, .15s);
+  --se-dur-mid: var(--aika-dur-base, .2s);
+  --se-dur-slow: var(--aika-dur-base, .25s);
+  --se-dur-relaxed: var(--aika-dur-expand, .3s);
+  --se-press-scale: var(--aika-press-scale, .97);
+
+  /* The Friends dock chat frame sits beside the Aika Friends Dock (js/friends-dock.js) */
+  --se-fd-w: var(--aika-fdock-width, 264px);
+  --se-fd-rail: var(--aika-fdock-rail, 52px);
+}

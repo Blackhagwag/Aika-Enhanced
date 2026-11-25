@@ -1064,4 +1064,6 @@
     --aika-fdock-text-delay: 60ms;                                      /* names come in once the dock has started to open */
     --aika-z-fdock: 40;                                                 /* above the game page Play bar (37), under Steam's dialogs (1500) */
     --aika-z-fdock-pop: 1530;                                           /* the dock's tooltip and menu: over Steam's tooltips (1526) */
+    /* The dock header's settings button: two sliders, drawn like the header menu icons */
+    --aika-icon-sliders: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7.5h8.5M17.5 7.5H20M4 16.5h2.5M11.5 16.5H20'/%3E%3Ccircle cx='15' cy='7.5' r='2.5'/%3E%3Ccircle cx='9' cy='16.5' r='2.5'/%3E%3C/svg%3E");
 }

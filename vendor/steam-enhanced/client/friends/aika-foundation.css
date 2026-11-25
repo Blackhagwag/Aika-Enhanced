@@ -1,0 +1,13 @@
+/*
+ * Aika Enhanced — Aika's foundation for Steam's popup windows the popup layer opens (titled
+ * "... Menu"): the palette, the tokens, the fonts and the Friends Dock's own pieces (its
+ * tooltip, its menu), so a chat flyout, a tooltip or a menu drawn over a Store or Community page
+ * wears the preset whether or not Millennium's .ContextMenuPopup patch reached the window.
+ * Given to menu windows by client/loader.js.
+ */
+@import url("../../../../root-colors.css");
+@import url("../../../../colors.css");
+@import url("../../../../tokens.css");
+@import url("../../../../base.css");
+@import url("../../../../components/menu.css");
+@import url("../../../../sections/friends-dock.css");

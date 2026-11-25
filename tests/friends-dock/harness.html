@@ -86,6 +86,15 @@
 <script type="module">
   const q = new URLSearchParams(location.search);
   await import("./fixture.js");
+  if (q.get("millennium")) await import("./millennium-stub.js");
+  if (q.get("engine")) {
+    window.__aikaTestClient = true;
+    // the Steam Enhanced parts, as skin.json's ".*" patch loads them (a module with a src)
+    const s = document.createElement("script");
+    s.type = "module";
+    s.src = "../../vendor/steam-enhanced/client/loader.js";
+    document.head.append(s);
+  }
   if (!q.get("nodock")) {
     const theme = q.get("theme") || "../..";
     window.__errors = [];

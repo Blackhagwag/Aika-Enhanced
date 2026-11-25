@@ -1,3 +1,4 @@
+/* Aika Enhanced: every rule scoped to Millennium's settings window (html[data-se-mill]) by tools/scope-settings-css.cjs. */
 /*
  * Settings › search results inside pages.
  * Settings styles load in order: layout, controls, pages, storage, search, game-properties (and its parts), spacing.
@@ -7,7 +8,7 @@
  * Search results: options inside pages (client/settings/dialog/ lists them under the search
  * field; click or Enter opens the page and highlights the option).
  */
-.se-settings-results {
+html[data-se-mill] .se-settings-results {
   display: flex;
   flex-direction: column;
   gap: var(--se-space-half);
@@ -20,19 +21,19 @@
   overflow-y: auto;
 }
 
-.se-settings-results[hidden] {
+html[data-se-mill] .se-settings-results[hidden] {
   display: none;
 }
 
-.se-settings-results::-webkit-scrollbar {
+html[data-se-mill] .se-settings-results::-webkit-scrollbar {
   display: none;
 }
 
-.se-settings-results-head {
+html[data-se-mill] .se-settings-results-head {
   padding: var(--se-space-1) var(--se-space-2) var(--se-space-1);
 }
 
-.se-settings-result {
+html[data-se-mill] .se-settings-result {
   all: unset;
   box-sizing: border-box;
   display: flex;
@@ -45,7 +46,7 @@
   color: var(--se-text);
 }
 
-.se-settings-result > span:first-child {
+html[data-se-mill] .se-settings-result > span:first-child {
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -53,24 +54,24 @@
   -webkit-box-orient: vertical;
 }
 
-.se-settings-result-page {
+html[data-se-mill] .se-settings-result-page {
   font: 500 var(--se-fs-sm) var(--se-font);
   color: var(--se-text-muted);
 }
 
-.se-settings-result:hover,
-.se-settings-result[data-se-cur] {
+html[data-se-mill] .se-settings-result:hover,
+html[data-se-mill] .se-settings-result[data-se-cur] {
   background: var(--se-hover);
 }
 
 /* Keyboard focus on the controls this theme adds (results, copy) */
-.se-settings-result:focus-visible,
-.se-copy:focus-visible {
+html[data-se-mill] .se-settings-result:focus-visible,
+html[data-se-mill] .se-copy:focus-visible {
   outline: var(--se-focus-outline);
   outline-offset: var(--se-focus-offset);
 }
 
-.se-settings-result[data-se-cur] .se-settings-result-page {
+html[data-se-mill] .se-settings-result[data-se-cur] .se-settings-result-page {
   color: var(--se-accent);
 }
 
@@ -85,7 +86,7 @@
   }
 }
 
-.CFTLX2wIKOK3hNV-fS7_V [data-se-hit] {
+html[data-se-mill] .CFTLX2wIKOK3hNV-fS7_V [data-se-hit] {
   outline: 2px solid transparent !important;
   outline-offset: -2px !important;
   animation: se-settings-hit var(--se-dur-breathe) var(--se-ease);
