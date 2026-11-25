@@ -1,0 +1,724 @@
+/* ==========================================================================
+   sections/friends-dock.css — the Friends Dock (Aika Enhanced): the friends
+   column at the right of the library. Markup and data: js/friends-dock.js.
+
+   The design is the library's left panel mirrored (sections/library.css,
+   components/nav.css): the same translucent --aika-surface with a hairline
+   edge toward the content and the top glare, rows inset like the game list
+   rows with the same hover and radius, the friends list window's status
+   badges cut out of squircle faces (sections/friends-list.css), its mono
+   group captions with a fading line, Steam's tooltip and Aika's menu
+   (components/menu.css). Every color is a colors.css token, every size and
+   timing a tokens.css one ("Friends Dock" block) — the preset, the custom
+   colors and Performance reach the dock as they reach the rest.
+
+   Structure:
+     html[data-aika-fdock="open" | "rail"]  — the dock is on screen (only on
+                                               the library); the library gives
+                                               up its room
+     aside.aika-fdock[data-mode][data-peek]
+       .aika-fdock__head    (.aika-fdock__toggle, __title, __count)
+       .aika-fdock__scroll  > section.aika-fdock__sec[data-sec][data-closed]
+         button.aika-fdock__sec-head (__chev, __label, __sec-count, __line)
+         .aika-fdock__list > .aika-fdock__row[data-friend][data-state]
+                           | .aika-fdock__game > button.aika-fdock__game-head + .aika-fdock__list
+     .aika-fdock-tip  — the name and the game beside a face in the rail
+     .aika-menu.aika-fdock-menu — a friend's menu
+
+   Both modes keep every row's height: collapsing changes the width only and
+   fades the text, so nothing jumps up or down.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   The library gives up its room (the width eases with the dock). The
+   floating icons (add game, downloads, friends) keep to the library too.
+   -------------------------------------------------------------------------- */
+
+html[data-aika-fdock] {
+    --aika-fdock-space: var(--aika-fdock-width);
+}
+
+html[data-aika-fdock="rail"] {
+    --aika-fdock-space: var(--aika-fdock-rail);
+}
+
+/* The content frame (the library and, on other pages, the browser view)
+   narrows — the column Steam Enhanced reserves for its dock; the attribute
+   is only there while the library shows, so store pages keep their width */
+html[data-aika-fdock] .OuterFrame > .ContentFrame {
+    min-width: 0;
+    margin-inline-end: var(--aika-fdock-space);
+    transition: margin-inline-end var(--aika-fdock-dur) var(--aika-ease);
+}
+
+html[data-aika-fdock] .OuterFrame > .BottomBarContainer {
+    right: var(--aika-fdock-space);
+    transition: right var(--aika-fdock-dur) var(--aika-ease);
+}
+
+/* Arriving on the library (startup, back from a store page) the dock and the
+   room are simply there for a frame — no easing in on every visit
+   (js/friends-dock.js sets the mark for two frames) */
+html[data-aika-fdock-instant] :is(.OuterFrame > .ContentFrame, .OuterFrame > .BottomBarContainer, .aika-fdock, .aika-fdock *) {
+    transition: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   The column
+   -------------------------------------------------------------------------- */
+
+.aika-fdock {
+    position: fixed;
+    top: var(--aika-fdock-top, var(--aika-supernav-height));
+    right: 0;
+    bottom: 0;
+    z-index: var(--aika-z-fdock);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: var(--aika-fdock-width);
+    overflow: hidden;
+    /* the left panel's surface (sections/library.css), its edge toward the content */
+    background: var(--aika-fdock-bg);
+    border-left: var(--aika-hairline) solid var(--aika-border);
+    box-shadow: var(--aika-highlight-top);
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-body);
+    user-select: none;
+    transition:
+        width var(--aika-fdock-dur) var(--aika-ease),
+        background-color var(--aika-fdock-dur) var(--aika-ease-hover),
+        box-shadow var(--aika-fdock-dur) var(--aika-ease);
+    contain: layout style;
+}
+
+.aika-fdock[data-mode="rail"] {
+    width: var(--aika-fdock-rail);
+}
+
+/* Expand on hover: the rail opens over the library (its room stays a rail's),
+   in the material of Aika's floating surfaces — the menus and the library
+   icons: translucent, blurred, the menu shadow */
+.aika-fdock[data-mode="rail"][data-peek] {
+    width: var(--aika-fdock-width);
+    background: var(--aika-surface-translucent);
+    -webkit-backdrop-filter: var(--aika-player-blur);
+    backdrop-filter: var(--aika-player-blur);
+    box-shadow: var(--aika-shadow-menu);
+}
+
+/* zero specificity: the dock's own button rules (padding, sizes) win */
+:where(.aika-fdock) button {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: var(--aika-transparent);
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   The header strip: the toggle stands in the faces' column, the title and
+   the count fade with the names
+   -------------------------------------------------------------------------- */
+
+.aika-fdock__head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: var(--aika-space-2);
+    height: var(--aika-fdock-head);
+    padding-inline: var(--aika-fdock-col-inset) var(--aika-space-3);
+    border-bottom: var(--aika-hairline) solid var(--aika-border);
+}
+
+.aika-fdock__toggle {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: calc(var(--aika-fdock-avatar) + 2 * var(--aika-fdock-col-pad));
+    height: var(--aika-menu-icon-box);
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+.aika-fdock__toggle:hover {
+    background-color: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+.aika-fdock__toggle:active {
+    transform: scale(var(--aika-press-scale));
+}
+
+/* The chevron points where the dock goes: left to open, right to fold */
+.aika-fdock__toggle-icon {
+    width: var(--aika-menu-icon);
+    height: var(--aika-menu-icon);
+    background: currentColor;
+    -webkit-mask: var(--aika-icon-chevron) center / contain no-repeat;
+    mask: var(--aika-icon-chevron) center / contain no-repeat;
+    transform: rotate(180deg);
+    transition: transform var(--aika-fdock-dur) var(--aika-ease);
+}
+
+.aika-fdock[data-mode="open"] .aika-fdock__toggle-icon {
+    transform: rotate(0deg);
+}
+
+/* The title — a mono caption, as the panel headers and the friends groups */
+.aika-fdock__title,
+.aika-fdock__label {
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    font-weight: var(--aika-weight-medium);
+    letter-spacing: var(--aika-tracking-label);
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--aika-fg-subtle);
+}
+
+.aika-fdock__title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--aika-fg-muted);
+}
+
+.aika-fdock__count,
+.aika-fdock__sec-count {
+    flex: none;
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    font-variant-numeric: tabular-nums;
+    color: var(--aika-fg-subtle);
+}
+
+/* the online count: an accent badge, as .aika-badge (components/status.css) */
+.aika-fdock__count {
+    min-width: 1ch;
+    padding: var(--aika-badge-pad-y) var(--aika-space-2);
+    border: var(--aika-hairline) solid var(--aika-border-accent);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent-soft);
+    color: var(--aika-fg);
+    text-align: center;
+}
+
+.aika-fdock__count[hidden],
+.aika-fdock__sec-count[hidden] {
+    display: none;
+}
+
+/* --------------------------------------------------------------------------
+   The list. Aika's scrollbars (base.css); the rail scrolls by the wheel
+   without a bar, as narrow as it is.
+   -------------------------------------------------------------------------- */
+
+.aika-fdock__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-block: var(--aika-space-2) var(--aika-space-4);
+}
+
+.aika-fdock[data-mode="rail"]:not([data-peek]) .aika-fdock__scroll::-webkit-scrollbar {
+    width: 0;
+}
+
+.aika-fdock__sec[hidden] {
+    display: none;
+}
+
+.aika-fdock__sec + .aika-fdock__sec {
+    margin-top: var(--aika-space-2);
+}
+
+/* A group caption: "IN GAME 3 ───" — the friends list window's .groupName
+   (sections/friends-list.css): mono, the count fainter, a line fading out */
+.aika-fdock__sec-head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--aika-space-2);
+    width: 100%;
+    height: var(--aika-space-7);
+    padding-inline: calc(var(--aika-fdock-col-inset) + var(--aika-fdock-col-pad)) var(--aika-space-3);
+    box-sizing: border-box;
+    color: var(--aika-fg-subtle);
+    transition: color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+.aika-fdock__sec-head:hover {
+    color: var(--aika-fg-muted);
+}
+
+.aika-fdock__sec-head .aika-fdock__sec-count {
+    opacity: 0.7;
+}
+
+.aika-fdock__line {
+    flex: 1 1 auto;
+    min-width: var(--aika-space-4);
+    height: var(--aika-hairline);
+    background: linear-gradient(90deg, var(--aika-border-hover), var(--aika-transparent));
+}
+
+.aika-fdock__chev {
+    flex: none;
+    width: var(--aika-chevron-size);
+    height: var(--aika-chevron-size);
+    background: currentColor;
+    -webkit-mask: var(--aika-icon-chevron-down) center / contain no-repeat;
+    mask: var(--aika-icon-chevron-down) center / contain no-repeat;
+    transition: transform var(--aika-dur-base) var(--aika-ease);
+}
+
+[data-closed] > :is(.aika-fdock__sec-head, .aika-fdock__game-head) .aika-fdock__chev {
+    transform: rotate(-90deg);
+}
+
+/* In the rail a caption is the divider between the groups: the gradient
+   divider of the library shelves (--aika-divider), the words fade away */
+.aika-fdock__sec-head::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--aika-fdock-col-inset) + var(--aika-fdock-col-pad));
+    width: var(--aika-fdock-avatar);
+    top: 50%;
+    height: var(--aika-hairline);
+    background: var(--aika-divider);
+    opacity: 0;
+    transition: opacity var(--aika-fdock-dur-text) var(--aika-ease-hover);
+    pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   A friend: the game list row (components/nav.css) — inset, the radius, the
+   hover surface; the face in the first column, the name and what they do
+   -------------------------------------------------------------------------- */
+
+.aika-fdock__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--aika-hairline);
+}
+
+.aika-fdock__row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--aika-space-3);
+    margin-inline: var(--aika-fdock-col-inset);
+    padding: var(--aika-fdock-row-pad) var(--aika-fdock-col-pad);
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+    cursor: pointer;
+    outline-offset: calc(-1 * var(--aika-focus-gap));
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+.aika-fdock__row:hover,
+.aika-fdock__row:focus-visible {
+    background-color: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+.aika-fdock__row:active {
+    background-color: var(--aika-surface-active);
+}
+
+/* A friend appearing (they came online, started a game, moved between the
+   groups): the panels' entrance — fade up and a slight scale */
+@keyframes aika-fdock-in {
+    from {
+        opacity: 0;
+        transform: translateY(calc(var(--aika-appear-shift) / 2 * var(--aika-motion))) scale(var(--aika-appear-scale));
+    }
+}
+
+.aika-fdock :is(.aika-fdock__row, .aika-fdock__game).is-new {
+    animation: aika-fdock-in var(--aika-fdock-dur-enter) var(--aika-ease) backwards;
+}
+
+/* The face: a squircle with the status badge cut out of its corner — the
+   friends list window's badges (sections/friends-list.css): online — the
+   accent dot, in game — ok with a "play" notch, away / snooze / busy — the
+   warn crescent, offline — a ring */
+.aika-fdock__av {
+    position: relative;
+    flex: none;
+    display: grid;
+    width: var(--aika-fdock-avatar);
+    height: var(--aika-fdock-avatar);
+    transition: transform var(--aika-dur-base) var(--aika-ease);
+}
+
+.aika-fdock__av > * {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--aika-fl-avatar-radius);
+    -webkit-mask: radial-gradient(circle calc(var(--aika-fdock-badge) / 2 + var(--aika-fdock-badge-gap))
+        at calc(100% - var(--aika-fdock-badge) / 2 + var(--aika-fdock-badge-out))
+           calc(100% - var(--aika-fdock-badge) / 2 + var(--aika-fdock-badge-out)),
+        transparent 98%, #000 100%);
+    mask: radial-gradient(circle calc(var(--aika-fdock-badge) / 2 + var(--aika-fdock-badge-gap))
+        at calc(100% - var(--aika-fdock-badge) / 2 + var(--aika-fdock-badge-out))
+           calc(100% - var(--aika-fdock-badge) / 2 + var(--aika-fdock-badge-out)),
+        transparent 98%, #000 100%);
+}
+
+.aika-fdock__av > img {
+    object-fit: cover;
+}
+
+.aika-fdock__av > img[hidden] {
+    display: none;
+}
+
+/* the initials, under the picture until it loads (or instead of it) */
+.aika-fdock__ini {
+    display: grid;
+    place-items: center;
+    background: var(--aika-bg-raised);
+    color: var(--aika-fg-muted);
+    font-size: calc(var(--aika-fdock-avatar) * 0.36);
+    font-weight: var(--aika-weight-semibold);
+}
+
+.aika-fdock__av::after {
+    content: "";
+    position: absolute;
+    right: calc(-1 * var(--aika-fdock-badge-out));
+    bottom: calc(-1 * var(--aika-fdock-badge-out));
+    z-index: 1;
+    width: var(--aika-fdock-badge);
+    height: var(--aika-fdock-badge);
+    background: var(--aika-accent-bright);
+    -webkit-mask: var(--aika-icon-status-dot) center / contain no-repeat;
+    mask: var(--aika-icon-status-dot) center / contain no-repeat;
+}
+
+.aika-fdock__av[data-state="ingame"]::after {
+    background: var(--aika-ok);
+    -webkit-mask-image: var(--aika-icon-status-game);
+    mask-image: var(--aika-icon-status-game);
+}
+
+.aika-fdock__av:is([data-state="away"], [data-state="snooze"], [data-state="busy"])::after {
+    background: var(--aika-warn);
+    -webkit-mask-image: var(--aika-icon-status-away);
+    mask-image: var(--aika-icon-status-away);
+}
+
+.aika-fdock__av[data-state="offline"]::after {
+    background: var(--aika-fg-subtle);
+    -webkit-mask-image: var(--aika-icon-status-off);
+    mask-image: var(--aika-icon-status-off);
+}
+
+.aika-fdock__row[data-state="offline"] .aika-fdock__av > * {
+    opacity: var(--aika-icon-dim);
+}
+
+/* The name and the line under it; names in the status colors of the friends
+   window (sections/friends.css): online — the bright accent, in game — ok */
+.aika-fdock__text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    transition: opacity var(--aika-fdock-dur-text) var(--aika-ease-hover) var(--aika-fdock-text-delay);
+}
+
+.aika-fdock__name,
+.aika-fdock__sub,
+.aika-fdock__game-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.aika-fdock__name {
+    color: var(--aika-accent-bright);
+    font-weight: var(--aika-weight-medium);
+    line-height: var(--aika-leading-heading);
+}
+
+.aika-fdock__row[data-state="ingame"] .aika-fdock__name {
+    color: var(--aika-ok);
+}
+
+.aika-fdock__row[data-state="offline"] .aika-fdock__name {
+    color: var(--aika-fg-subtle);
+}
+
+.aika-fdock__sub {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    line-height: var(--aika-leading-heading);
+}
+
+.aika-fdock__sub[data-state="ingame"] {
+    color: var(--aika-fg-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Group by game: the game's icon (the game list's icon radius), its name and
+   how many play it; its friends below
+   -------------------------------------------------------------------------- */
+
+.aika-fdock__game + .aika-fdock__game {
+    margin-top: var(--aika-space-1);
+}
+
+.aika-fdock__game-head {
+    display: flex;
+    align-items: center;
+    gap: var(--aika-space-2);
+    width: calc(100% - 2 * var(--aika-fdock-col-inset));
+    margin-inline: var(--aika-fdock-col-inset);
+    padding: var(--aika-space-1) var(--aika-space-2) var(--aika-space-1)
+        calc(var(--aika-fdock-col-pad) + (var(--aika-fdock-avatar) - var(--aika-fdock-game-icon)) / 2);
+    box-sizing: border-box;
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+.aika-fdock__game-head:hover {
+    background-color: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+.aika-fdock__game-icon {
+    flex: none;
+    display: grid;
+    width: var(--aika-fdock-game-icon);
+    height: var(--aika-fdock-game-icon);
+    border-radius: var(--aika-radius-xs);
+    background: var(--aika-bg-raised);
+    overflow: hidden;
+}
+
+.aika-fdock__game-icon > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.aika-fdock__game-icon > img[hidden] {
+    display: none;
+}
+
+.aika-fdock__game-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: var(--aika-text-meta);
+    font-weight: var(--aika-weight-medium);
+    transition: opacity var(--aika-fdock-dur-text) var(--aika-ease-hover) var(--aika-fdock-text-delay);
+}
+
+.aika-fdock__game-head > .aika-fdock__sec-count {
+    transition: opacity var(--aika-fdock-dur-text) var(--aika-ease-hover) var(--aika-fdock-text-delay);
+}
+
+/* a chevron both turns and fades */
+.aika-fdock__sec-head > .aika-fdock__chev,
+.aika-fdock__game-head > .aika-fdock__chev {
+    transition:
+        opacity var(--aika-fdock-dur-text) var(--aika-ease-hover) var(--aika-fdock-text-delay),
+        transform var(--aika-dur-base) var(--aika-ease);
+}
+
+/* --------------------------------------------------------------------------
+   The rail: the text fades out (no delay folding, a short one opening, so
+   the names come once there is room), the captions turn into dividers, the
+   faces grow a little under the cursor — the library icons' hover
+   -------------------------------------------------------------------------- */
+
+.aika-fdock[data-mode="rail"]:not([data-peek]) :is(
+    .aika-fdock__text, .aika-fdock__title, .aika-fdock__count,
+    .aika-fdock__sec-head > :not(.aika-fdock__line),
+    .aika-fdock__game-name, .aika-fdock__game-head > .aika-fdock__sec-count, .aika-fdock__game-head > .aika-fdock__chev) {
+    opacity: 0;
+    transition-delay: 0s;
+}
+
+.aika-fdock__title,
+.aika-fdock__count,
+.aika-fdock__sec-head > :is(.aika-fdock__label, .aika-fdock__sec-count) {
+    transition: opacity var(--aika-fdock-dur-text) var(--aika-ease-hover) var(--aika-fdock-text-delay);
+}
+
+.aika-fdock[data-mode="rail"]:not([data-peek]) .aika-fdock__line {
+    opacity: 0;
+}
+
+.aika-fdock[data-mode="rail"]:not([data-peek]) .aika-fdock__sec-head::before {
+    opacity: 1;
+}
+
+/* in the rail a caption only divides: nothing to press there */
+.aika-fdock[data-mode="rail"]:not([data-peek]) .aika-fdock__sec-head {
+    cursor: default;
+    pointer-events: none;
+}
+
+.aika-fdock[data-mode="rail"]:not([data-peek]) .aika-fdock__row:hover {
+    background-color: var(--aika-transparent);
+}
+
+.aika-fdock[data-mode="rail"]:not([data-peek]) .aika-fdock__row:hover .aika-fdock__av {
+    transform: scale(var(--aika-fdock-hover-scale));
+}
+
+/* --------------------------------------------------------------------------
+   Nobody to show: a quiet line, as the empty states elsewhere
+   -------------------------------------------------------------------------- */
+
+.aika-fdock__note {
+    padding: var(--aika-space-4) var(--aika-space-4);
+    color: var(--aika-fg-subtle);
+    font-size: var(--aika-text-meta);
+    line-height: var(--aika-leading-body);
+    transition: opacity var(--aika-fdock-dur-text) var(--aika-ease-hover) var(--aika-fdock-text-delay);
+}
+
+.aika-fdock__note[hidden] {
+    display: none;
+}
+
+.aika-fdock[data-mode="rail"]:not([data-peek]) .aika-fdock__note {
+    opacity: 0;
+    transition-delay: 0s;
+}
+
+/* --------------------------------------------------------------------------
+   The tooltip beside a face in the rail — Steam's client tooltip as Aika
+   draws it (components/menu.css, .HoverPosition .TextToolTip)
+   -------------------------------------------------------------------------- */
+
+.aika-fdock-tip {
+    position: fixed;
+    z-index: var(--aika-z-fdock-pop);
+    max-width: 240px;
+    padding: var(--aika-space-1) var(--aika-space-2);
+    border: var(--aika-hairline) solid var(--aika-border-hover);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface-translucent);
+    box-shadow: var(--aika-shadow-menu);
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-meta);
+    line-height: var(--aika-leading-heading);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(var(--aika-menu-shift));
+    visibility: hidden;
+    transition:
+        opacity var(--aika-dur-fast) var(--aika-ease-hover),
+        transform var(--aika-dur-fast) var(--aika-ease),
+        visibility 0s linear var(--aika-dur-fast);
+}
+
+.aika-fdock-tip.is-on {
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+    transition:
+        opacity var(--aika-dur-fast) var(--aika-ease-hover),
+        transform var(--aika-dur-fast) var(--aika-ease);
+}
+
+.aika-fdock-tip__name {
+    font-weight: var(--aika-weight-medium);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.aika-fdock-tip__sub {
+    margin-top: 2px;
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.aika-fdock-tip__sub[data-state="ingame"] {
+    color: var(--aika-ok);
+}
+
+.aika-fdock-tip__sub[hidden] {
+    display: none;
+}
+
+/* --------------------------------------------------------------------------
+   A friend's menu: Aika's own menu box (components/menu.css .aika-menu — the
+   translucent surface, the unfold) with its items rising in, as Steam's
+   menus do under Aika
+   -------------------------------------------------------------------------- */
+
+.aika-fdock-menu {
+    position: fixed;
+    z-index: var(--aika-z-fdock-pop);
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+    -webkit-backdrop-filter: var(--aika-player-blur);
+    backdrop-filter: var(--aika-player-blur);
+}
+
+.aika-fdock-menu .aika-menu__item {
+    display: block;
+    width: 100%;
+    margin: 0;
+    border: none;
+    background: var(--aika-transparent);
+    font-family: var(--aika-font-ui);
+    text-align: start;
+    cursor: pointer;
+    outline-offset: calc(-1 * var(--aika-focus-gap));
+    animation: aika-menu-item-in var(--aika-cardnav-item-dur) var(--aika-ease-fold) backwards;
+    animation-delay: calc(var(--aika-cardnav-item-delay) + var(--aika-menu-i, 0) * var(--aika-menu-item-stagger));
+}
+
+.aika-fdock-menu .aika-menu__item:focus-visible {
+    background: var(--aika-surface-hover);
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion (DESIGN.md §9): the dock lands at once
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+    .aika-fdock,
+    .aika-fdock *,
+    .aika-fdock-tip,
+    .aika-fdock-menu,
+    .aika-fdock-menu *,
+    html[data-aika-fdock] .OuterFrame > .ContentFrame,
+    html[data-aika-fdock] .OuterFrame > .BottomBarContainer {
+        transition-duration: 0s !important;
+        transition-delay: 0s !important;
+        animation: none !important;
+    }
+}

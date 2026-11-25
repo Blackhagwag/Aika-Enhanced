@@ -5,7 +5,8 @@
 // ("Cover press"), the achievement bars
 // filling in on a game page, the curtain between pages, the "+" as a
 // floating action button, the compact header balance, the theme settings in
-// Russian.
+// Russian. Aika Enhanced: the Friends Dock at the right of the library
+// (js/friends-dock.js).
 import "./boot-reveal.js";
 import "./spotlight.js";
 import "./menu-gap.js";
@@ -21,3 +22,4 @@ import "./settings-l10n.js";
 import "./live-settings.js";
 import "./extendium-bridge.js";
 import "./plugin-toolbar.js";
+import "./friends-dock.js";

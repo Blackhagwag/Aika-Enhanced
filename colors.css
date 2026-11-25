@@ -398,3 +398,13 @@ html:root {
     /* Fully transparent — to "remove" Steam backgrounds without bare values */
     --aika-transparent: rgb(from var(--aika-ink) r g b / 0);
 }
+
+/* --------------------------------------------------------------------------
+   Friends Dock (Aika Enhanced, sections/friends-dock.css): no colors of its
+   own — the left game list's surface, mixed toward the panel body by the
+   "Dock opacity" slider (0 % — exactly the left panel, 100 % — an opaque
+   --aika-bg-elevated body). Everything follows the preset.
+   -------------------------------------------------------------------------- */
+:root {
+    --aika-fdock-bg: color-mix(in srgb, var(--aika-bg-elevated) var(--aika-setting-fdock-opacity, 0%), var(--aika-surface));
+}

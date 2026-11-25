@@ -1033,3 +1033,35 @@
     --aika-pin-shake: 4px;            /* a wrong PIN: the row shudders this far */
 }
 
+
+/* --------------------------------------------------------------------------
+   Friends Dock (Aika Enhanced) — the friends column at the right of the
+   library (sections/friends-dock.css, js/friends-dock.js). Only sizes,
+   timings and layers: every color comes from colors.css, so the dock follows
+   the color preset, the custom colors and Performance like the rest of the
+   window. The --aika-setting-fdock-* values are the Millennium sliders
+   ("Friends Dock" tab in skin.json); --aika-fdock-* switches are set by the
+   options/fdock-*.css condition files.
+   -------------------------------------------------------------------------- */
+:root {
+    --aika-fdock-avatar: var(--aika-setting-fdock-avatar, 32px);        /* a friend's face */
+    --aika-fdock-width: var(--aika-setting-fdock-width, 264px);         /* the expanded dock */
+    --aika-fdock-row-pad: 6px;                                          /* above and below a face */
+    --aika-fdock-col-inset: var(--aika-nav-inset);                      /* a row from the dock edges — as the game list rows */
+    --aika-fdock-col-pad: 4px;                                          /* the face from the row edge */
+    /* the collapsed rail: a face, its row padding and the row inset on both sides (32 → 52 px) */
+    --aika-fdock-rail: calc(var(--aika-fdock-avatar) + 2 * (var(--aika-fdock-col-inset) + var(--aika-fdock-col-pad)));
+    --aika-fdock-head: var(--aika-space-8);                             /* the dock's own header strip */
+    --aika-fdock-game-icon: 20px;                                       /* a game in "group by game" */
+    --aika-fdock-badge: calc(var(--aika-fdock-avatar) * 0.34);          /* the status badge (11 px on 32 px, as the friends list rows) */
+    --aika-fdock-badge-gap: 2.5px;
+    --aika-fdock-badge-out: 2px;
+    --aika-fdock-hover-scale: var(--aika-dock-hover-scale);             /* a face under the cursor in the rail */
+    --aika-fdock-tip-gap: var(--aika-space-2);
+    --aika-fdock-dur: var(--aika-dur-base);                             /* width, the library room */
+    --aika-fdock-dur-text: var(--aika-dur-fast);                        /* names fading */
+    --aika-fdock-dur-enter: var(--aika-dur-enter);                      /* a friend appearing */
+    --aika-fdock-text-delay: 60ms;                                      /* names come in once the dock has started to open */
+    --aika-z-fdock: 40;                                                 /* above the game page Play bar (37), under Steam's dialogs (1500) */
+    --aika-z-fdock-pop: 1530;                                           /* the dock's tooltip and menu: over Steam's tooltips (1526) */
+}

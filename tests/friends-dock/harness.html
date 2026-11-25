@@ -1,0 +1,99 @@
+<!doctype html>
+<!--
+  TEST HARNESS ONLY (not part of the theme). A skeleton of Steam's main window
+  with the readable class names Aika styles (sections/library.css map:
+  .OuterFrame > .TopBar, .ContentFrame > .Library > .Container > [left panel,
+  .MainPanel], .BottomBarContainer > .BottomBar), Aika's main.css, and the
+  fixture standing in for Steam's FriendStore (fixture.js).
+
+  Query: ?theme=<path to a theme root, default ../..>  &preset=aika|hello-bert|greeny|rose-ash
+         &opt=fdock-hover,fdock-by-game,…  (option files of the theme)  &nodock=1  &width=…
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Steam</title>
+<script>
+  const q = new URLSearchParams(location.search);
+  const theme = q.get("theme") || "../..";
+  const add = (href) => document.write(`<link rel="stylesheet" href="${theme}/${href}">`);
+  // option files load before the theme entry, as Millennium injects them
+  add(`options/presets/${q.get("preset") || "aika"}.css`);
+  for (const o of (q.get("opt") || "").split(",").filter(Boolean)) add(`options/${o}.css`);
+  add("main.css");
+</script>
+<style>
+  /* Steam's own layout, roughly (the theme only restyles it) */
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  .Wrapper, .OuterFrame { height: 100%; display: flex; flex-direction: column; }
+  .TopBar { flex: none; height: 46px; display: flex; align-items: center; gap: 24px; padding: 0 16px; box-sizing: border-box; }
+  .TopBar .Menu { font: 13px var(--aika-font-ui); color: var(--aika-fg-muted); }
+  .ContentFrame { flex: 1; min-height: 0; display: flex; }
+  .Library { flex: 1; min-width: 0; display: flex; }
+  .Library > .Container { flex: 1; display: flex; min-width: 0; }
+  .Library > .Container > .Left { width: 272px; flex: none; display: flex; }
+  .Library > .Container > .Left > .Container { flex: 1; display: flex; flex-direction: column; padding-top: 8px; }
+  .HomeBox .Bar { margin: 0 6px 6px; padding: 8px 10px; font: 13px var(--aika-font-ui); color: var(--aika-fg); }
+  .ReactVirtualized__List .Container { height: 32px; display: flex; align-items: center; font: 13px var(--aika-font-ui); }
+  .GameListEntryContainer { display: flex; align-items: center; gap: 8px; }
+  .GameIcon { width: 16px; height: 16px; background: var(--aika-bg-high); }
+  .MainPanel { flex: 1; min-width: 0; overflow: hidden; padding: 24px 28px; box-sizing: border-box; }
+  .Shelf h2 { font: 600 18px var(--aika-font-ui); color: var(--aika-fg); margin: 8px 0 14px; }
+  .Covers { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+  .Cover { aspect-ratio: 2/3; border-radius: var(--aika-radius-lg); box-shadow: var(--aika-shadow-cover);
+           background: linear-gradient(160deg, var(--aika-bg-high), var(--aika-bg-elevated)); }
+  .BottomBar .Icon { width: 18px; height: 18px; border-radius: 50%; background: currentColor; opacity: .6; }
+</style>
+</head>
+<body>
+<div class="Wrapper ForceOpaqueBackground">
+  <div class="OuterFrame">
+    <div class="TopBar"><span class="Menu">Steam</span><span class="Menu">View</span><span class="Menu">Friends</span><span class="Menu">Games</span><span class="Menu">Help</span></div>
+    <div class="ContentFrame">
+      <div class="Library">
+        <div class="Container">
+          <div class="Left">
+            <div class="Container">
+              <div class="HomeBox"><div class="Bar Selected">Home</div></div>
+              <div class="ReactVirtualized__List" id="games"></div>
+            </div>
+          </div>
+          <div class="MainPanel">
+            <div class="LibraryHome">
+              <div class="Shelf"><h2>Recent Games</h2><div class="Covers" id="covers"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="BottomBarContainer">
+      <div class="BottomBar">
+        <div class="AddGameButton"><div class="Icon"></div></div>
+        <div class="DownloadStatus"><div class="DownloadStatusContent"><div class="Icon"></div></div></div>
+        <div class="FriendsButton"><div class="Icon"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const games = ["Baldur's Gate 3", "Counter-Strike 2", "Dota 2", "Hades II", "Hollow Knight", "Outer Wilds", "Portal 2", "Stardew Valley", "Valheim", "Disco Elysium"];
+  const list = document.getElementById("games");
+  games.forEach((g, i) => list.insertAdjacentHTML("beforeend",
+    `<div class="Container ${i % 3 ? "Installed" : ""} ${i === 1 ? "Selected" : ""}"><div class="GameListEntryContainer"><div class="GameIcon"></div><span>${g}</span></div></div>`));
+  const covers = document.getElementById("covers");
+  for (let i = 0; i < 12; i++) covers.insertAdjacentHTML("beforeend", `<div class="Cover"></div>`);
+</script>
+<script type="module">
+  const q = new URLSearchParams(location.search);
+  await import("./fixture.js");
+  if (!q.get("nodock")) {
+    const theme = q.get("theme") || "../..";
+    window.__errors = [];
+    window.addEventListener("error", (e) => window.__errors.push(String(e.message)));
+    window.addEventListener("unhandledrejection", (e) => window.__errors.push(String(e.reason)));
+    await import(`${theme}/js/friends-dock.js`);
+  }
+  document.documentElement.dataset.ready = "1";
+</script>
+</body>
+</html>

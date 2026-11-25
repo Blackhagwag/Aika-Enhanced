@@ -1,152 +1,144 @@
 <div align="center">
 
-# Aika
+# Aika Enhanced
 
-**A warm dark theme for Steam** · [Millennium](https://steambrew.app) · 0.1.8 · by **hatewxb**
+**[Aika](https://github.com/hatewxb/Aika), the warm dark Steam theme by hatewxb, with a Friends Dock at the right of the library** · [Millennium](https://steambrew.app) · 0.1.8-enhanced.1
 
-**[Get it on Steambrew](https://steambrew.app/theme/uV8M1eg45Hh662blPuyD)** — the official Millennium theme store
-
-https://github.com/user-attachments/assets/48f5941a-a2c6-4d1c-a721-8e7a3f79c630
-
-| | |
-|:--:|:--:|
-| ![Startup and store home](screenshots/gifs/01-startup-store-home.gif) | ![Store menus](screenshots/gifs/02-store-menus.gif) |
-| **Startup and store home** | **Store menus** |
-| ![Store search](screenshots/gifs/03-store-search.gif) | ![Wishlist](screenshots/gifs/04-wishlist.gif) |
-| **Store search** | **Wishlist** |
-| ![Family View and library home](screenshots/gifs/05-family-view-library-home.gif) | ![Game page: library and Cinematic store](screenshots/gifs/06-game-page.gif) |
-| **Family View and library home** | **Game page: library and Cinematic store** |
-| ![Friends Activity](screenshots/gifs/07-friends-activity.gif) | ![Library menus](screenshots/gifs/08-library-menus.gif) |
-| **Friends Activity** | **Library menus** |
-
-![Aika — a game page in the library](screenshots/library-game.png)
-
-*A game page in the library*
+![The Friends Dock, expanded](docs/friends-dock/expanded.jpg)
 
 </div>
 
-A calm dark interface on a near-black background with soft spots of warm
-light. Fluent structure, rounded corners, one signature accent instead of
-Steam's light blue. The theme doesn't change any Steam text, only the look.
+Aika Enhanced is the original Aika 0.1.8 (library, header, game cards and pages,
+store, profiles, friends window, overlay, presets, motion, settings) with one
+addition: a friends column at the right edge of the library. Its behaviour comes
+from the Friends dock of [Steam Enhanced](https://github.com/NVHT/Steam-Enhanced)
+by NVHT; its look is Aika's own. It is the left game list mirrored on the right:
+the same translucent surface and hairline edge, rows with the same inset, radius
+and hover, the friends window's status badges cut out of squircle faces, its mono
+group captions, Steam's tooltip and Aika's menu. Every color comes from the
+current preset (or your custom colors), so switching the preset recolors the dock
+with the rest of the window.
 
-- **Game logo above the trailer** in the store and an Apple-style **trailer player**.
-- **Cinematic store game page**: trailers play muted behind the logo,
-  price and buttons over the whole window, with a media gallery and viewer
-  (the classic layout is one setting away).
-- **Menus that unfold** like cards with their items rising in; the library's Add a Game is a floating + button.
-- **Motion throughout**: a line-reveal loading curtain as Steam starts, page
-  changes behind a soft curtain, achievement bars that fill on a spring,
-  letters that fold, split or stand up like dominoes in page titles.
-- **Living backdrops**: an aurora on store search, a dark veil on the wishlist,
-  both in the colors of your preset.
-- **Four color presets**: Aika, Hello Bert, Greeny and Rose Ash.
-- **Screenshots grouped by game** in the profile: a carousel shelf per game.
-- **Library covers** that tilt toward the cursor in 3D, and floating library icons;
-  holding a cover can sink it, send rings of light from the press point or charge an accent line round its edge.
-- **A redesigned friends list**: a profile card, Discord-like status badges,
-  now-playing game cards with the game's art, lobbies as squad capsules,
-  offline friends as a grid of faces, Recent Chats as conversation cards,
-  friend requests as business cards, a background pattern (halftone wave or
-  blinking squares); the chat window and group chats in the same look;
-  Steam's compact view as thin strips and two-a-row game tiles.
-- **The in-game overlay** in the theme look: panels as rounded cards,
-  achievements, guides, the browser, notes, recordings and the friends list
-  restyled, the toolbar as a floating capsule; pinned widgets stay see-through
-  and the theme backdrop never covers the game.
-- **Preloader presets** for the "Sign in to Steam" window: Classic, Terminal,
-  Horizon, Orbits, Aurora, Frame and Glitter warp, all in your preset's colors,
-  in every Steam language; the account chooser and the sign-in form in the theme look too.
-- **Cart and checkout** in the theme look: the cart, purchase review and receipt, the launch option picker.
-- **Privacy blur** for the wallet balance in the account menu until you hover it.
-- **Top bar tabs centered** (can be moved back to the left), or a **compact header**: menus, tabs and account buttons in one line.
-- **The page address as a small capsule** over store and community pages, with a dot-matrix "heart pulse" while a page loads.
-- **Show or hide** the wallet balance, the address, What's New, the "Add shelf" row and the Steam news button.
-- **Header wordmark**: the classic "Aika", calligraphy, or アイカ in two brush styles.
-- **Narrow windows** stay tidy: the View / Friends / Games / Help menus turn into icons when the tabs need the room.
-- **Popular plugins in the theme look**: How Long To Beat, Extendium (its button sits in the address capsule), Recent Chats, Easy Restart, and the Steam Inventory Helper extension; the **Millennium** settings pages, library manager and Quick CSS editor too.
-- **Settings in English and Russian**, following the Steam language.
-- **Performance** setting: Full by default; Balanced keeps the look but drops moving elements on and around items (the light following the cursor, shimmers, glares, the 3D cover tilt); Low turns off every Aika animation and heavy effect (blur, glass, WebGL) and keeps the plain Fluent look for weaker machines.
+For everything Aika does, see the [original README](https://github.com/hatewxb/Aika#readme).
 
-## Screenshots
+## Friends Dock
 
-| Library | Store |
+| Expanded | Collapsed (with the tooltip) |
 |:--:|:--:|
-| ![Library](screenshots/library-home.jpg) | ![Store](screenshots/store-home.jpg) |
-| **Store game page** (Cinematic) | **Store search** |
-| ![Store game page](screenshots/store-app.jpg) | ![Store search](screenshots/store-search.jpg) |
-| **Wishlist** | **Friends** |
-| ![Wishlist](screenshots/store-wishlist.jpg) | ![Friends](screenshots/community-friends.png) |
-| **Screenshots by game** | **Settings** |
-| ![Screenshots by game](screenshots/community-screenshots.png) | ![Settings](screenshots/settings.png) |
+| ![Expanded](docs/friends-dock/expanded.jpg) | ![Collapsed](docs/friends-dock/collapsed.jpg) |
+| **Grouped by game, offline shown, Greeny** | **A friend's menu, Hello Bert** |
+| ![By game](docs/friends-dock/by-game-greeny.jpg) | ![Menu](docs/friends-dock/menu-hello-bert.jpg) |
 
-**Color presets** — Hello Bert, Greeny, Rose Ash (Aika is above):
+<sub>The screenshots come from the test harness (`tests/friends-dock/`), with
+placeholder friends and covers, not from a Steam client.</sub>
 
-| | | |
-|:--:|:--:|:--:|
-| ![Hello Bert](screenshots/preset-hello-bert.jpg) | ![Greeny](screenshots/preset-greeny.jpg) | ![Rose Ash](screenshots/preset-rose-ash.jpg) |
+- **Your real friends**, read from the Steam client itself (its Friends store): names
+  and nicknames, avatars, status, the game and what they do in it. No Steam Web API
+  key, no network requests.
+- **Two states.** Expanded (264 px by default): faces, names, the game or status,
+  the online count, groups **In game** and **Online** (and **Offline**, off by
+  default). Collapsed: a 52 px rail of faces with status badges; hovering a face
+  shows the name and the game.
+- **Live.** Friends appear when they sign in, leave when they sign out, move
+  between groups when they start or stop a game; only the rows that changed are
+  touched.
+- **Click** a friend to open the Steam chat. **Right-click** for Send message,
+  View profile and View game in Library. Keyboard: Tab, Enter, the menu key,
+  arrows and Escape in the menu.
+- **Part of the library**: it starts under the header, the library gives up
+  exactly its width (no overlap, no horizontal scroll), the floating library
+  icons move with it, it leaves on store and community pages and in the mini
+  "Steam Games List" window, and the window below 1100 px folds it to its rail.
+- **Remembers** expanded / collapsed and the folded groups across restarts.
+- **Animations** in Aika's timing: the width and the library room ease together,
+  names fade in after the dock opens, faces grow under the cursor like the
+  library icons, new friends rise in like Aika's panels. *Performance: Low*,
+  the dock's own switch and the system's "reduce motion" turn them off.
+
+### Settings — Millennium → Themes → Aika Enhanced → ⚙ → **Friends Dock**
+
+| Setting | Values | |
+| --- | --- | --- |
+| Friends Dock | **On** / Off | Off: the library exactly as in Aika, no room left over |
+| Dock at startup | **Last state** / Expanded / Collapsed | |
+| Expand on hover | On / **Off** | The rail opens over the library while hovered |
+| Dock: friends in game | **On** / Off | |
+| Dock: friends online | **On** / Off | |
+| Dock: offline friends | On / **Off** | Folded until opened, last seen first |
+| Dock: group by game | On / **Off** | Each game with its icon and player count |
+| Dock: friend count | **On** / Off | |
+| Dock animations | **On** / Off | |
+| Dock width | 240–320 px, **264** | |
+| Dock avatar size | 28–40 px, **32** | The rail follows (face + padding) |
+| Dock opacity | 0–100 %, **0** | 0 % = the game list's surface, 100 % = an opaque panel |
+
+The dropdowns apply at once in the open window (Aika's live settings bridge,
+extended); the sliders are applied by Millennium — if one does not change the
+dock right away, restart Steam. Settings are in English and, with Steam in
+Russian, in Russian, like the rest of Aika's settings.
 
 ## Installation
 
-### From Steambrew (recommended)
+Requires [Millennium](https://steambrew.app) and theme scripts enabled.
 
-Aika is in the official Millennium theme store:
-[steambrew.app/theme/uV8M1eg45Hh662blPuyD](https://steambrew.app/theme/uV8M1eg45Hh662blPuyD).
+### With the installer
 
-1. Install [Millennium](https://steambrew.app).
-2. On the [Aika page](https://steambrew.app/theme/uV8M1eg45Hh662blPuyD), press **Copy Theme ID**.
-3. In Steam: the **Steam** menu (top left) → **Millennium** → **Themes** → **Install a theme**, then paste the ID.
-4. Pick **Aika** in the theme list. If theme scripts are disabled, enable them.
+Windows (PowerShell):
 
-### Manual
+```powershell
+powershell -ExecutionPolicy Bypass -File install\install.ps1
+```
 
-1. Install [Millennium](https://steambrew.app).
-2. Download `Aika-<version>.zip` from [Releases](../../releases).
-3. Extract the `Aika` folder into `C:\Program Files (x86)\Steam\millennium\themes\`.
-4. Steam → **Millennium → Themes** → **Aika**. If theme scripts are disabled, enable them.
+Linux:
 
-On Linux, extract into `<Steam installation>/millennium/themes/` (usually
-`~/.local/share/Steam/millennium/themes/`). Keep theme scripts enabled: the
-client compatibility adapter restores the readable CSS-module names used by
-Aika from the running Steam build. Fully quit and restart Steam after installing
-or updating the theme. No Quick CSS or manual console import is needed.
-See [Linux compatibility notes](docs/linux-client-compatibility.md).
+```sh
+./install/install.sh
+```
 
-Theme settings (the gear next to Aika in Millennium; in Russian when Steam is
-in Russian): **Main** — color preset, top bar tab position, compact header (the
-menus, tabs and account buttons in one line), the header wordmark (classic,
-calligraphy, or アイカ in two brush styles), the sign-in preloader; **Elements** — show or hide the wallet balance, the address capsule
-over store and community pages,
-What's New, the "Add shelf" row and the Steam news button; **Friends list** —
-the background pattern and its opacity, offline friends (faces / list), the
-friend search (magnifier / command line), the list density and a separate game-banner switch;
-**Animations** —
-left library list scrolling (Standard by default; optional Soft / Cinematic, with short motion trails away from the cursor), performance (Full / Balanced / Low), store game page layout (Cinematic /
-Classic), library covers (3D tilt / Lift / Zoom), cover press (Press / Ripple /
-Charge / Off), cursor glow and its radius;
-**Advanced** — privacy blur of the wallet balance (or name and balance) until
-hovered, notification wordmark (Gothic / brush Aika / katakana アイカ / Off,
-with glass and abstract lights retained) and opacity; **Color set** — custom colors, set
-on the **Colors** page right below.
+The installer finds Steam (registry on Windows; the usual native, Flatpak and Snap
+folders on Linux) and Millennium's themes folder, moves an existing
+`Aika-Enhanced` folder to `aika-enhanced-backups/<time>/` beside the themes
+folder, and copies the theme to `<themes>/Aika-Enhanced`. It changes nothing
+else — no other theme, plugin, Millennium config or Steam file — needs no admin
+rights, and closes Steam only with `-Restart` / `--restart` and after asking. If
+it cannot find the themes folder, open Steam → Millennium → Themes, press the
+folder button and pass that folder: `-ThemesDir "<folder>"` /
+`--themes-dir "<folder>"`. `-DryRun` / `--dry-run` shows what it would do.
 
-## Roadmap
+### By hand
 
-| Section | Done | Not done yet |
-|:--|:--|:--|
-| Library | Home, game list, game page, game news, achievements, filters, collections, floating bottom icons | Long game titles on hover |
-| Store | Home, menu capsule and all menus, game page (Classic and Cinematic, Early Access, warnings, queue), search, wishlist, discovery queue, personal calendar, cart, checkout (payment info, review, receipt), News Hub | Free weekends and trials |
-| Community | Activity, friends, screenshots, artwork, videos, profile editing, notifications, discussions home, game discussions | Workshop, collections, profile, the rest of the game community hub |
-| Friends & chat | Friends list (redesigned), friend requests, Recent Chats, direct and group chat, Create chat, mini profiles | Voice chat |
-| Downloads | Everything | — |
-| Settings & windows | Settings, game properties (DLC included), dialogs, the launch option picker, Family View (client PIN and web page), the sign-in window (preloader presets, account chooser, sign-in form), standalone dialogs (shutdown and others), Millennium settings, library manager and Quick CSS editor | — |
-| General | Menus, tooltips, notifications dropdown, notification toasts (message, "now playing", download) — liquid glass, smooth entrance; color presets (Aika, Hello Bert, Greeny, Rose Ash); the startup loading curtain and page transitions; plugins (How Long To Beat, Extendium, Recent Chats, Easy Restart); the in-game overlay | Other notifications, Big Picture |
+Copy this folder (without `tests`, `tools`, `install`) into Millennium's themes
+folder as `Aika-Enhanced`.
 
-## Licenses
+### Then
 
-The Inter, Onest, Geist Mono, Fraunces, Unbounded, UnifrakturMaguntia, Shojumaru, Great Vibes,
-Yuji Syuku and Yuji Mai fonts (the last three as subsets with only the wordmark letters) are
-licensed under the SIL Open Font License 1.1 (`assets/fonts/OFL-*.txt`). The
-notification liquid glass is [hyalite](https://github.com/VII-Cae/hyalite--liquid-glass),
-MIT (`js/vendor/LICENSE-hyalite.txt`). The aurora and dark veil backdrops port the
-shaders of [React Bits](https://reactbits.dev) (MIT + Commons Clause); several
-motions follow ideas from React Bits and [Motion](https://motion.dev) examples; the
-page loading pulse follows the idea of the Dot Matrix "Heart Pulse" loader (our own code).
+Steam → **Millennium** → **Themes** → **Aika Enhanced**; enable theme scripts if
+asked. Fully restart Steam after the first install. Aika Enhanced is a separate
+theme: the original Aika (if installed) stays as it is; only one theme is active
+at a time.
+
+## Compatibility
+
+Built on Aika 0.1.8 and tested against its structure. Windows 10/11 and Linux,
+like Aika (on Linux the dock waits for Aika's class compatibility adapter, as
+Aika's own scripts do). Any window size and UI scale: the dock measures the header
+and the window instead of assuming sizes. All four presets and custom colors.
+No Steam files are modified and no protections are touched.
+
+## Development
+
+```sh
+python3 -m http.server 8765 --bind 127.0.0.1 --directory /
+node --test tests/friends-dock.e2e.cjs          # needs Playwright + Chromium
+AIKA_ORIGINAL=/path/to/Aika node --test tests/friends-dock.e2e.cjs   # + pixel parity with Aika
+node --test tests/*.test.mjs tests/*.test.cjs   # Aika's own tests
+```
+
+Files added or changed compared with Aika 0.1.8: see [CHANGELOG.md](CHANGELOG.md).
+
+## Authors and licenses
+
+**Aika** — hatewxb. **Steam Enhanced** (the Friends dock behaviour, MIT) — NVHT.
+See [LICENSES/README.md](LICENSES/README.md), including an important note: the
+Aika repository publishes no license, so ask its author before redistributing
+Aika Enhanced publicly.

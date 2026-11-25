@@ -1,15 +1,15 @@
 {
-    "name": "Aika",
-    "author": "hatewxb",
-    "description": "A warm dark theme for Steam: Fluent structure, file-system-style panels and soft spots of light on a near-black background.",
-    "version": "0.1.8",
-    "tags": ["Fluent", "Dark", "Warm", "Minimal", "WIP"],
+    "name": "Aika Enhanced",
+    "author": "hatewxb (Aika), NVHT (Steam Enhanced Friends dock)",
+    "description": "Aika, a warm dark theme for Steam (Fluent structure, file-system-style panels and soft spots of light on a near-black background), with a Friends Dock at the right of the library.",
+    "version": "0.1.8-enhanced.1",
+    "tags": ["Fluent", "Dark", "Warm", "Minimal", "Friends", "WIP"],
     "header_image": "https://raw.githubusercontent.com/hatewxb/Aika/main/screenshots/preview.gif",
     "splash_image": "https://raw.githubusercontent.com/hatewxb/Aika/main/screenshots/store-app.jpg",
 
     "github": {
-    "owner": "hatewxb",
-    "repo_name": "Aika"
+    "owner": "blackhagwag",
+    "repo_name": "aka-enhanced"
 },
 
     "RootColors": "root-colors.css",
@@ -226,6 +226,124 @@
                 "Off": {
                     "TargetCss": { "affects": [".*"], "src": "options/friends-banners-off.css" }
                 }
+            }
+        },
+        "Friends Dock": {
+            "description": "A friends column at the right edge of the library: your Steam friends in game and online, with their games. Collapsed it is a rail of faces, expanded a list with names; a click opens the chat, a right-click the menu. Off: the library as in Aika, with no room left for it.",
+            "tab": "Friends Dock",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-off.css" } }
+            }
+        },
+        "Dock at startup": {
+            "description": "How the dock looks when Steam starts. Last state: as you left it (expanded or collapsed). Expanded or Collapsed: always so at startup; the button at the top of the dock still switches it. On a narrow window the dock folds to its rail anyway.",
+            "tab": "Friends Dock",
+            "default": "Last state",
+            "values": {
+                "Last state": {},
+                "Expanded": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-start-open.css" } },
+                "Collapsed": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-start-rail.css" } }
+            }
+        },
+        "Expand on hover": {
+            "description": "The collapsed rail opens over the library while the cursor rests on it and folds back when it leaves (the library keeps its width).",
+            "tab": "Friends Dock",
+            "default": "Off",
+            "values": {
+                "On": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-hover.css" } },
+                "Off": {}
+            }
+        },
+        "Dock: friends in game": {
+            "description": "The “In game” group: friends playing something, with the game's name.",
+            "tab": "Friends Dock",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-hide-ingame.css" } }
+            }
+        },
+        "Dock: friends online": {
+            "description": "The “Online” group: friends online and not in a game (away and snooze included).",
+            "tab": "Friends Dock",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-hide-online.css" } }
+            }
+        },
+        "Dock: offline friends": {
+            "description": "An “Offline” group at the end, folded until you open it, last seen first.",
+            "tab": "Friends Dock",
+            "default": "Off",
+            "values": {
+                "On": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-show-offline.css" } },
+                "Off": {}
+            }
+        },
+        "Dock: group by game": {
+            "description": "Friends in game grouped under each game (its icon, name and how many play it) instead of one list.",
+            "tab": "Friends Dock",
+            "default": "Off",
+            "values": {
+                "On": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-by-game.css" } },
+                "Off": {}
+            }
+        },
+        "Dock: friend count": {
+            "description": "How many friends are online at the top of the dock and in each group.",
+            "tab": "Friends Dock",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-count-off.css" } }
+            }
+        },
+        "Dock animations": {
+            "description": "The dock's own motion: the width and the library room easing, names fading in, faces growing under the cursor, new friends rising in. Performance: Low turns it off too.",
+            "tab": "Friends Dock",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-motion-off.css" } }
+            }
+        },
+        "Dock width": {
+            "description": "The width of the expanded dock, in pixels.",
+            "tab": "Friends Dock",
+            "default": 264,
+            "slider": {
+                "cssVariable": "--aika-setting-fdock-width",
+                "min": 240,
+                "max": 320,
+                "step": 8,
+                "unit": "px"
+            }
+        },
+        "Dock avatar size": {
+            "description": "The size of the friends' faces in the dock, in pixels; the collapsed rail is as wide as a face and its padding.",
+            "tab": "Friends Dock",
+            "default": 32,
+            "slider": {
+                "cssVariable": "--aika-setting-fdock-avatar",
+                "min": 28,
+                "max": 40,
+                "step": 2,
+                "unit": "px"
+            }
+        },
+        "Dock opacity": {
+            "description": "How solid the dock's background is: 0 % is the same see-through surface as the game list on the left, 100 % an opaque panel body. The colors are the preset's.",
+            "tab": "Friends Dock",
+            "default": 0,
+            "slider": {
+                "cssVariable": "--aika-setting-fdock-opacity",
+                "min": 0,
+                "max": 100,
+                "step": 5,
+                "unit": "%"
             }
         },
         "Performance": {

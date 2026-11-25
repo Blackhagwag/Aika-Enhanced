@@ -1,0 +1,6 @@
+/* Aika Enhanced — Friends Dock option (theme settings → "Friends Dock").
+   Attached by Conditions from skin.json to the main window. Sets the switch
+   js/friends-dock.js and sections/friends-dock.css read; option files load
+   before the theme entry, so the selector carries an extra :root. */
+
+html:root { --aika-fdock-online: 0; }

@@ -1,6 +1,9 @@
 // Apply two visual conditions immediately while Millennium saves preferences.
 // Native condition styles remain the startup source; this session-only bridge
 // handles the editor not attaching/removing option CSS in already-open windows.
+// Aika Enhanced: the Friends Dock switches too (the same root variables the
+// options/fdock-*.css files set, written inline; js/friends-dock.js listens
+// to "aika-visual-setting"), and the editor title "Aika Enhanced".
 (() => {
   if (window.__aikaLiveSettingsBridge) return;
   const root = document.documentElement;
@@ -14,16 +17,39 @@
   const values = host.__aikaLiveSettingValues ||= Object.create(null);
   const channel = typeof BroadcastChannel === "function" ? new BroadcastChannel("aika-visual-settings") : null;
   const keys = ["Friends game banners", "Notification wordmark"];
+  // The Friends Dock: a condition value → the root variables its option file sets
+  const on = (name) => ({On: {[name]: "1"}, Off: {[name]: "0"}});
+  const dockMotion = {
+    On: {"--aika-fdock-dur": "var(--aika-dur-base)", "--aika-fdock-dur-text": "var(--aika-dur-fast)",
+         "--aika-fdock-dur-enter": "var(--aika-dur-enter)", "--aika-fdock-text-delay": "60ms",
+         "--aika-fdock-hover-scale": "var(--aika-dock-hover-scale)"},
+    Off: {"--aika-fdock-dur": "0s", "--aika-fdock-dur-text": "0s", "--aika-fdock-dur-enter": "0s",
+          "--aika-fdock-text-delay": "0s", "--aika-fdock-hover-scale": "1"},
+  };
+  const dockKeys = {
+    "Friends Dock": on("--aika-fdock-enabled"),
+    "Expand on hover": on("--aika-fdock-hover"),
+    "Dock: friends in game": on("--aika-fdock-ingame"),
+    "Dock: friends online": on("--aika-fdock-online"),
+    "Dock: offline friends": on("--aika-fdock-offline"),
+    "Dock: group by game": on("--aika-fdock-bygame"),
+    "Dock: friend count": on("--aika-fdock-count"),
+    "Dock animations": dockMotion,
+  };
+  keys.push(...Object.keys(dockKeys));
   const markProps = {
     Gothic: ['"Aika"', 'var(--aika-font-gothic)', "54px", "0px", "-6deg", "block"],
     Japanese: ['"Aika"', 'var(--aika-font-brush)', "40px", "6px", "-3deg", "block"],
     Katakana: ['"アイカ"', '"Yuji Syuku Aika", var(--aika-font-display)', "44px", "5px", "-3deg", "block"],
     Off: ['"Aika"', 'var(--aika-font-gothic)', "54px", "0px", "-6deg", "none"],
   };
-  const valid = (key, value) => key === keys[0] ? ["On", "Off"].includes(value) : key === keys[1] && Object.hasOwn(markProps, value);
+  const valid = (key, value) => Object.hasOwn(dockKeys, key) ? Object.hasOwn(dockKeys[key], value) :
+    key === keys[0] ? ["On", "Off"].includes(value) : key === keys[1] && Object.hasOwn(markProps, value);
   const apply = (key, value) => {
     if (!valid(key, value)) return;
-    if (key === keys[0]) {
+    if (Object.hasOwn(dockKeys, key)) {
+      for (const [name, v] of Object.entries(dockKeys[key][value])) root.style.setProperty(name, v);
+    } else if (key === keys[0]) {
       root.style.setProperty("--aika-fl-game-banners", value === "Off" ? "0" : "1");
       root.classList.toggle("aika-fl-banners-off", value === "Off");
     } else {
@@ -32,7 +58,7 @@
       const nativeFont = document.querySelector('link[href*="/options/toast-mark-katakana.css"], link[href*="/options/wordmark-syuku.css"]');
       if (value === "Katakana" && !nativeFont && !document.getElementById("aika-live-toast-font")) {
         const style = document.createElement("style"); style.id = "aika-live-toast-font";
-        style.textContent = '@font-face{font-family:"Yuji Syuku Aika";src:url("https://millennium.host/v1/themes/Aika/assets/fonts/YujiSyuku-Aika.woff2") format("woff2");font-weight:400;font-style:normal;font-display:block}';
+        style.textContent = '@font-face{font-family:"Yuji Syuku Aika";src:url("' + new URL("../assets/fonts/YujiSyuku-Aika.woff2", import.meta.url).href + '") format("woff2");font-weight:400;font-style:normal;font-display:block}';
         document.head.append(style);
       }
     }
@@ -58,7 +84,7 @@
   const watch = next => {
     if (!next || !keys.includes(next.dataset.condition)) return;
     const side = next.closest(".MillenniumDesktopSidebar");
-    if (side?.querySelector(".MillenniumDesktopSidebar_Title")?.textContent.trim() !== "Aika") return;
+    if (!/^Aika( Enhanced)?$/.test(side?.querySelector(".MillenniumDesktopSidebar_Title")?.textContent.trim() || "")) return;
     if (next !== field) {
       observer?.disconnect(); field = next;
       observer = new MutationObserver(read);

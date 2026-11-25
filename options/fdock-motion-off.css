@@ -1,0 +1,14 @@
+/* Aika Enhanced — Friends Dock option (theme settings → "Friends Dock").
+   Attached by Conditions from skin.json to the main window. Sets the switch
+   js/friends-dock.js and sections/friends-dock.css read; option files load
+   before the theme entry, so the selector carries an extra :root. */
+
+/* No dock motion: the width, the names and new rows land at once (Performance: Low
+   does the same through Aika's own duration tokens). */
+html:root {
+    --aika-fdock-dur: 0s;
+    --aika-fdock-dur-text: 0s;
+    --aika-fdock-dur-enter: 0s;
+    --aika-fdock-text-delay: 0s;
+    --aika-fdock-hover-scale: 1;
+}
