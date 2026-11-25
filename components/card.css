@@ -1,0 +1,193 @@
+/* ==========================================================================
+   components/card.css — cards (DESIGN.md §4, Cards).
+
+   1. Our own .aika-card cards (for markup that JS will add):
+      default / --translucent / --accent variants; hover — lift,
+      layered shadow, gradient border and spotlight.
+   2. Game covers in the library (.LibraryItemBox) — a lightweight version:
+      only lift, border and a simple shadow. There are dozens on screen, so
+      no spotlight, glows or extra pseudo-elements.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Our own card
+   -------------------------------------------------------------------------- */
+
+.aika-card {
+    position: relative;
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-bg);
+    box-shadow: var(--aika-shadow-card), var(--aika-highlight-top);
+    transition:
+        transform var(--aika-dur-base) var(--aika-ease),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+.aika-card:hover {
+    transform: translateY(var(--aika-lift-md));
+    box-shadow: var(--aika-shadow-card-hover), var(--aika-highlight-top);
+}
+
+/* Spotlight: a soft accent spot — following the cursor (JS) or from the top center */
+.aika-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+        var(--aika-spot-size) circle at var(--aika-spot-x) var(--aika-spot-y),
+        var(--aika-accent-spot),
+        var(--aika-accent-none)
+    );
+    opacity: 0;
+    transition: opacity var(--aika-dur-base) var(--aika-ease-hover);
+    pointer-events: none;
+}
+
+/* Gradient border: accent at the top, fading downward (DESIGN.md §3.4) */
+.aika-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: var(--aika-hairline);
+    border-radius: inherit;
+    background: var(--aika-card-border-gradient);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity var(--aika-dur-base) var(--aika-ease-hover);
+    pointer-events: none;
+}
+
+.aika-card:hover::before,
+.aika-card:hover::after {
+    opacity: 1;
+}
+
+/* Translucent — only for menus and popup layers */
+.aika-card--translucent {
+    background: var(--aika-surface-translucent);
+    box-shadow: var(--aika-shadow-card), inset 0 0 0 var(--aika-hairline) var(--aika-border-hover);
+}
+
+/* Accent — highlighted blocks ("Featured") */
+.aika-card--accent {
+    background: var(--aika-card-accent-bg);
+    box-shadow: var(--aika-shadow-card), inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+}
+
+/* --------------------------------------------------------------------------
+   2. Game covers in the library — a lightweight card
+
+   Steam (captured via CDP 2026-10-04):
+     .Draggable[.HoversEnabled] > .LibraryItemBox — a cover ("Recent" shelves,
+                                               the collections grid); HoversEnabled on
+                                               the wrapper — the hover-effect mode
+     .LibraryItemBox.Landscape               — a wide cover (shelves)
+     .LibraryItemBoxShine                    — Steam's glare over the cover, kept
+
+   On hover Steam tilts the cover in 3D (rotateX + translateZ) with a hash rule
+   (0,4,0). We replace it with a flat lift: .Draggable.HoversEnabled .LibraryItemBox:hover
+   with an html prefix — (0,4,1). The brightness filter and image zoom are Steam's,
+   we leave them alone.
+   -------------------------------------------------------------------------- */
+
+/* The press ("Cover press" setting): js/cover-hold.js marks the held cover
+   with data-aika-held (not :active — Chromium loses it after a drag out of
+   the window); every "Library covers" mode multiplies its transform by
+   --aika-hold-s. A registered number, so it eases even in "3D tilt", where
+   the transform itself has no transition. */
+@property --aika-hold-s {
+    syntax: "<number>";
+    inherits: false;
+    initial-value: 1;
+}
+
+html .Draggable .LibraryItemBox {
+    border-radius: var(--aika-radius-lg);
+    box-shadow: var(--aika-shadow-cover);
+    transition:
+        transform var(--aika-dur-base) var(--aika-ease),
+        box-shadow var(--aika-dur-base) var(--aika-ease),
+        filter var(--aika-dur-base) var(--aika-ease-hover),
+        --aika-hold-s var(--aika-dur-base) var(--aika-ease);
+}
+
+html .Draggable.HoversEnabled .LibraryItemBox:hover {
+    transform: translateY(var(--aika-lift-md)) scale(var(--aika-hold-s));
+    box-shadow: var(--aika-shadow-cover-hover);
+}
+
+html .Draggable .LibraryItemBox[data-aika-held] {
+    --aika-hold-s: var(--aika-hold-scale);
+    transition:
+        transform var(--aika-dur-base) var(--aika-ease),
+        box-shadow var(--aika-dur-base) var(--aika-ease),
+        filter var(--aika-dur-base) var(--aika-ease-hover),
+        --aika-hold-s var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .Draggable.HoversEnabled .LibraryItemBox[data-aika-held]:hover {
+    box-shadow: var(--aika-shadow-cover);
+}
+
+/* The effects' layer (js/cover-hold.js); drawn by options/hold-*.css */
+html .Draggable .LibraryItemBox > .aika-hold-fx {
+    position: absolute;
+    inset: 0;
+    z-index: 4;   /* over the art and the bottom info plate (4, earlier in the DOM), under Play (5) */
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+}
+
+/* The caption under the cover (.LibraryItemBoxSubscript, a sibling element):
+   Steam tilts it together with the cover — we lift it in sync */
+html .Draggable.HoversEnabled .LibraryItemBox ~ .LibraryItemBoxSubscript {
+    transition: transform var(--aika-dur-base) var(--aika-ease);
+}
+
+html .Draggable.HoversEnabled .LibraryItemBox:hover ~ .LibraryItemBoxSubscript {
+    transform: translateY(var(--aika-lift-md));
+}
+
+/* --------------------------------------------------------------------------
+   Spotlight on large Steam surfaces (DESIGN.md §1, §4; js/spotlight.js):
+   game page panels, "What's New" cards, collection tiles — only a few of them
+   on screen. ::after — a radial accent glow under the cursor,
+   over the content in screen mode (it lights up, doesn't cover text).
+   Coordinates — --aika-spot-x/y from the script; without the script — top center.
+   The pseudo-elements of these blocks are free (verified 2026-10-04).
+   -------------------------------------------------------------------------- */
+
+html :is(.AppDetailsSection, .PartnerEventRowCapsule_Container.HoversEnabled, .CSSGrid.Grid .Collection) {
+    position: relative;
+}
+
+html :is(.AppDetailsSection, .PartnerEventRowCapsule_Container.HoversEnabled, .CSSGrid.Grid .Collection)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    background: radial-gradient(
+        var(--aika-spot-size) circle at var(--aika-spot-x) var(--aika-spot-y),
+        var(--aika-accent-spot),
+        var(--aika-accent-none)
+    );
+    opacity: 0;
+    mix-blend-mode: screen;
+    transition: opacity var(--aika-dur-base) var(--aika-ease-hover);
+    pointer-events: none;
+}
+
+html :is(.AppDetailsSection, .PartnerEventRowCapsule_Container.HoversEnabled, .CSSGrid.Grid .Collection):hover::after {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html :is(.AppDetailsSection, .PartnerEventRowCapsule_Container.HoversEnabled, .CSSGrid.Grid .Collection)::after {
+        transition: none;
+    }
+}

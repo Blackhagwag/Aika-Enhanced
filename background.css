@@ -1,0 +1,179 @@
+/* ==========================================================================
+   background.css — the layered Aika background (DESIGN.md §3.2).
+
+   Layers bottom to top (all behind the interface):
+     html            — Layer 1, base: radial light from the top glow → base → deep
+     html::before    — Layer 3, spot 1: the main one, top center (--aika-light-1)
+     html::after     — Layer 3, spot 2: pink, on the left (--aika-light-2)
+     body::before    — Layer 3, spot 3: warm, bottom right, pulsing
+     body::after     — Layer 4 + Layer 2: grid and noise in one layer
+
+   Why grid and noise share a layer: html/body have only four pseudo-elements,
+   and there are five layers. They have the same opacity (0.02), so the layer
+   is shared; the mask fades both grid and noise toward the edges — banding
+   isn't visible on the near-black edges anyway.
+
+   Spots are large static layers: blur on them is acceptable (DESIGN.md §0),
+   they move only via transform.
+   Disable motion: --aika-motion: 0 or the system "reduce motion".
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Layer 1 — base
+   -------------------------------------------------------------------------- */
+
+html {
+    background-color: var(--aika-bg-deep);
+    background-image: var(--aika-bg-gradient);
+    background-attachment: fixed;
+}
+
+body {
+    background: var(--aika-transparent);
+}
+
+/* The root wrapper of the Steam window (div.Wrapper.ForceOpaqueBackground).
+   Steam paints it solid black over the whole window — it hides the background.
+   A readable class (not a hash). Verified: 2026-10-04 via DevTools. */
+.Wrapper.ForceOpaqueBackground {
+    background: var(--aika-transparent);
+}
+
+/* --------------------------------------------------------------------------
+   Layer 3 — light spots
+   -------------------------------------------------------------------------- */
+
+html::before,
+html::after,
+body::before {
+    content: "";
+    position: fixed;
+    z-index: var(--aika-z-lights);
+    aspect-ratio: var(--aika-light-aspect);
+    border-radius: var(--aika-light-shape);
+    pointer-events: none;
+    will-change: transform;
+    animation-name: aika-float;
+    animation-timing-function: var(--aika-ease-ambient);
+    animation-iteration-count: infinite;
+}
+
+/* 1 — the main one, top center, accent color */
+html::before {
+    width: var(--aika-light-1-size);
+    left: var(--aika-light-1-x);
+    top: var(--aika-light-1-y);
+    background: var(--aika-light-1);
+    opacity: var(--aika-light-1-opacity);
+    filter: blur(var(--aika-light-1-blur));
+    animation-duration: var(--aika-dur-ambient);
+}
+
+/* 2 — violet-pink, on the left */
+html::after {
+    width: var(--aika-light-2-size);
+    left: var(--aika-light-2-x);
+    top: var(--aika-light-2-y);
+    background: var(--aika-light-2);
+    opacity: var(--aika-light-2-opacity);
+    filter: blur(var(--aika-light-2-blur));
+    animation-duration: var(--aika-dur-ambient-alt);
+    animation-direction: reverse;
+}
+
+/* 3 — warm (Claude), bottom right: drifts and slowly "breathes" */
+body::before {
+    width: var(--aika-light-3-size);
+    left: var(--aika-light-3-x);
+    top: var(--aika-light-3-y);
+    background: var(--aika-light-3);
+    opacity: var(--aika-light-3-opacity);
+    filter: blur(var(--aika-light-3-blur));
+    animation-name: aika-float-pulse;
+    animation-duration: var(--aika-dur-ambient-short);
+}
+
+/* Amplitudes are multiplied by --aika-motion: at 0 every transform is zero */
+@keyframes aika-float {
+    0%, 100% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    50% {
+        transform:
+            translate3d(0, calc(var(--aika-light-drift) * var(--aika-motion)), 0)
+            rotate(calc(var(--aika-light-rotate) * var(--aika-motion)));
+    }
+}
+
+@keyframes aika-float-pulse {
+    0%, 100% {
+        transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+    }
+    50% {
+        transform:
+            translate3d(0, calc(var(--aika-light-drift) * var(--aika-motion)), 0)
+            rotate(calc(var(--aika-light-rotate) * var(--aika-motion)))
+            scale(calc(1 + (var(--aika-light-pulse) - 1) * var(--aika-motion)));
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Layer 4 + Layer 2 — grid and noise: above the spots, below the interface
+   -------------------------------------------------------------------------- */
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: var(--aika-z-texture);
+    background-image:
+        var(--aika-noise-image),
+        linear-gradient(to right, var(--aika-grid-line) var(--aika-hairline), var(--aika-transparent) var(--aika-hairline)),
+        linear-gradient(to bottom, var(--aika-grid-line) var(--aika-hairline), var(--aika-transparent) var(--aika-hairline));
+    background-size:
+        auto,
+        var(--aika-grid-size) var(--aika-grid-size),
+        var(--aika-grid-size) var(--aika-grid-size);
+    background-position: center;
+    opacity: var(--aika-grid-opacity);
+    -webkit-mask-image: var(--aika-grid-mask);
+    mask-image: var(--aika-grid-mask);
+    pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   "Reduce motion": the spots stand still (--aika-motion is zeroed in base.css,
+   and here the animation is removed entirely to save frames)
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+    html::before,
+    html::after,
+    body::before {
+        animation: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   In-game overlay panels (GitHub issue #5): the overlay's popups ("About this
+   game" and others) are html.ModalDialogPopup windows, so they get main.css —
+   and this backdrop covered the running game. Their body has the readable
+   OverlayPopupBody; Steam paints the panel itself. No backdrop there.
+   Scope :has() to dialog roots. An unqualified html:has() invalidates the
+   main library root when Steam mounts virtualized list rows; that root
+   invalidation made every descendant restyle (40–50 ms frames on scroll).
+   Removing the rule at runtime does not clear Chromium's invalidation flags:
+   restart Steam when checking this change. Overlay's own window: overlay.css.
+   Verified: 2026-10-28, Fallout Shelter, the overlay's game panel.
+   -------------------------------------------------------------------------- */
+
+html.ModalDialogPopup:has(> body.OverlayPopupBody) {
+    background: var(--aika-transparent);
+}
+
+html.ModalDialogPopup:has(> body.OverlayPopupBody)::before,
+html.ModalDialogPopup:has(> body.OverlayPopupBody)::after,
+html.ModalDialogPopup:has(> body.OverlayPopupBody) body::before,
+html.ModalDialogPopup:has(> body.OverlayPopupBody) body::after {
+    content: none;
+}

@@ -1,0 +1,33 @@
+# Windows / macOS system junk
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# In case a build step appears later (Sass, PostCSS etc.)
+node_modules/
+dist/
+
+# Local notes and debug screenshots
+scratch/
+diagnostics/
+
+# Local Claude Code settings, debug screenshots, the README screenshots note
+.claude/
+SSforClaude/
+screenshots.txt
+
+# Local-only docs (design notes and agent instructions)
+DESIGN.md
+CLAUDE.md
+
+# Local color theme concepts (author drafts for presets)
+color-concepts/

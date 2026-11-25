@@ -1,0 +1,45 @@
+/* ==========================================================================
+   main.css — entry point for Steam client windows.
+   Attached via Patches in skin.json: the main window (^Steam$),
+   modal windows (.ModalDialogPopup) and the friends window (.friendsui-container).
+
+   Only @import here — this file has no styles.
+   @import must come at the very start of the file, before any rules.
+   Order matters (DESIGN.md §0): each next file may
+   override the previous one.
+   ========================================================================== */
+
+/* 1. Foundation: colors from settings → palette → tokens → base → background */
+@import url("./root-colors.css");
+@import url("./colors.css");
+@import url("./tokens.css");
+@import url("./base.css");
+@import url("./background.css");
+
+/* 2. Components (components/): button → card → panel → status → input → nav → menu → progress */
+@import url("./components/button.css");
+@import url("./components/card.css");
+@import url("./components/panel.css");
+@import url("./components/status.css");
+@import url("./components/input.css");
+@import url("./components/nav.css");
+@import url("./components/menu.css");
+@import url("./components/progress.css");
+@import url("./components/window.css");
+@import url("./components/curtain.css");
+
+/* 3. Client sections (stable selectors) */
+@import url("./sections/library.css");
+@import url("./sections/game-page.css");
+@import url("./sections/downloads.css");
+@import url("./sections/store.css");
+@import url("./sections/friends.css");
+@import url("./sections/friends-list.css");
+@import url("./sections/settings.css");
+@import url("./sections/boot.css");
+@import url("./sections/plugins.css");
+@import url("./sections/millennium.css");
+@import url("./sections/overlay.css");
+
+/* 4. Unstable Steam classes — last, to override everything above */
+@import url("./selectors.css");

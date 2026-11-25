@@ -1,0 +1,1863 @@
+/* ==========================================================================
+   sections/game-page.css — the game page in the library (DESIGN.md §5).
+
+   Structure (captured via CDP 2026-10-04):
+     .AppDetailsMain
+       .PlayBar.Container > .PlayBar.Glassy   — the sticky "Play" bar
+         .PlayButtonContainer[.ShowingStreaming]
+           .PlayButton                         — components/button.css
+           .StreamingSelector                  — the device selection arrow
+         .StatusAndStats .GameStat             — stats (components/status.css)
+         .AppButtonsContainer .MenuButton      — settings, favorite
+       .Header .TopCapsule                     — the hero: banner background + logo
+       .AppDetailsOverviewPanel
+         .AppDetailsSection …                  — blocks (components/panel.css)
+
+   The game title is Steam's logo image, there is no text; the Display serif
+   isn't applied here yet.
+   TODO: the hero — a darkening gradient under the banner, a scroll effect
+   (DESIGN.md §8), once we capture the banner classes.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   The "Play" bar: a solid raised surface instead of Steam's light-blue
+   gradient ("._3DeO… ._3fLo…", (0,2,0)), a thin line on top
+   -------------------------------------------------------------------------- */
+
+html .PlayBar.Glassy {
+    background: var(--aika-bg-elevated);
+    border-top: var(--aika-hairline) solid var(--aika-border);
+    box-shadow: var(--aika-highlight-top);
+}
+
+/* Steam's gray backing around "Play" */
+html .PlayBar .PlayButtonContainer {
+    background: var(--aika-transparent);
+}
+
+/* "Play" + the streaming arrow — one accent button in two parts.
+   The arrow of an installed game turns green on hover — a Steam rule (0,4,0),
+   the icon (0,4,1); ours are (0,4,1)…(0,5,2). */
+html .PlayButtonContainer.ShowingStreaming .PlayButton {
+    border-radius: var(--aika-radius-md) 0 0 var(--aika-radius-md);
+}
+
+html .PlayBar .PlayButtonContainer .StreamingSelector.ButtonChild {
+    border-radius: 0 var(--aika-radius-md) var(--aika-radius-md) 0;
+    border-inline-start: var(--aika-hairline) solid var(--aika-highlight-cta);
+    background: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+    box-shadow: var(--aika-shadow-cta);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html .PlayBar .PlayButtonContainer .StreamingSelector.ButtonChild:hover {
+    background: var(--aika-accent-fill-hover);
+    box-shadow: var(--aika-shadow-cta-hover);
+}
+
+html .PlayBar .PlayButtonContainer .StreamingSelector.ButtonChild svg,
+html .PlayBar .PlayButtonContainer .StreamingSelector.ButtonChild:hover svg {
+    fill: var(--aika-on-accent);
+}
+
+/* "Play" on an installed game is brighter than "Install" (author's fix
+   2026-10-06). Steam tells them apart by the container: "Play" has
+   .PlayButtonContainer.Green (the SVGIcon_Play icon), "Install" —
+   no .Green (SVGIcon_Download); "Install" stays a regular
+   accent button. The fill is accent → the pink light spot with a slow
+   shimmer, the glow is doubled. */
+/* The shimmer used to move background-position — a repaint of the button
+   every frame for as long as a game page was open. Now the same gradient
+   lies on ::before, twice the button wide (= background-size 200% 100%),
+   and slides by transform on the compositor: background-position 0% → 100%
+   of a 200%-wide image is a shift by one button width, translateX(-50%) of
+   the layer (performance pass 2026-10-14). The button clips it (it already
+   has overflow: hidden and the rounding); ::after is the shared glare. */
+html .PlayBar .PlayButtonContainer.Green :is(.PlayButton, .StreamingSelector.ButtonChild) {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--aika-play-fill-from);
+    box-shadow: var(--aika-shadow-play);
+}
+
+html .PlayBar .PlayButtonContainer.Green :is(.PlayButton, .StreamingSelector.ButtonChild)::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    width: 200%;
+    background: var(--aika-play-fill);
+    pointer-events: none;
+    animation: aika-play-flow var(--aika-dur-play-flow) var(--aika-ease-ambient) infinite alternate;
+}
+
+html .PlayBar .PlayButtonContainer.Green :is(.PlayButton, .StreamingSelector.ButtonChild):not(.Disabled):hover {
+    background: var(--aika-play-fill-from);
+    box-shadow: var(--aika-shadow-play-hover);
+}
+
+@keyframes aika-play-flow {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html .PlayBar .PlayButtonContainer.Green :is(.PlayButton, .StreamingSelector.ButtonChild)::before {
+        animation: none;
+    }
+}
+
+/* Buttons on the right (gear, star) — secondary icons */
+html .AppButtonsContainer .MenuButton {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-surface);
+    box-shadow: var(--aika-shadow-secondary);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html .AppButtonsContainer .MenuButton:hover {
+    background-color: var(--aika-surface-hover);
+    box-shadow: var(--aika-shadow-secondary-hover);
+}
+
+/* --------------------------------------------------------------------------
+   The hero: the banner fades smoothly into the background, the logo stays on top.
+   Steam does the banner parallax itself (on .HeaderBackgroundImage —
+   translateZ(-1) scale(2) inside a container with perspective), so
+   the banner's transform is untouched: the darkening is an ::after layer inside it,
+   the scroll fade is only the image's opacity.
+   -------------------------------------------------------------------------- */
+
+html .TopCapsule .HeaderBackgroundImage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--aika-hero-fade);
+    pointer-events: none;
+}
+
+/* The fade on scroll (DESIGN.md §8): once over the course of the scroll,
+   only with scroll-driven animations support; with --aika-motion: 0
+   the brightness doesn't change */
+@keyframes aika-hero-fade-out {
+    to {
+        opacity: calc(1 - (1 - var(--aika-hero-scroll-opacity)) * var(--aika-motion));
+    }
+}
+
+@supports (animation-timeline: scroll()) {
+    html .TopCapsule .HeaderBackgroundImage .ImgContainer {
+        animation: aika-hero-fade-out linear both;
+        animation-timeline: scroll(nearest block);
+        animation-range: 0 var(--aika-hero-scroll-range);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html .TopCapsule .HeaderBackgroundImage .ImgContainer {
+        animation: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Hero + the "Play" bar — one block with rounding and an accent outline
+   (author's request 2026-10-04). In the DOM they're different branches: .Header (banner)
+   and .AppDetailsOverviewPanel .Container.InPage > .PlayBar, so
+   the block is built from two halves: the hero has the top corners and the outline on top
+   and the sides, the bar has the bottom corners and the outline at the bottom and the sides.
+
+   The hero can't be clipped with overflow/clip-path: .TopCapsule is
+   preserve-3d, the banner parallax would break, and the banner "reflection"
+   (.ImgBlurBackdrop) under the bar would disappear. So we round the
+   images themselves (they're flat inside the 3D layer), and draw the outline with ::before
+   on top. The darkening (::after) and the scroll fade stay as they were.
+   -------------------------------------------------------------------------- */
+
+html .AppDetailsMain .Header.HeaderLoaded {
+    width: auto;
+    margin: var(--aika-hero-inset) var(--aika-hero-inset) 0;
+}
+
+html .AppDetailsMain .Header.HeaderLoaded::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border: var(--aika-hairline) solid var(--aika-border-accent);
+    border-bottom: none;
+    border-radius: var(--aika-radius-xl) var(--aika-radius-xl) 0 0;
+    box-shadow: var(--aika-hero-glow);
+    clip-path: inset(-40px -40px 0 -40px);
+    pointer-events: none;
+}
+
+/* The banner is in a 3D layer (translateZ(-1) scale(2), perspective on the scroll
+   container): it shows an offset in the markup at half size, and after
+   the hero margins it slid by half a margin up-left. We shift it by the margin. */
+html .TopCapsule .HeaderBackgroundImage {
+    top: var(--aika-hero-inset);
+    left: var(--aika-hero-inset);
+}
+
+/* Steam makes the image taller than the hero (326 vs 271): the bottom stuck out from under
+   the rounded corners of the "Play" bar. The height follows the hero; on scroll
+   the banner moves down relative to the hero (parallax), so the visible
+   part of the hero stays covered. The reflection (.ImgBlurBackdrop) is untouched. */
+html .TopCapsule .HeaderBackgroundImage > :is(.ImgContainer, img.ImgBlur:not(.ImgBlurBackdrop)) {
+    max-height: 100%;
+    border-radius: var(--aika-radius-xl) var(--aika-radius-xl) 0 0;
+    overflow: hidden;
+}
+
+html .AppDetailsOverviewPanel .Container.InPage {
+    width: auto;
+    margin-inline: var(--aika-hero-inset);
+}
+
+/* The banner reflection under the bar (.ImgBlurBackdrop, mirrored with scaleY(-1),
+   opacity 0.2) is a rectangle with straight sides: its edges showed at the rounded
+   bottom corners of "Play". We fade the sides with a mask on top of
+   Steam's vertical fade (hash (0,2,0)). */
+html .TopCapsule .HeaderBackgroundImage > img.ImgBlurBackdrop {
+    -webkit-mask-image:
+        linear-gradient(to top, var(--aika-bg-deep) 0%, var(--aika-transparent) 100%),
+        linear-gradient(to right, var(--aika-transparent), var(--aika-bg-deep) var(--aika-hero-edge-fade), var(--aika-bg-deep) calc(100% - var(--aika-hero-edge-fade)), var(--aika-transparent));
+    -webkit-mask-composite: source-in;
+    mask-image:
+        linear-gradient(to top, var(--aika-bg-deep) 0%, var(--aika-transparent) 100%),
+        linear-gradient(to right, var(--aika-transparent), var(--aika-bg-deep) var(--aika-hero-edge-fade), var(--aika-bg-deep) calc(100% - var(--aika-hero-edge-fade)), var(--aika-transparent));
+    mask-composite: intersect;
+}
+
+/* The inner padding of "Play": Steam has 10 px on top, 7 px at the bottom — the button
+   sat off center. Equal now. */
+html .PlayBar.Glassy > .InnerContainer {
+    padding-block: var(--aika-space-2);
+}
+
+html .AppDetailsOverviewPanel .Container.InPage > .PlayBar.Glassy {
+    border: var(--aika-hairline) solid var(--aika-border-accent);
+    border-top-color: var(--aika-border);
+    border-radius: 0 0 var(--aika-radius-xl) var(--aika-radius-xl);
+    box-shadow: var(--aika-highlight-top), var(--aika-hero-glow);
+    clip-path: inset(0 -40px -40px -40px);
+}
+
+/* Collection chips on the banner ("CO-OP" etc.) — pill badges */
+html .HeaderFeatures .InCollection {
+    padding: 0 var(--aika-space-2);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-bg-raised);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-hover);
+    color: var(--aika-fg-muted);
+    transition:
+        color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .HeaderFeatures .InCollection:hover {
+    color: var(--aika-fg);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+}
+
+/* --------------------------------------------------------------------------
+   The description block (.AppGameInfoContainer): poster, description, developers,
+   features — like a panel: a dark body, an outline, xl rounding.
+   Steam: background (0,1,0), poster shadow (0,2,0), magnifier button (0,2,0).
+   -------------------------------------------------------------------------- */
+
+html .AppGameInfoContainer > .Container {
+    border-radius: var(--aika-radius-xl);
+    background-color: var(--aika-bg-elevated);
+    box-shadow: var(--aika-shadow-panel);
+}
+
+/* Poster — cover rounding and a simple shadow */
+html .AppGameInfoContainer .Portrait .PortraitImage {
+    border-radius: var(--aika-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--aika-shadow-cover);
+}
+
+/* The poster zoom button — a secondary icon */
+html .AppGameInfoContainer .Portrait .ZoomInButton {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-bg-raised);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-hover);
+}
+
+/* Features (single-player, achievements…) — rows with a soft hover */
+html .AppGameInfoContainer .FeaturesList > .Container {
+    border-radius: var(--aika-radius-md);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .AppGameInfoContainer .FeaturesList > .Container:hover {
+    background-color: var(--aika-surface-hover);
+}
+
+/* --------------------------------------------------------------------------
+   The "pre-purchase / not owned" block (.PrePurchaseContainer): a 3D cube with the cover,
+   description and buttons. Steam paints it in blue-lilac gradients — our light.
+   -------------------------------------------------------------------------- */
+
+html .InnerContainer .PrePurchaseContainer {
+    border-radius: var(--aika-radius-xl);
+    background: radial-gradient(100% 100% at 45% 45%, var(--aika-accent-haze), var(--aika-bg-elevated) 70%);
+    box-shadow: var(--aika-shadow-panel);
+}
+
+html .PrePurchaseContainer .GroundPlane {
+    background: radial-gradient(50% 50% at 35% 90%, var(--aika-accent-glow), var(--aika-accent-none));
+}
+
+/* Steam holds these elements with chains (0,4,0)…(0,5,0) — ours are full
+   readable chains + html */
+html .PrePurchaseContainer .CubeFace.CubeFaceBottom .CubeFaceShadow {
+    background: var(--aika-shadow-deep);
+}
+
+html .PrePurchaseContainer .CubeContainer .PrePurchaseDesc .Title {
+    color: var(--aika-fg);
+}
+
+html .PrePurchaseContainer .PrePurchaseDesc .Desc {
+    color: var(--aika-fg-muted);
+}
+
+/* The "Play" wrapper is transparent; the neighboring button is secondary */
+html .PrePurchaseContainer .CubeContainer .PrePurchaseDesc .PrePurchaseActionsContainer div.PrePurchaseActions {
+    background: var(--aika-transparent);
+}
+
+html .PrePurchaseContainer .CubeContainer .PrePurchaseDesc .PrePurchaseActionsContainer button.PrePurchaseActions {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    box-shadow: var(--aika-shadow-secondary);
+    color: var(--aika-fg);
+}
+
+html .PrePurchaseContainer .CubeContainer .PrePurchaseDesc .PrePurchaseActionsContainer button.PrePurchaseActions:hover {
+    background: var(--aika-surface-hover);
+}
+
+html .PrePurchaseContainer .PrePurchaseActions .PlayButton svg.SVGIcon_Button svg {
+    fill: var(--aika-on-accent);
+}
+
+/* ==========================================================================
+   The Aika palette for the remaining game page elements (the
+   tools/audit.js audit, 2026-10-04). Steam's neutral grays → our warm ones,
+   Steam's blue accents → our accent. Semantic colors (in game, a rare
+   achievement) keep their meaning.
+   ========================================================================== */
+
+/* The page background and the glass under the blocks are transparent: the Aika background shows */
+html .AppDetailsMain > .Container > .Body.ScrollContainer {
+    background: var(--aika-transparent);
+}
+
+html .AppDetailsOverviewPanel .Backdrop .BackdropGlass {
+    background: var(--aika-transparent);
+}
+
+/* Collection chips: Steam puts its own white border over ours */
+html .HeaderFeatures .InCollection {
+    border-color: var(--aika-transparent);
+}
+
+/* --------------------------------------------------------------------------
+   The "Play" bar: stat and button icons
+   -------------------------------------------------------------------------- */
+
+html .PlayBar .GameStat :is(.GameStatIconForced, .GameStatIcon) svg :is(path, circle) {
+    fill: var(--aika-fg-subtle);
+}
+
+html .PlayBar .AppButtonsContainer .MenuButton svg.SVGIcon_Button,
+html .PlayBar .AppButtonsContainer .MenuButton svg.SVGIcon_Button :is(path, circle, polyline),
+html .PlayBar .AppButtonsContainer .MenuButton.FavoriteButton svg,
+html .PlayBar .AppButtonsContainer .MenuButton.FavoriteButton svg path {
+    fill: var(--aika-fg-muted);
+}
+
+html .PlayBar .AppButtonsContainer .MenuButton:hover svg.SVGIcon_Button,
+html .PlayBar .AppButtonsContainer .MenuButton:hover svg.SVGIcon_Button :is(path, circle, polyline),
+html .PlayBar .AppButtonsContainer .MenuButton.FavoriteButton:hover svg,
+html .PlayBar .AppButtonsContainer .MenuButton.FavoriteButton:hover svg path {
+    fill: var(--aika-fg);
+}
+
+/* --------------------------------------------------------------------------
+   The description block and links
+   -------------------------------------------------------------------------- */
+
+html .AppGameInfoContainer .Description .GameDescription {
+    color: var(--aika-fg-muted);
+}
+
+html .AppGameInfoContainer .Stats :is(.AssociationList, .Release) .Label {
+    color: var(--aika-fg-subtle);
+}
+
+html .AppGameInfoContainer .Stats .AssociationList .Association a.Name {
+    color: var(--aika-fg);
+    transition: color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .AppGameInfoContainer .Stats .AssociationList .Association a.Name:hover {
+    color: var(--aika-accent-bright);
+}
+
+html .AppGameInfoContainer .Portrait .ZoomInButton svg path {
+    fill: var(--aika-fg-muted);
+}
+
+/* Panel spacing (author's screenshot 2026-10-20). Steam gives every section's
+   container margin-bottom 10px inside the section — below the body's
+   background, inside the panel's outline: a step under each panel
+   ("Activity", "Friends who play"…). And under the links bar 26 px + the
+   columns' padding-top 10 px + those 10 px left a 46 px gap where the panels
+   keep 26 px between them; 16 px here makes it 26 too. */
+html .AppDetailsSection > .AppDetailsSectionContainer {
+    margin-bottom: 0;
+    /* a block, and a first child's margin-top (the trading cards badge,
+       12 px) collapsed through it — the body dropped 12 px below the
+       header, the page showing between them */
+    display: flow-root;
+}
+
+html .AppDetailsSection.LinksSection {
+    margin-bottom: var(--aika-space-4);
+}
+
+html .LinksSectionBody .LinkInner .Link .Text {
+    color: var(--aika-fg-muted);
+    transition: color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .LinksSectionBody .LinkInner:hover .Link .Text {
+    color: var(--aika-fg);
+}
+
+/* The link backing: Steam has 2 px rounding and a gray-blue hover — a hash (0,3,0)
+   with :hover; ours is html + three classes + :hover */
+html .LinksSectionBody .LinkInner .Anchor .Link {
+    border-radius: var(--aika-radius-md);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+/* Clip Steam's wrapper/focus paint to the same rounded shape as the link.
+   The section itself keeps its outer shadow; only child paint is clipped. */
+html .LinksSection > .AppDetailsSectionContainer { overflow: clip; }
+html .LinksSectionBody :is(.LinkInner, .Anchor) { border-radius: var(--aika-radius-md); }
+html .LinksSectionBody .Anchor { overflow: clip; }
+html .LinksSectionBody .Anchor:focus-visible .Link {
+    outline: 2px solid var(--aika-accent);
+    outline-offset: -2px;
+}
+
+html .LinksSectionBody .LinkInner .Anchor .Link:hover {
+    background-color: var(--aika-surface-hover);
+}
+
+html .LinksSectionBody .MenuButton svg,
+html .LinksSectionBody .MenuButton svg circle {
+    fill: var(--aika-fg-muted);
+}
+
+/* --------------------------------------------------------------------------
+   The review ("Recommend?", .Spotlights .ReviewContainer) — a panel,
+   Steam's blue buttons → accent
+   -------------------------------------------------------------------------- */
+
+/* Steam's left column of spotlights has padding-left 10px — the review panel
+   stood 10 px in from the panels below it (author's screenshot 2026-10-20) */
+html .Spotlights.SpotlightLeftColumn.SpotlightLeftColumn {
+    padding-inline-start: 0;   /* Steam: padding-inline-start, (0,3,0) */
+}
+
+html .Spotlights .ReviewContainer {
+    border-radius: var(--aika-radius-xl);
+    background: var(--aika-bg-elevated);
+    box-shadow: var(--aika-shadow-panel);
+}
+
+html .Spotlights .ReviewContainer .RatingContainer {
+    border-radius: var(--aika-radius-xl);
+    background: var(--aika-transparent);
+}
+
+html .Spotlights .ReviewContainer .RatingContainer .Playtime {
+    color: var(--aika-accent-bright);
+}
+
+html .Spotlights .ReviewContainer button.ReviewThumbButton {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-accent-soft);
+    color: var(--aika-accent-bright);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .Spotlights .ReviewContainer button.ReviewThumbButton:hover {
+    background: var(--aika-accent-glow);
+}
+
+html .Spotlights .ReviewContainer button.ReviewThumbButton span {
+    color: inherit;
+}
+
+html .Spotlights .ReviewContainer button.ReviewThumbButton svg.ThumbIcon,
+html .Spotlights .ReviewContainer button.ReviewThumbButton svg.ThumbIcon path {
+    fill: currentColor;
+}
+
+/* --------------------------------------------------------------------------
+   Friends and achievements in the right column
+   -------------------------------------------------------------------------- */
+
+html .AppDetailsSectionContainer .Body .Subsection .SubsectionHeader {
+    color: var(--aika-fg-muted);
+}
+
+html .AppDetailsSectionContainer .Friends button.ShowMore.TextButton {
+    color: var(--aika-fg-muted);
+}
+
+html .AppDetailsSectionContainer .Friends button.ShowMore.TextButton:hover {
+    color: var(--aika-accent-bright);
+}
+
+/* The "Unlocked N of M" bar — a surface instead of a gray-blue gradient */
+html .AppDetailsSectionContainer .Highlight.HighlightDiv {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+}
+
+/* "You've unlocked all achievements" — an accent bar and a medal in Aika colors
+   (Steam has a blue-cyan gradient from <defs> and a yellow circle) */
+html .AppDetailsSectionContainer .Highlight.HighlightDiv.AllAchieved {
+    background: var(--aika-accent-soft);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+}
+
+html .AppDetailsSectionContainer .Highlight.AllAchieved svg.Ribbon path {
+    fill: var(--aika-accent-fill);
+    stroke: var(--aika-accent-bright);
+}
+
+html .AppDetailsSectionContainer .Highlight.AllAchieved svg.Ribbon circle {
+    fill: var(--aika-warn);
+    stroke: var(--aika-light-3);
+}
+
+html .AppDetailsSectionContainer .Highlight .UnlockedLabel span {
+    color: var(--aika-fg-muted);
+}
+
+html .AppDetailsSectionContainer .Highlight .UnlockedLabel span.UnlockedLabelPercent {
+    color: var(--aika-fg-subtle);
+}
+
+html :is(.PrimaryAchievement, .RightAchievementSection) .TextSection .Name {
+    color: var(--aika-fg);
+}
+
+html :is(.PrimaryAchievement, .RightAchievementSection) .TextSection .Desc {
+    color: var(--aika-fg-muted);
+}
+
+/* Achievement icons — rounding; the gold glow of rare ones is Steam's */
+html .AchievementIconWrapper img.Icon {
+    border-radius: var(--aika-radius-md);
+}
+
+/* --------------------------------------------------------------------------
+   The activity feed: the post field, buttons, events, likes
+   -------------------------------------------------------------------------- */
+
+html .PostTextEntry:is(.AddToFeed, .AddReply) textarea.PostTextEntryArea {
+    border: var(--aika-hairline) solid var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+    color: var(--aika-fg);
+}
+
+html .PostTextEntry:is(.AddToFeed, .AddReply) textarea.PostTextEntryArea:focus {
+    border-color: var(--aika-accent);
+    box-shadow: var(--aika-shadow-input-focus);
+    outline: none;
+}
+
+html .PostTextEntry:is(.AddToFeed, .AddReply) .Controls :is(button.EmoticonButton, .PostButton) {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    box-shadow: var(--aika-shadow-secondary);
+}
+
+html .PostTextEntry:is(.AddToFeed, .AddReply) .Controls .PostButton .Label {
+    color: var(--aika-fg-muted);
+}
+
+html .PostTextEntry:is(.AddToFeed, .AddReply) .Controls button.EmoticonButton svg path {
+    fill: var(--aika-fg-muted);
+}
+
+html .AppDetailsSectionContainer .ViewLastNews span {
+    color: var(--aika-fg-muted);
+}
+
+html .AppActivityDay .Event .EventBody {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface);
+}
+
+html .RatingBar :is(.CommentButton, .LikeButton) :is(.CommentCount, .LikeCount) {
+    color: var(--aika-fg-subtle);
+}
+
+html .RatingBar :is(.CommentButton, .LikeButton) svg.RatingIcon,
+html .RatingBar :is(.CommentButton, .LikeButton) svg.RatingIcon path {
+    fill: var(--aika-fg-subtle);
+}
+
+html .RatingBar :is(.CommentButton, .LikeButton):hover :is(.CommentCount, .LikeCount) {
+    color: var(--aika-fg);
+}
+
+html .RatingBar :is(.CommentButton, .LikeButton):hover svg.RatingIcon :is(*) {
+    fill: var(--aika-fg);
+}
+
+/* --------------------------------------------------------------------------
+   Lower blocks: screenshots, trading cards, community content,
+   voting (audit 2026-10-04)
+   -------------------------------------------------------------------------- */
+
+html .AppDetailsSectionContainer .Screenshots .Thumbnail {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-bg-raised);
+}
+
+html .CardsSection .CardWrapper .Card .CardContainer {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-bg-raised);
+}
+
+/* Card hover: Steam has a single black shadow (hash (0,3,0) with :hover) →
+   our layered one */
+html .CardsSection .CardWrapper .Card:hover .CardContainer {
+    box-shadow: var(--aika-shadow-card-hover);
+}
+
+/* Empty placeholder cells in "Community Content" */
+html .AppOverviewRow .CommunityItem.Blank {
+    border-radius: var(--aika-radius-lg);
+    background-color: var(--aika-surface);
+}
+
+html .AppDetailsSectionContainer .VoteUpDownContainer button.AppDetailsButton {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-surface);
+    box-shadow: var(--aika-shadow-secondary);
+    color: var(--aika-fg-muted);
+}
+
+html .AppDetailsSectionContainer .VoteUpDownContainer button.AppDetailsButton:hover {
+    background-color: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+/* The sticky copy of the "Play" bar (hangs at the top on scroll) — the bottom corners
+   are rounded; the in-page bar under the banner stays flush with the edges */
+html .AppDetailsMain > .PlayBar.Container > .PlayBar.Glassy {
+    border-radius: 0 0 var(--aika-radius-lg) var(--aika-radius-lg);
+}
+
+/* --------------------------------------------------------------------------
+   The activity feed on the game page (.ActivityFeedContainer)
+
+   Steam shrinks the feed header and body to the content (~482 px), while the panel
+   body spans the whole column: to the right of the post field and events there was
+   an empty dark strip. We stretch the header and content to full width.
+   -------------------------------------------------------------------------- */
+
+/* Steam's right column is float: right, the left one flows around it. We make the
+   left column blocks a separate block formatting context (flow-root): then
+   the whole block sits next to the right column and shrinks to the free
+   space instead of sliding under it (which happened with width: 100% on descendants)
+   and doesn't stretch the dark body under the right column (which Steam did). */
+html .ColumnContainer .LeftColumn > .SeekTarget > .AppDetailsSection {
+    display: flow-root;
+}
+
+html .AppDetailsSection.ActivityFeedContainer > h2.SectionHeader {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+html .ActivityFeedContainer > .AppDetailsSectionContainer > .Body.InnerContainer {
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--aika-space-3);
+    gap: var(--aika-space-2);
+}
+
+/* The day's date in the feed */
+html .ActivityFeedContainer .AppActivityDay .AppActivityDate {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+/* The "Name unlocked an achievement" line */
+html .ActivityFeedContainer .EventHeadline {
+    color: var(--aika-fg-muted);
+}
+
+/* News (.PartnerEvent, "Small update…"): Steam's border is
+   made with border-image (PNG) — rounding doesn't work with it. We replace it
+   with our card. Steam (0,1,0). */
+html .ActivityFeedContainer .PartnerEvent {
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-image: none;
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface);
+    box-shadow: none;
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        border-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .ActivityFeedContainer .PartnerEvent:hover {
+    border-color: var(--aika-border-hover);
+    background: var(--aika-surface-hover);
+}
+
+html .ActivityFeedContainer .PartnerEvent .PartnerEventType {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+html .ActivityFeedContainer .PartnerEvent .PartnerEventTextOnly_Title {
+    color: var(--aika-fg);
+}
+
+html .ActivityFeedContainer .PartnerEvent .PartnerEventTextOnly_Icon svg path {
+    fill: var(--aika-accent-bright);
+}
+
+/* The "Show more" button at the bottom of the feed — full width */
+html .ActivityFeedContainer .Body.InnerContainer > button.FetchMoreContainer {
+    align-self: stretch;
+    /* Steam ".ActivityFeedContainer-hash .button" (0,2,0): 2 px radius and a gray-blue background */
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+}
+
+/* Small achievement icons and "+N" in the achievements block */
+html .Additional .ItemWrapper .AdditionalItem {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-bg-raised);
+}
+
+/* The "Locked" divider */
+html .AppDetailsSectionContainer .UnachievedSection.ShowDivider {
+    border-color: var(--aika-border);
+}
+
+/* --------------------------------------------------------------------------
+   Community content: artwork, guides (.CommunityItem.Large / .Small)
+   -------------------------------------------------------------------------- */
+
+/* Steam hangs the counters (.Controls: reactions, thumbs, comments — shown on
+   hover) on the card's bottom edge, half outside (translate(-50%, 50%); the
+   row keeps room below). The card doesn't clip, so they show whole (with
+   overflow: hidden here they were cut in half, author's screenshot
+   2026-10-20); the image and the author row carry the rounding instead. */
+html .AppOverviewRow .CommunityItem:not(.Blank) {
+    border-radius: var(--aika-radius-lg);
+    background-color: var(--aika-bg-raised);
+    box-shadow: var(--aika-shadow-cover);
+}
+
+html .AppOverviewRow .CommunityItem:not(.Blank) .ChildItem {
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg) var(--aika-radius-lg) 0 0;
+}
+
+html .AppOverviewRow .CommunityItem:not(.Blank) .AuthorSection {
+    border-radius: 0 0 var(--aika-radius-lg) var(--aika-radius-lg);
+}
+
+/* The counter pills: a hairline so they read over the card's edge; Steam's
+   blue sprite thumbs and comment icons in our gray */
+html .CommunityItem .Controls .Control {
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-hover);
+}
+
+html .CommunityItem .Controls :is(.ThumbsUp, .ThumbsDown, .Comments) {
+    filter: grayscale(1) brightness(1.3);
+    opacity: 0.8;
+    transition: opacity var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .CommunityItem .Controls .Control:hover :is(.ThumbsUp, .ThumbsDown, .Comments) {
+    opacity: 1;
+}
+
+/* The artwork caption over the image */
+html .CommunityItem .ArtItem .BottomSection {
+    background: var(--aika-bg-elevated);
+    box-shadow: none;
+}
+
+html .CommunityItem .ArtItem .BottomSection .DescriptionRow {
+    color: var(--aika-fg-muted);
+}
+
+/* The author on top over the image — our darkening */
+html .CommunityItem .AuthorSection {
+    background: linear-gradient(to bottom, var(--aika-scrim), var(--aika-scrim-none));
+}
+
+html .CommunityItem .AuthorSection .AuthorName {
+    color: var(--aika-fg-muted);
+}
+
+/* Guides */
+html .CommunityItem .Guide .GuideTitle {
+    color: var(--aika-fg);
+}
+
+html .CommunityItem .Guide .TopSection .TopSectionInner {
+    background-color: var(--aika-surface);
+}
+
+html .CommunityItem .Guide .BottomSection .Description {
+    color: var(--aika-fg-muted);
+}
+
+/* Reactions, counters, menu */
+html .CommunityItem .Controls .Control .Button svg.Reactions path {
+    fill: var(--aika-accent-bright);
+}
+
+html .CommunityItem .Controls .Control .Count {
+    color: var(--aika-fg-subtle);
+}
+
+html .CommunityItem .MenuButton svg.SVGIcon_Button,
+html .CommunityItem .MenuButton svg.SVGIcon_Button path {
+    fill: var(--aika-fg-muted);
+}
+
+/* News with an image (.PartnerEventMediumImage etc.): inside the card
+   Steam has its own container with a gradient "glow" — without rounding,
+   and the card didn't clip it. We clip by the rounding, replace Steam's glow
+   with our surface, and round the image. */
+html .ActivityFeedContainer .PartnerEvent {
+    overflow: hidden;
+}
+
+html .ActivityFeedContainer .PartnerEvent > .Panel {
+    border-radius: inherit;
+    background: var(--aika-transparent);
+}
+
+html .ActivityFeedContainer .PartnerEvent img {
+    border-radius: var(--aika-radius-md);
+}
+
+html .ActivityFeedContainer .PartnerEvent :is(.PartnerEventMediumImage_Title, .PartnerEventLargeImage_Title) {
+    color: var(--aika-fg);
+}
+
+html .ActivityFeedContainer .PartnerEvent :is(.PartnerEventMediumImage_Summary, .PartnerEventLargeImage_Summary) {
+    color: var(--aika-fg-muted);
+}
+
+/* The "Install" icon: the arrow is a nested <svg> with its own light-blue
+   Steam fill ":not(._1Pb6…) > ._2AzIX… svg" */
+html .PlayButtonContainer .PlayButton svg.SVGIcon_Button svg,
+html .PlayButtonContainer .PlayButton svg.SVGIcon_Button svg path,
+html .PlayButtonContainer .PlayButton:hover svg.SVGIcon_Button svg,
+html .PlayButtonContainer .PlayButton:hover svg.SVGIcon_Button svg path {
+    fill: var(--aika-on-accent);
+}
+
+/* The "?" icon next to block headings */
+html .AppDetailsSection > h2.SectionHeader .MoreInfoIcon .MoreInfoIconQuestionMark {
+    color: var(--aika-fg-subtle);
+}
+
+/* Reactions over video previews in "Community Content" — Steam's light plates
+   → our dark ones */
+html .CommunityItem .Controls .Control {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-bg-raised);
+    color: var(--aika-fg-muted);
+}
+
+/* --------------------------------------------------------------------------
+   "Trading Cards" (the badge) and "Workshop" (a trending item):
+   Steam has a shared .Highlight backing — a gray-blue gradient, 2 px rounding,
+   a shadow. Hash rules (0,1,0)…(0,4,0); ours are full readable chains + html.
+   -------------------------------------------------------------------------- */
+
+html .AppDetailsSectionContainer .Highlight:is(.BadgeSection, .WorkshopHightlight) {
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-bg);
+    box-shadow: var(--aika-highlight-top);
+    color: var(--aika-fg-muted);
+}
+
+/* In the block the body follows the backing directly — padding along the panel body edges */
+html .AppDetailsSectionContainer > .Highlight.BadgeSection,
+html .AppDetailsSectionContainer > .Panel > .Highlight.WorkshopHightlight {
+    margin: var(--aika-space-3);
+}
+
+html .Highlight.BadgeSection .BadgeInfo .BadgeName {
+    color: var(--aika-fg);
+}
+
+/* A badge not crafted yet — an empty dashed circle: Steam's gray → our border
+   (Steam: hash (0,2,0); ours: html + three classes) */
+html .Highlight.BadgeSection .Badge.EmptyCircle {
+    border-color: var(--aika-border-hover);
+}
+
+html .Highlight.BadgeSection .BadgeInfo .BadgeLevel {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-meta);
+}
+
+/* "Congratulations! Max level badge" — Steam's light blue → accent */
+html .AppDetailsSectionContainer .Body .CardsLeft {
+    color: var(--aika-fg-muted);
+}
+
+html .AppDetailsSectionContainer .Body .CardsLeft.BadgeMaxed {
+    color: var(--aika-accent-bright);
+}
+
+/* Workshop: "Trending item", title, description, "Learn more" */
+html .FeaturedItem .FeaturedItemDetailsContainer .FeaturedItemHeader {
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+html .FeaturedItem .FeaturedItemDetailsContainer .FeaturedItemName {
+    color: var(--aika-fg);
+}
+
+html .FeaturedItem .FeaturedItemDetailsContainer .FeaturedItemDesc {
+    color: var(--aika-fg-muted);
+}
+
+html .WorkshopHightlight .FeaturedItem .FeaturedLinks .FeaturedItemLink {
+    color: var(--aika-fg-muted);
+    transition: color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .WorkshopHightlight .FeaturedItem .FeaturedLinks .FeaturedItemLink:hover {
+    color: var(--aika-accent-bright);
+}
+
+html .WorkshopHightlight .FeaturedItem .FeaturedItemImage {
+    border-radius: var(--aika-radius-md);
+}
+
+html .WorkshopHightlight .FeaturedItem .FeaturedItemHideButton {
+    border-radius: var(--aika-radius-md);
+}
+
+html .WorkshopHightlight .FeaturedItem .FeaturedItemHideButton svg {
+    fill: var(--aika-fg-subtle);
+}
+
+/* The bottom of the Workshop block: the workshopbackground.png background image on gray */
+html .WorkshopSection .AppDetailsSectionContainer .Body.WorkshopContainer {
+    border-radius: 0 0 var(--aika-radius-xl) var(--aika-radius-xl);
+    background: var(--aika-transparent);
+}
+
+/* --------------------------------------------------------------------------
+   Extra content: DLC covers — rounding, without Steam's "glass" glare
+   -------------------------------------------------------------------------- */
+
+html .AppDetailsSectionContainer .DLC .Item .DLCArt {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+}
+
+html .AppDetailsSectionContainer .DLC .DLCArt > .Art {
+    box-shadow: none;
+}
+
+html .AppDetailsSectionContainer .DLC .DLCArt > .Gloss {
+    background: var(--aika-transparent);
+}
+
+/* --------------------------------------------------------------------------
+   The feed: comments under an event (screenshots, statuses) —
+   .ActivityCommentThread. Steam: a rgba(36,40,47,.8) backing, gray time,
+   text, "thumbs up"; hash chains up to (0,6,0).
+   -------------------------------------------------------------------------- */
+
+html .Event .CommentThread .ActivityCommentThread {
+    border-top: var(--aika-hairline) solid var(--aika-border);
+    border-radius: 0 0 var(--aika-radius-lg) var(--aika-radius-lg);
+    background: var(--aika-bg-elevated);
+}
+
+html .ActivityCommentThread .Comment .HeaderandBody .CommentHeader .CommentTime {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+}
+
+html .ActivityCommentThread .Comment .HeaderandBody .CommentBody .CommentText {
+    color: var(--aika-fg-muted);
+}
+
+html .ActivityCommentThread .Comment .HeaderandBody .CommentBody .CommentControls .CommentRatingButton .CommentRating {
+    color: var(--aika-fg-subtle);
+}
+
+html .ActivityCommentThread .Comment .HeaderandBody .CommentBody .CommentControls .CommentRatingButton .CommentRating svg,
+html .ActivityCommentThread .Comment .HeaderandBody .CommentBody .CommentControls .CommentRatingButton .CommentRating svg path,
+html .ActivityCommentThread .Comment .HeaderandBody .CommentBody .CommentControls .DeleteButton svg.DeleteUserNews,
+html .ActivityCommentThread .Comment .HeaderandBody .CommentBody .CommentControls .DeleteButton svg.DeleteUserNews path {
+    fill: var(--aika-fg-subtle);
+}
+
+html .ActivityCommentThread .Comment .HeaderandBody .CommentBody .CommentControls .DeleteButton:hover svg.DeleteUserNews path {
+    fill: var(--aika-live);
+}
+
+/* Reactions (a smiley) next to "comments / like" */
+html .RatingBar .Reactions .ReactionCount {
+    color: var(--aika-fg-subtle);
+}
+
+html .RatingBar .Reactions .ReactionIcon svg,
+html .RatingBar .Reactions .ReactionIcon svg path {
+    fill: var(--aika-fg-subtle);
+}
+
+html .RatingBar .Reactions:hover .ReactionCount {
+    color: var(--aika-fg);
+}
+
+html .RatingBar .Reactions:hover .ReactionIcon svg :is(*) {
+    fill: var(--aika-fg);
+}
+
+/* The screenshot caption: a light-blue gradient plate → our surface */
+html .ActivityPublishedScreenshot .ActiveScreenshot .ScreenshotCaption {
+    border-radius: 0 var(--aika-radius-md) 0 0;
+    background: var(--aika-scrim);
+    color: var(--aika-fg);
+}
+
+html .ActivityPublishedScreenshot .ActiveScreenshot .ScreenshotCaption .CaptionQuoteContainer {
+    color: var(--aika-fg);
+}
+
+html .ActivityPublishedScreenshot .ActiveScreenshot .ScreenshotCaption .CaptionQuoteContainer .CaptionQuote {
+    color: var(--aika-accent-bright);
+}
+
+/* A friend's status text ("I'm 5 years old today…") */
+html .Event .EventBody .ActivityPublishedStatus {
+    color: var(--aika-fg);
+}
+
+/* --------------------------------------------------------------------------
+   "Achievements" in the "Play" bar (.GameStat.MiniAchievements): the trophy in
+   accent (Steam's outline is a url(#svgid…) gradient inside the SVG), the progress
+   bar is ours. Steam: a #2d73ff bar on #151619, hashes (0,2,0).
+   -------------------------------------------------------------------------- */
+
+html .PlayBar .GameStat.MiniAchievements .AchievementSVG svg :is(path, circle) {
+    fill: var(--aika-accent-soft);
+    stroke: var(--aika-accent-bright);
+}
+
+html .PlayBar .GameStat.MiniAchievements .AchievementProgressRow .DetailsProgressContainer {
+    overflow: hidden;   /* clips the fill sliding in (js/achievement-progress.js) */
+    border-radius: var(--aika-radius-full);
+    background-color: var(--aika-surface-active);
+}
+
+html .PlayBar .GameStat.MiniAchievements .AchievementProgressRow .DetailsProgressContainer .DetailsProgressBar {
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-progress-fill);
+    box-shadow: 0 0 8px var(--aika-accent-glow);
+}
+
+/* A friend in the "Friends who play" block (.AvatarAndLabel): on hover Steam has
+   a light-blue backing rgba(103,137,161,.2) without rounding (hash:hover (0,2,0)) */
+html .FriendsSection .Friends .AvatarAndLabel {
+    border-radius: var(--aika-radius-md);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .FriendsSection .Friends .AvatarAndLabel:hover {
+    background-color: var(--aika-surface-hover);
+}
+
+/* --------------------------------------------------------------------------
+   The "About this game" block (the "i" button in "Play" → .AppGameInfoContainer,
+   .AppDetailsExpanded / .AppDetailsCollapsed, the height is an inline style
+   with animation). Steam puts it flush under the bar and above it (z 36 vs 1):
+   the "Play" glow hid under it. We raise the bar above the block,
+   lower the block by the margin and align it with the hero edges.
+   -------------------------------------------------------------------------- */
+
+html .AppDetailsOverviewPanel > .Container > .Container.InPage {
+    position: relative;
+    z-index: var(--aika-z-playbar);
+}
+
+html .AppDetailsOverviewPanel .AppGameInfoContainer {
+    padding-inline: var(--aika-hero-inset);
+    transition:
+        transform var(--aika-dur-expand) var(--aika-ease-expand),
+        transform-origin var(--aika-dur-expand) var(--aika-ease-expand),
+        opacity var(--aika-dur-expand) var(--aika-ease-expand),
+        height var(--aika-dur-expand) var(--aika-ease-expand),
+        border-radius var(--aika-dur-expand) var(--aika-ease-expand),
+        overflow 0s var(--aika-ease-expand) var(--aika-delay-expand-overflow),
+        margin-top var(--aika-dur-expand) var(--aika-ease-expand);
+}
+
+html .AppDetailsOverviewPanel .AppGameInfoContainer.AppDetailsExpanded {
+    margin-top: var(--aika-hero-inset);
+}
+
+/* The placeholder shadow during the animation: rounding like the block's */
+html .AppDetailsOverviewPanel .AppGameInfoContainer .GameInfoShadow {
+    border-radius: var(--aika-radius-xl);
+    background-color: var(--aika-shadow-deep);
+}
+
+/* --------------------------------------------------------------------------
+   "New content released" (.Rollup > .Contents): a DLC/update carousel
+   in the block body. Steam: a gray radial glow, black shadows, a glare
+   on covers, Motiva Sans on "View all in store", hashes (0,2,0)…(0,3,0).
+   The card is accent (it's something new), covers are rounded.
+   -------------------------------------------------------------------------- */
+
+html .InnerContainer .Rollup > .Contents {
+    border: var(--aika-hairline) solid var(--aika-border-accent);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-accent-bg);
+    box-shadow: var(--aika-highlight-top);
+}
+
+html .Rollup .HeaderPageControls h2.SectionHeader .Label .LabelText {
+    color: var(--aika-fg);
+    font-weight: var(--aika-weight-semibold);
+}
+
+html .Rollup .HeaderPageControls .MoreInfoIcon {
+    background-color: var(--aika-surface-active);
+}
+
+html .Rollup .HeaderPageControls .MoreInfoIcon .MoreInfoIconQuestionMark {
+    color: var(--aika-fg-muted);
+}
+
+html .Rollup .HeaderPageControls .PageableCloseButton svg line {
+    stroke: var(--aika-fg-subtle);
+}
+
+html .Rollup .ContentCarousel .CarouselItem .CarouselImage {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+    box-shadow: var(--aika-shadow-cover);
+}
+
+html .Rollup .ContentCarousel .CarouselImage .DLCArt > .Gloss {
+    background: var(--aika-transparent);
+}
+
+html .Rollup .ContentCarousel .CarouselImage .DLCArt > .Container {
+    box-shadow: none;
+}
+
+html .Rollup .ContentCarousel .CarouselItem .CarouselDescription .CarouselHeader {
+    color: var(--aika-fg);
+}
+
+html .Rollup .ContentCarousel .CarouselItem .CarouselDescription .CarouselBody {
+    color: var(--aika-fg-muted);
+}
+
+html .Rollup .ViewAllRow a.ViewAll {
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-ui);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+/* Steam on hover — a lilac backing rgba(173,101,186,.22) */
+html .Rollup .ViewAllRow a.ViewAll:hover {
+    background-color: var(--aika-accent-soft);
+    color: var(--aika-fg);
+}
+
+/* --------------------------------------------------------------------------
+   The top of the feed: the "Tell your friends about this game…" field and "Show
+   latest news" — more compact (author's request 2026-10-04) and in our
+   font: Steam sets Motiva Sans right on the elements (hash (0,1,0)).
+   -------------------------------------------------------------------------- */
+
+html .ActivityFeedContainer .Body.InnerContainer > .PostTextEntry.AddToFeed {
+    margin-bottom: 0;
+}
+
+html .ActivityFeedContainer .PostTextEntry textarea.PostTextEntryArea,
+html .ActivityFeedContainer .Body.InnerContainer > .ViewLastNews {
+    font-family: var(--aika-font-ui);
+}
+
+html .ActivityFeedContainer .Body.InnerContainer > .ViewLastNews {
+    padding: var(--aika-space-1) var(--aika-space-3);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-surface);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+    font-size: var(--aika-text-meta);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .ActivityFeedContainer .Body.InnerContainer > .ViewLastNews:hover {
+    background: var(--aika-accent-soft);
+}
+
+html .ActivityFeedContainer .Body.InnerContainer > .ViewLastNews:hover span {
+    color: var(--aika-fg);
+}
+
+/* --------------------------------------------------------------------------
+   Screenshots in the feed: thumbnails under the large frame (.CarouselThumbs).
+   Steam's selected one (.Active) has a light-blue #2db9ff border, square corners.
+   -------------------------------------------------------------------------- */
+
+html .ActivityPublishedScreenshot .ScreenshotCarousel .CarouselThumbs .CarouselThumb,
+html .ActivityPublishedScreenshot .ScreenshotCarousel .CarouselThumbs .CarouselThumb img {
+    border-radius: var(--aika-radius-md);
+}
+
+html .ActivityPublishedScreenshot .ScreenshotCarousel .CarouselThumbs .CarouselThumb.Active {
+    border-color: var(--aika-accent);
+    box-shadow: 0 0 12px var(--aika-accent-glow);
+}
+
+/* A like the user gave themselves (.UserRated) — light blue → accent;
+   "N ratings" next to it — muted */
+html .RatingBar .LikeButton .LikeIcon svg.RatingIcon.UserRated,
+html .RatingBar .LikeButton .LikeIcon svg.RatingIcon.UserRated path {
+    fill: var(--aika-accent-bright);
+}
+
+html .ActivityCommentThreadMinimized .RatingContainer .RatingBar .RatingDetails {
+    color: var(--aika-fg-subtle);
+}
+
+/* The game title in an event line ("… in The Last of Us"): gray #a0a0a0 (0,3,0) */
+html .Event .EventHeadline .SpanEvent .HeadlineGameName {
+    color: var(--aika-fg);
+}
+
+/* Achievement icons: Steam's black shadow (0,1,0) → our cover shadow.
+   The gold glow of rare ones (.IconGlow) is a rarity sign, left alone. */
+html .AchievementHoverContainer .AchievementIconWrapper img.Icon:not(.IconGlow) {
+    box-shadow: var(--aika-shadow-cover);
+}
+
+/* --------------------------------------------------------------------------
+   "Major update" in the feed (.Event.PartnerEventLargeUpdate >
+   .MajorUpdateContentContainer): a light-blue strip on the left
+   (.LeftSideMajorUpdateBar, sticking out past the card edge), a gray radial
+   glow, a light-blue event type. Hashes (0,1,0), hover — (0,2,0).
+   We make it an accent card: it's the main feed event.
+   -------------------------------------------------------------------------- */
+
+html .ActivityFeedContainer .PartnerEventLargeUpdate.PartnerEventLargeUpdate {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-transparent);
+    box-shadow: none;
+}
+
+/* Steam outlines the card with a blue gradient border-image (#199fff → #135787,
+   hash (0,1,0)); border-image ignores border-radius — a square blue frame around
+   the rounded card (author 2026-10-12, Fallout Shelter). Off wherever the card
+   appears (the feed, the News Hub…): the card outline is ours. */
+html .PartnerEventLargeUpdate {
+    border-image: none;
+}
+
+/* The strip on the left sticks out past the card edge by 22 px and read as a stuck-on
+   border — removed: the accent is already in the card outline */
+html .PartnerEventLargeUpdate .MajorUpdateContentContainer .LeftSideMajorUpdateBar {
+    display: none;
+}
+
+/* The blurred cover copy under the text (.Blur, blur 32px): toward the edges the blur
+   becomes transparent, and the card background showed through along the outline — a thin
+   blue "ring". We stretch it past the edges (the edges go under overflow: hidden)
+   and keep it as a soft colored glow instead of gray. Steam (0,2,0). */
+html .PartnerEventLargeUpdate .PartnerEventLargeImage_Contents img.PartnerEventLargeImage_Image.Blur {
+    transform: scale(var(--aika-blur-cover-scale));
+    filter: var(--aika-blur-cover-filter);
+    opacity: var(--aika-blur-cover-opacity);
+}
+
+html .PartnerEventLargeUpdate .MajorUpdateContentContainer .PartnerEventLargeImage_Container {
+    overflow: hidden;
+    border: var(--aika-hairline) solid var(--aika-border-accent);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-accent-bg);
+    box-shadow: var(--aika-highlight-top);
+    transition:
+        border-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html .PartnerEventLargeUpdate .MajorUpdateContentContainer .PartnerEventLargeImage_Container:hover {
+    border-color: var(--aika-accent-ring);
+    background: var(--aika-card-accent-bg);
+    box-shadow: var(--aika-highlight-top), 0 0 20px var(--aika-accent-haze);
+}
+
+html .PartnerEventLargeUpdate .PartnerEventLargeImage_Contents .ImageContainer img.PartnerEventLargeImage_Image {
+    border-radius: var(--aika-radius-md);
+}
+
+html .PartnerEventLargeUpdate .PartnerEventLargeImage_TextColumn .PartnerEventType.PartnerEventTypeUpdate {
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+html .PartnerEventLargeUpdate .PartnerEventLargeImage_TextColumn .PartnerEventLargeImage_Title,
+html .PartnerEventLargeUpdate .PartnerEventLargeImage_Container:hover .PartnerEventLargeImage_TextColumn .PartnerEventLargeImage_Title {
+    color: var(--aika-fg);
+}
+
+html .PartnerEventLargeUpdate .PartnerEventLargeImage_TextColumn .PartnerEventLargeImage_Summary {
+    color: var(--aika-fg-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Hidden achievements ("?" instead of an icon, .HiddenLabel) and the "+N more" line
+   (.Featured.RemainderContainer) in the feed and the achievements block. Steam: a gray
+   gradient tile without rounding, whitish captions, hashes (0,1,0)…(0,3,0).
+   -------------------------------------------------------------------------- */
+
+html .AchievementHoverContainer .HiddenLabel {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-mono);
+}
+
+html .Featured.RemainderContainer .TextSection .Name {
+    color: var(--aika-fg);
+}
+
+html .Featured.RemainderContainer .TextSection .Desc {
+    color: var(--aika-fg-muted);
+}
+
+html .Featured.RemainderContainer .Remainder .AchievementRemainder {
+    border-radius: var(--aika-radius-md);
+}
+
+html .Featured.RemainderContainer .Remainder .RemainderText {
+    color: var(--aika-fg);
+    font-family: var(--aika-font-mono);
+}
+
+/* Short news text without an image: Steam's gray-blue (0,1,0) */
+html .ActivityFeedContainer .PartnerEventTextOnly_LimitedSummary .PartnerEventTextOnly_Summary {
+    color: var(--aika-fg-muted);
+}
+
+/* "Featured" — a pinned event at the top of the feed (.PartnerEventFeatured:
+   the .PartnerEventFeaturedHeader header strip + the same major update
+   card — or the medium-image news card: .PartnerEventMediumImage.PartnerEventFeatured,
+   Forza Horizon 5, 2026-10-12). Steam: a bright light-blue gradient on the strip
+   and around it, (0,2,0). Ours is a single accent card: the strip is an accent
+   panel header. Any variant — the rule used to require the large one and the
+   medium card kept Steam's blue gradient (author). */
+html .ActivityFeedContainer .PartnerEvent.PartnerEventFeatured {   /* Steam (0,3,0) on the medium card */
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg);
+    border: var(--aika-hairline) solid var(--aika-border-accent);
+    background: var(--aika-card-accent-bg);
+    box-shadow: var(--aika-highlight-top), 0 0 20px var(--aika-accent-haze);
+}
+
+/* Its likes / comments bar (.RatingBar, 28 px, hidden until hover) kept an empty
+   strip under the card (author: "too much space below") — it sits in the card's
+   empty bottom-right corner instead and still appears on hover */
+html .ActivityFeedContainer .Event:has(.PartnerEventFeatured) {
+    position: relative;
+}
+
+html .ActivityFeedContainer .Event:has(.PartnerEventFeatured) > .RatingBar {
+    position: absolute;
+    right: var(--aika-space-3);
+    bottom: var(--aika-space-2);
+}
+
+html .ActivityFeedContainer .PartnerEventFeatured .PartnerEventFeaturedHeader {
+    border-bottom: var(--aika-hairline) solid var(--aika-border-accent);
+    background: linear-gradient(to right, var(--aika-accent-soft), var(--aika-accent-none));
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+/* The inner card in "Featured" — without its own border and corners: the border is shared */
+html .PartnerEventFeatured .MajorUpdateContentContainer .PartnerEventLargeImage_Container {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+html .PartnerEventFeatured .MajorUpdateContentContainer .LeftSideMajorUpdateBar {
+    display: none;
+}
+
+/* The date next to the event type ("Oct 2") */
+html .PartnerEventLargeImage_TextColumn .PartnerEventType .DayPosted {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+/* --------------------------------------------------------------------------
+   Family Library in "Play" (.Row.SharedLibrary): "You're playing a copy
+   from …" + a friend + "Change preferred copy" (a.ChooseButton —
+   a light-blue link #6dcff6, (0,2,0)). We make the link a secondary button.
+   -------------------------------------------------------------------------- */
+
+html .PlayBar .InnerContainer .Row.SharedLibrary {
+    color: var(--aika-fg-muted);
+}
+
+html .PlayBar .Row.SharedLibrary a.ChooseButton {
+    padding: var(--aika-space-1) var(--aika-space-3);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    box-shadow: var(--aika-shadow-secondary);
+    color: var(--aika-accent-bright);
+    font-size: var(--aika-text-meta);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .PlayBar .Row.SharedLibrary a.ChooseButton:hover {
+    background: var(--aika-surface-hover);
+    box-shadow: var(--aika-shadow-secondary-hover);
+    color: var(--aika-fg);
+}
+
+/* --------------------------------------------------------------------------
+   The news window (a click on a feed event or "What's New"): over the game
+   page .AppPartnerEventsPage — a feed of open events .PartnerEvent.InLibraryView
+   and a button column on the right (.ControlSectionRightSide: close, up/down,
+   game icon). Steam: a gray-blue radial gradient #42454c → #25282e,
+   4 px radius, a light-blue event type #289cff in caps, links #80bcd2, gray
+   buttons #44444b, light-blue counters #399aec. Hashes (0,1,0)…(0,3,0).
+   Verified 2026-10-07 on "The Witcher 3" (hotfix 5.00c, a major update).
+   -------------------------------------------------------------------------- */
+
+html .AppPartnerEventsContainer .PartnerEvent.InLibraryView {
+    overflow: hidden;
+    border: var(--aika-hairline) solid var(--aika-border-accent);
+    border-radius: var(--aika-radius-xl);
+    background: var(--aika-bg-elevated);
+    background-image: var(--aika-card-accent-bg);
+    box-shadow: var(--aika-shadow-event);
+}
+
+/* The cover on top — the panel's overflow: hidden clips the corners anyway */
+html .PartnerEvent.InLibraryView img.EventCoverImageBackground {
+    border-radius: 0;
+    background: var(--aika-bg-raised);
+}
+
+/* The blurred cover under the text: a gray haze → a soft colored glow */
+html .PartnerEvent.InLibraryView img.EventBackgroundBlur {
+    opacity: var(--aika-blur-cover-opacity);
+}
+
+/* The header strip: a white radial glow from below → accent */
+html .PartnerEvent.InLibraryView .EventDetailTitleContainer {
+    border-bottom: var(--aika-hairline) solid var(--aika-border);
+    background: radial-gradient(ellipse at bottom center, var(--aika-accent-tint), var(--aika-accent-none) 70%);
+}
+
+/* The event type ("Major update", "News") — an accent badge */
+html .PartnerEvent.InLibraryView .EventTypeAndTimeRow .TimeandPostedBy .EventType {
+    padding: var(--aika-badge-pad-y) var(--aika-space-2);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent-soft);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+    text-transform: none;
+}
+
+/* "Posted" + date — mono, no caps */
+html .PartnerEvent.InLibraryView .EventDetailTimeInfo :is(.RightSideTitles, .ShortDateAndTime) {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    text-transform: none;
+}
+
+html .PartnerEvent.InLibraryView .TimeandPostedBy .PostedBy {
+    color: var(--aika-fg-subtle);
+}
+
+html .PartnerEvent.InLibraryView a.EventDetailTitle {
+    color: var(--aika-fg);
+    font-weight: var(--aika-weight-semibold);
+    letter-spacing: var(--aika-tracking-h2);
+}
+
+html .PartnerEvent.InLibraryView .EventDetailsBody {
+    color: var(--aika-fg-muted);
+}
+
+html .PartnerEvent.InLibraryView .EventDetailsBody :is(b, strong, h1, h2, h3) {
+    color: var(--aika-fg);
+}
+
+/* Links in the text: Steam's light blue #80bcd2 (0,1,1) */
+html .PartnerEvent.InLibraryView .EventDetailsBody a:not(.LinkButton, .WidgetTag) {
+    color: var(--aika-accent-bright);
+}
+
+html .PartnerEvent.InLibraryView .EventDetailsBody a:not(.LinkButton, .WidgetTag):hover {
+    color: var(--aika-fg);
+}
+
+/* Images and videos in the text — rounded */
+html .PartnerEvent.InLibraryView .EventDetailsBody :is(img, video, .PreviewYouTubeVideo) {
+    border-radius: var(--aika-radius-lg);
+}
+
+html .PartnerEvent.InLibraryView .PreviewYouTubeVideo {
+    overflow: hidden;
+}
+
+/* The YouTube video placeholder: a #16181c block with Steam's PNG logo in a light-blue
+   ring (.SteamLogoThrobber, the image isn't animated). The block is
+   a rounded surface, instead of the logo — a spinning accent ring
+   (only transform is animated). */
+html .PartnerEvent.InLibraryView .YoutubePlayer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-bg-raised);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+}
+
+html .PartnerEvent.InLibraryView .YoutubePlayer .SteamLogoThrobber {
+    width: auto;
+    height: auto;
+}
+
+html .PartnerEvent.InLibraryView .YoutubePlayer .SteamLogoThrobber .NewThrobber {
+    width: var(--aika-throbber-size);
+    height: var(--aika-throbber-size);
+    border: var(--aika-throbber-width) solid var(--aika-accent-soft);
+    border-top-color: var(--aika-accent);
+    border-radius: var(--aika-radius-full);
+    animation: aika-spin var(--aika-dur-spin) linear infinite;
+}
+
+html .PartnerEvent.InLibraryView .YoutubePlayer .SteamLogoThrobber .NewThrobber img {
+    display: none;
+}
+
+@keyframes aika-spin {
+    to { transform: rotate(1turn); }
+}
+
+/* The bottom "Like / Discuss / Share" strip: a white glow on top,
+   rgba(30,33,38,.5) plates, #3d4450 buttons with a 2 px radius, counters #399aec */
+html .PartnerEvent.InLibraryView > .Container.Panel {
+    border-top: var(--aika-hairline) solid var(--aika-border);
+    background: var(--aika-transparent);
+}
+
+html .PartnerEvent.InLibraryView :is(.VoteContainer, .DiscussContainer, .ShareContainer) {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+}
+
+html .PartnerEvent.InLibraryView :is(.VoteCount, .DiscussionCount) {
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-mono);
+}
+
+html .PartnerEvent.InLibraryView :is(.VoteCount, .DiscussionCount) svg {
+    fill: currentColor;
+}
+
+html .PartnerEvent.InLibraryView .Button.DiscussionButton {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    box-shadow: var(--aika-shadow-secondary);
+    color: var(--aika-fg);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html .PartnerEvent.InLibraryView .Button.DiscussionButton:hover {
+    background: var(--aika-surface-hover);
+    box-shadow: var(--aika-shadow-secondary-hover);
+    color: var(--aika-fg);
+}
+
+/* Icons in buttons ("thumb", "share"): white 66 % on the svg and path */
+html .PartnerEvent.InLibraryView .Button.DiscussionButton :is(svg, svg path) {
+    fill: var(--aika-fg-muted);
+}
+
+html .PartnerEvent.InLibraryView .Button.DiscussionButton:hover :is(svg, svg path) {
+    fill: var(--aika-accent-bright);
+}
+
+/* Buttons on the right (close, up/down, game): gray #44444b with a
+   #63636d border and a 32 px black shadow → opaque secondary icons */
+html .AppPartnerEventsBody .ControlSectionRightSide :is(.CloseButton, .ScrollButton) {
+    border: var(--aika-hairline) solid var(--aika-border-hover);
+    background: var(--aika-bg-raised);
+    box-shadow: var(--aika-highlight-top), 0 4px 20px var(--aika-shadow-near);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        border-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html .AppPartnerEventsBody .ControlSectionRightSide .ScrollButton {
+    border-radius: var(--aika-radius-md);
+}
+
+html .AppPartnerEventsBody .ControlSectionRightSide :is(.CloseButton, .ScrollButton):hover {
+    border-color: var(--aika-border-accent);
+    background: var(--aika-bg-hover);
+    box-shadow: var(--aika-highlight-top), 0 0 20px var(--aika-accent-haze);
+}
+
+html .AppPartnerEventsBody .ControlSectionRightSide :is(.CloseButton, .ScrollButton) svg {
+    color: var(--aika-fg-muted);
+    fill: var(--aika-fg-muted);
+    stroke: var(--aika-fg-muted);
+}
+
+html .AppPartnerEventsBody .ControlSectionRightSide .CloseButton:hover svg {
+    color: var(--aika-fg);
+    stroke: var(--aika-fg);
+}
+
+/* Arrows: the fill is set on the polygon itself (gray-violet #9e9ead) */
+html .AppPartnerEventsBody .ControlSectionRightSide .ScrollButton svg polygon {
+    fill: var(--aika-fg-muted);
+}
+
+html .AppPartnerEventsBody .ControlSectionRightSide .ScrollButton:not(.GameArt):hover svg polygon {
+    fill: var(--aika-accent-bright);
+}
+
+html .AppPartnerEventsBody .ControlSectionRightSide .ScrollButton.GameArt img {
+    border-radius: calc(var(--aika-radius-md) - var(--aika-hairline));
+}
+
+/* --------------------------------------------------------------------------
+   Game achievements (game page → "My Achievements"; screenshot 13, PEAK):
+   the .AchievementsOverlayContainer > .AchievementsPageContainer overlay.
+   Steam: a panel with a gray-blue radial gradient #42454c → #25282e,
+   radius 4 (0,3,0); the header fades into #0e141b; progress — light blue #1a9fff
+   on #3d4450; rows #23262e; captions in caps #dcdedf; the tab — white 15 %;
+   a round "close" #44444b. Verified 2026-10-07.
+   -------------------------------------------------------------------------- */
+
+html .AchievementsOverlayContainer .AchievementsPageContainer > .GamepadPage {
+    overflow: hidden;
+    border: var(--aika-hairline) solid var(--aika-border-accent);
+    border-radius: var(--aika-radius-xl);
+    background: var(--aika-bg-elevated);
+    background-image: var(--aika-card-accent-bg);
+    box-shadow: var(--aika-shadow-event);
+}
+
+/* The header with the cover: fades into the panel background, not into blue #0e141b */
+html .AchievementsPageContainer .Background .Blur {
+    background: linear-gradient(to bottom, var(--aika-transparent), var(--aika-bg-elevated));
+}
+
+/* "Unlocked 51 of 64" + progress */
+html .AchievementsPageContainer .StatsBlock {
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background-color: var(--aika-surface-translucent);
+}
+
+html .AchievementsPageContainer .StatLabelAndValue .ProgressLabel .Label {
+    color: var(--aika-fg);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+/* Progress bars (the overall one and on individual achievements) */
+html .AchievementsPageContainer .ProgressBar.ProgressBar {
+    background: var(--aika-surface-active);
+}
+
+/* Steam sets the fill inline: background: var(--gpColor-Blue, #1a9fff) —
+   we override the variable itself within the page */
+html .AchievementsPageContainer {
+    --gpColor-Blue: var(--aika-accent);
+}
+
+html .AchievementsPageContainer .ProgressBar .Percent.Percent {
+    box-shadow: 0 0 8px var(--aika-accent-glow);
+}
+
+/* The "My / Global achievements" tabs */
+html .AchievementsPageContainer .Tab .TabTitle {
+    color: var(--aika-fg-muted);
+}
+
+html .AchievementsPageContainer .Tab.Selected.Selected {
+    background-color: var(--aika-accent-soft);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+    color: var(--aika-accent-bright);
+}
+
+html .AchievementsPageContainer .Tab.Selected .TabTitle {
+    color: var(--aika-accent-bright);
+}
+
+/* Achievement rows */
+html .AchievementsPageContainer .AchievementList .AchievementListItemBase {
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background-color: var(--aika-surface);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        border-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .AchievementsPageContainer .AchievementList .AchievementListItemBase:hover {
+    border-color: var(--aika-border-hover);
+    background-color: var(--aika-surface-hover);
+}
+
+html .AchievementListItemBase .AchievementContent .AchievementTitle {
+    color: var(--aika-fg);
+}
+
+html .AchievementListItemBase .AchievementContent .AchievementDescription {
+    color: var(--aika-fg-muted);
+}
+
+html .AchievementListItemBase .AchievementContent .AchievementGlobalPercentage,
+html .AchievementListItemBase .UnlockDate {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+/* The scrollable part and the list: solid bluish #0e141b → transparent
+   (the panel background below) */
+html .AchievementsPageContainer :is(.Page.ScrollPanel, .AchievementList) {
+    background: var(--aika-transparent);
+}
+
+/* "Global achievements": a #23262e row, the player-share bar
+   (.ProgressFill — the row fill to the percentage) is gray, the percent is white */
+html .AchievementsPageContainer .AchievementList .GlobalAchievementListItem {
+    overflow: hidden;
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface);
+}
+
+html .AchievementsPageContainer .GlobalAchievementListItem .Content .ProgressFill {
+    background-color: var(--aika-accent-tint);
+}
+
+html .AchievementsPageContainer .GlobalAchievementListItem .Content .Info .Title {
+    color: var(--aika-fg);
+}
+
+html .AchievementsPageContainer .GlobalAchievementListItem .Content .Info .Description {
+    color: var(--aika-fg-muted);
+}
+
+html .AchievementsPageContainer .GlobalAchievementListItem .Content .Percent {
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-mono);
+}
+
+/* The round "close" at the top right — like the news window buttons */
+html .AchievementsOverlayContainer .AchievementsPageContainer > .CloseButton {
+    border: var(--aika-hairline) solid var(--aika-border-hover);
+    background: var(--aika-bg-raised);
+    box-shadow: var(--aika-highlight-top), 0 4px 20px var(--aika-shadow-near);
+}
+
+html .AchievementsOverlayContainer .AchievementsPageContainer > .CloseButton:hover {
+    border-color: var(--aika-border-accent);
+    background: var(--aika-bg-hover);
+}
+
+/* A game without a logo (a non-Steam game, report 2026-10-20): Steam draws its
+   name as SVG text in weight 200 with 1 px letter-spacing — like our headings
+   instead: semibold, a little tighter (it comes out narrower than Steam's) */
+html .SVGTitle text {
+    font-weight: var(--aika-weight-semibold);
+    letter-spacing: var(--aika-tracking-h2);
+}

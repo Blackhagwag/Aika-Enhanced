@@ -1,0 +1,462 @@
+/* ==========================================================================
+   friends.css — the friends list and chat windows (a separate Steam window).
+
+   The friends window is identified by the .friendsui-container class (according to the
+   Millennium docs, that's what the Patch in skin.json matches). This class
+   can scope rules so they don't affect the main window:
+
+       .friendsui-container <selector> { … }
+
+   Plan:
+   1. The window's root container — a transparent background. TODO: classes
+   2. The header with avatar, status and buttons.                  TODO: classes
+   3. The friends list: groups, a friend row, statuses
+      (online / in game / offline) via accent colors.    TODO: classes
+   4. The chat window: tabs, messages (own/others' — different surfaces),
+      the input field — components/input.css.               TODO: classes
+   ========================================================================== */
+
+/* ==========================================================================
+   1. Friends list (the "Friends List" window, html.friendsui-container).
+      Captured via CDP 2026-10-04. Classes are readable, Steam's rules are
+      (0,1,0)…(0,3,0); the hash on the name (.nOdcT-…) duplicates .playerName.
+      Statuses — as in components/status.css: in game — ok, online — accent,
+      offline — muted. Here the status class is .labelHolder
+      (lowercase), not the client's .LabelHolder.
+   ========================================================================== */
+
+/* Background: the list has its own gray-blue radial gradient, the header — #1c232c,
+   the footer — #22252b. Kill them — the theme's window background shows. */
+html.friendsui-container .friendlistListContainer {
+    background: var(--aika-transparent);
+}
+
+html.friendsui-container .friendListHeaderContainer {
+    background-color: var(--aika-bg-elevated);
+    box-shadow: inset 0 calc(-1 * var(--aika-hairline)) 0 0 var(--aika-border);
+}
+
+html.friendsui-container .currentUserContainer {
+    border-bottom-color: var(--aika-border);
+}
+
+html.friendsui-container .friendListFooter {
+    background-color: var(--aika-bg-elevated);
+    box-shadow: inset 0 var(--aika-hairline) 0 0 var(--aika-border);
+}
+
+/* Names and the "now playing" line by status */
+html.friendsui-container .labelHolder.online .playerName {
+    color: var(--aika-accent-bright);
+}
+
+html.friendsui-container .labelHolder.ingame .playerName,
+html.friendsui-container .friend.ingame .playerName {
+    color: var(--aika-ok);
+}
+
+html.friendsui-container :is(.labelHolder.offline, .friend.offline) .playerName {
+    color: var(--aika-fg-subtle);
+}
+
+html.friendsui-container .labelHolder.online .richPresenceLabel,
+html.friendsui-container .labelHolder.online .ContextMenuButton svg :is(polygon, path) {
+    color: var(--aika-accent-bright);
+    fill: var(--aika-accent-bright);
+}
+
+html.friendsui-container .labelHolder.ingame .richPresenceLabel,
+html.friendsui-container .labelHolder.ingame .richPresenceLabel a,
+html.friendsui-container .labelHolder.ingame .ContextMenuButton svg :is(polygon, path) {
+    color: var(--aika-ok);
+    fill: var(--aika-ok);
+}
+
+/* Away / busy in game — dark green in Steam */
+html.friendsui-container .labelHolder.ingame.awayOrSnooze .richPresenceLabel {
+    color: var(--aika-ok-mid);
+}
+
+html.friendsui-container :is(.labelHolder, .friend) .playerNicknameBracket {
+    color: var(--aika-fg-subtle);
+}
+
+/* A friend row: hover — our surface with rounding */
+html.friendsui-container .friendsContainer .friend {
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html.friendsui-container .friendsContainer .friend:hover {
+    background-color: var(--aika-surface-hover);
+}
+
+/* Favorite friends at the top (.quickAccessFriends): tiles and the game icon */
+html.friendsui-container .quickAccessFriends .friend {
+    border-radius: var(--aika-radius-md);
+}
+
+html.friendsui-container .FavoriteFriend_GameIcon {
+    overflow: hidden;
+    border-radius: var(--aika-radius-xs);
+    background-color: var(--aika-bg-high);
+}
+
+/* The "Friends / Chats" tabs (.socialListTab, the active one — .activeTab #434953) */
+html.friendsui-container .socialTabContainer .socialListTab {
+    border-radius: var(--aika-radius-md) var(--aika-radius-md) 0 0;
+    color: var(--aika-fg-subtle);
+}
+
+html.friendsui-container .socialTabContainer .socialListTab.activeTab {
+    background-color: var(--aika-surface);
+    color: var(--aika-fg);
+    box-shadow: inset 0 calc(-1 * var(--aika-indicator)) 0 0 var(--aika-accent);
+}
+
+html.friendsui-container .socialTabContainer .socialListTab .tabLabel {
+    color: inherit;
+}
+
+/* Header buttons: search, "add friend" */
+html.friendsui-container .friendListHeaderContainer :is(.searchIconButton, .friendListButton) svg :is(path, circle) {
+    fill: var(--aika-fg-muted);
+}
+
+html.friendsui-container .friendListHeaderContainer :is(.searchIconButton, .friendListButton):hover svg :is(path, circle) {
+    fill: var(--aika-fg);
+}
+
+/* Groups: header, counter, the expand "+", player group lines */
+html.friendsui-container .friendGroup .groupName {
+    color: var(--aika-fg-muted);
+}
+
+html.friendsui-container .friendGroup .groupName .groupCount {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+html.friendsui-container .SVGIcon_PlusCircle,
+html.friendsui-container .SVGIcon_PlusCircle * {
+    fill: var(--aika-fg-subtle);
+}
+
+html.friendsui-container .friendGroup {
+    border-color: var(--aika-border);
+}
+
+html.friendsui-container .SteamPlayerGroupLines {
+    border-color: var(--aika-border-strong);
+}
+
+html.friendsui-container .SteamPlayerGroupFooterCount .count {
+    color: var(--aika-ok);
+    font-family: var(--aika-font-mono);
+}
+
+html.friendsui-container .SteamPlayerGroupFooterLabel {
+    color: var(--aika-ok-mid);
+}
+
+/* The group chats section (.friendsListSectionTitle — a #434953 strip) */
+html.friendsui-container .friendsListSectionTitle {
+    background-color: var(--aika-surface);
+    color: var(--aika-fg-muted);
+    box-shadow: inset 0 var(--aika-hairline) 0 0 var(--aika-border);
+}
+
+html.friendsui-container .friendsListSectionTitle :is(.groupChatSectionTitle, svg, svg *) {
+    color: inherit;
+    fill: currentColor;
+}
+
+html.friendsui-container .ChatRoomList_Empty {
+    color: var(--aika-fg-subtle);
+}
+
+/* Adjustments for Steam's strength:
+   — the line above the first row of a player group: .friend.firstInGroup … (0,3,0);
+   — the top line of the "Online" group: .FriendsListContent .friendlistListContainer
+     .friendGroup.onlineFriends (0,4,0), light blue; the "Online /
+     Offline" group headers — the same + .groupName (0,5,0);
+   — the menu arrow next to the name is on the <svg> itself (fill), not on the path;
+   — "create chat": the svg takes the button's currentColor (#ccc). */
+html.friendsui-container .friend.firstInGroup .SteamPlayerGroupLines {
+    border-top-color: var(--aika-border-strong);
+}
+
+html.friendsui-container .FriendsListContent .friendlistListContainer .friendGroup:is(.onlineFriends, .offlineFriends) {
+    border-top-color: var(--aika-border);
+}
+
+html.friendsui-container .FriendsListContent .friendlistListContainer .friendGroup:is(.onlineFriends, .offlineFriends) .groupName {
+    color: var(--aika-fg-muted);
+}
+
+html.friendsui-container .labelHolder.online .ContextMenuButton svg {
+    fill: var(--aika-accent-bright);
+}
+
+html.friendsui-container .labelHolder.ingame .ContextMenuButton svg {
+    fill: var(--aika-ok);
+}
+
+html.friendsui-container .friendsListSectionTitle .createChatRoomButton {
+    color: var(--aika-fg-muted);
+}
+
+html.friendsui-container .friendsListSectionTitle .createChatRoomButton:hover {
+    color: var(--aika-fg);
+}
+
+/* Player group lines: Steam has border-inline-start / border-top / border-bottom
+   #74859b via .friend.inGroup / .firstInGroup / .lastInGroup rules (0,3,0) */
+html.friendsui-container :is(.friend.firstInGroup, .friend.inGroup, .friend.lastInGroup, .SteamPlayerGroupFooter) .SteamPlayerGroupLines {
+    border-color: var(--aika-border-strong);
+}
+
+/* The window focus strip at the top (.singleWindowFocusBar — a blue-teal
+   gradient, masked to fade downward) — accent */
+html.friendsui-container .singleWindowFocusBar {
+    background: linear-gradient(to right, var(--aika-accent), var(--aika-accent-bright));
+}
+
+html.friendsui-container .friendsListSectionTitle:hover {
+    background-color: var(--aika-surface-hover);
+}
+
+/* ==========================================================================
+   2. The chat window (html.friendsui-container.ChatPopup; chat tabs, history,
+      input field). Captured via CDP 2026-10-04 (a direct chat). Steam's rules
+      go up to (0,3,0), some are hash twins of readable classes.
+   ========================================================================== */
+
+/* The tab strip (.titleBarContainer.ChatTabs, #1c232c) and a tab (.ChatTab) */
+html.friendsui-container .titleBarContainer.ChatTabs {
+    border-color: var(--aika-border);
+    background-color: var(--aika-bg-elevated);
+    box-shadow: inset 0 calc(-1 * var(--aika-hairline)) 0 0 var(--aika-border);
+}
+
+html.friendsui-container .ChatTabs .ChatTab {
+    border-radius: var(--aika-radius-md) var(--aika-radius-md) 0 0;
+    background-color: var(--aika-surface);
+}
+
+html.friendsui-container .ChatTabs .ChatTab .friend {
+    border-radius: var(--aika-radius-md);
+}
+
+/* The chat header (.chatWindow .chatHeader — a gray gradient) */
+html.friendsui-container .chatWindow .chatHeader {
+    background: var(--aika-transparent);
+    box-shadow: inset 0 calc(-1 * var(--aika-hairline)) 0 0 var(--aika-border);
+}
+
+/* History: time dividers, names by status, time, text */
+html.friendsui-container .chatHistory .msg.timeDivision {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+html.friendsui-container .ChatSpeaker .speaker.online .speakerName {
+    color: var(--aika-accent-bright);
+}
+
+html.friendsui-container .ChatSpeaker .speaker.ingame .speakerName {
+    color: var(--aika-ok);
+}
+
+html.friendsui-container .ChatSpeaker .speaker.offline .speakerName {
+    color: var(--aika-fg-muted);
+}
+
+html.friendsui-container .ChatSpeaker .speaker .playerNicknameBracket {
+    color: var(--aika-fg-subtle);
+}
+
+html.friendsui-container .ChatSpeaker .speakerTimeStamp {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+}
+
+html.friendsui-container .ChatMessageBlock .msgText {
+    color: var(--aika-fg);
+}
+
+/* Own messages — more muted (Steam: .isCurrentUser .msgText #969aa1) */
+html.friendsui-container .MultiUserChat .isCurrentUser .msgText,
+html.friendsui-container .ChatMessageBlock .msgText :is(.gameInviteSelf, .gameInviteDismissed) > div {
+    color: var(--aika-fg-muted);
+}
+
+/* "Jump to new" */
+html.friendsui-container .ScrollToBottomButton > span {
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-surface-translucent);
+    color: var(--aika-fg-muted);
+    box-shadow: var(--aika-shadow-menu);
+}
+
+/* "Invite another friend" in the header */
+html.friendsui-container .inviteAnotherFriendButton .SVGIcon_Button,
+html.friendsui-container .inviteAnotherFriendButton .SVGIcon_Button * {
+    fill: var(--aika-fg-subtle);
+}
+
+html.friendsui-container .inviteAnotherFriendButton:hover .SVGIcon_Button,
+html.friendsui-container .inviteAnotherFriendButton:hover .SVGIcon_Button * {
+    fill: var(--aika-fg);
+}
+
+/* The input field (form.chatEntryControls — #1b1c20 with a black inset shadow),
+   the textarea is transparent; on focus — an accent ring */
+html.friendsui-container .chatEntry form.chatEntryControls {
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg);
+    background-color: var(--aika-bg-raised);
+    color: var(--aika-fg);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-strong);
+    transition: box-shadow var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html.friendsui-container .chatEntry form.chatEntryControls:focus-within {
+    box-shadow: var(--aika-shadow-input-focus);
+}
+
+html.friendsui-container .chatEntry form.chatEntryControls textarea.chatTextarea {
+    background-color: var(--aika-transparent);
+    color: var(--aika-fg);
+    box-shadow: none;
+}
+
+html.friendsui-container .chatEntry form.chatEntryControls textarea.chatTextarea::placeholder {
+    color: var(--aika-fg-subtle);
+}
+
+/* Buttons next to the field: send, emoticons/attachments (.chatEntryActionsGroup),
+   voice (.VoiceToggle). Steam: #2c3036, icons #898989 */
+html.friendsui-container .chatEntry button.chatSubmitButton,
+html.friendsui-container .chatEntry button.VoiceToggle {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-surface);
+    color: var(--aika-fg-muted);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html.friendsui-container .chatEntry button.chatSubmitButton:not(.disabled):hover,
+html.friendsui-container .chatEntry button.VoiceToggle:hover {
+    background-color: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+html.friendsui-container .chatEntry form.chatEntryControls button.chatSubmitButton {
+    background-color: var(--aika-transparent);
+}
+
+/* The active "Send" (there is text): Steam has a blue gradient in
+   background-image — "._3Ule… .RVIs…:not(.jaQN…)" (0,3,0). We make it an
+   Aika primary: accent fill, a light icon. */
+html.friendsui-container .chatEntry form.chatEntryControls button.chatSubmitButton:not(.disabled) {
+    margin: var(--aika-space-1);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+    box-shadow: var(--aika-shadow-cta);
+}
+
+html.friendsui-container .chatEntry form.chatEntryControls button.chatSubmitButton:not(.disabled):hover {
+    background: var(--aika-accent-fill-hover);
+    color: var(--aika-on-accent);
+    box-shadow: var(--aika-shadow-cta-hover);
+}
+
+html.friendsui-container .chatEntry :is(button.chatSubmitButton, button.VoiceToggle) svg,
+html.friendsui-container .chatEntry :is(button.chatSubmitButton, button.VoiceToggle) svg path {
+    fill: currentColor;
+}
+
+html.friendsui-container .chatEntry button.chatSubmitButton.disabled {
+    color: var(--aika-fg-subtle);
+}
+
+html.friendsui-container .chatEntry .chatEntryActionsGroup {
+    border-radius: var(--aika-radius-md);
+}
+
+/* Voice inactive: Steam has a green radial glow under the button */
+html.friendsui-container .ChatMessageEntryVoice.Inactive {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-transparent);
+}
+
+/* Icon wrappers inside buttons (.tool-tip-source, .VoiceToggleIconCtn)
+   set their own color #898989 — the icon takes the button color */
+html.friendsui-container .chatEntry :is(button.chatSubmitButton, button.VoiceToggle) :is(.tool-tip-source, .VoiceToggleIconCtn, svg) {
+    color: inherit;
+}
+
+/* Pinned at the top (.quickAccessFriend): the status color is set on the whole
+   tile (.friend.online — light blue #6dcff6, the name and icons inherit it) */
+html.friendsui-container .friend.online {
+    color: var(--aika-accent-bright);
+}
+
+html.friendsui-container .friend.ingame {
+    color: var(--aika-ok);
+}
+
+html.friendsui-container .quickAccessFriends .friend.online .playerName {
+    color: var(--aika-accent-bright);
+}
+
+/* Searching friends (the magnifier in the "Friends" tab): the .TabSearchButton
+   (#2c3036 50 %), the .socialSearchContainer strip (#434953), the
+   .friendSearchInput[type=text] field (#262930, a dark inset shadow; on focus —
+   #2c3036, (0,3,0)). The Aika field: a raised surface, a thin border,
+   an accent ring on focus. */
+html.friendsui-container .friendsTabButtonsContainer .TabSearchButton {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-surface);
+}
+
+html.friendsui-container .friendsTabButtonsContainer .TabSearchButton:hover {
+    background-color: var(--aika-surface-hover);
+}
+
+html.friendsui-container .socialSearchContainer {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-bg-elevated);
+}
+
+html.friendsui-container .socialSearchContainer .friendSearchInput[type="text"],
+html.friendsui-container .socialSearchContainer .friendSearchInput[type="text"]:focus {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-bg-raised);
+    color: var(--aika-fg);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-strong);
+    transition: box-shadow var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html.friendsui-container .socialSearchContainer .friendSearchInput[type="text"]:focus {
+    box-shadow: var(--aika-shadow-input-focus);
+}
+
+html.friendsui-container .socialSearchContainer .friendSearchInput::placeholder {
+    color: var(--aika-fg-subtle);
+}
+
+html.friendsui-container .socialSearchContainer .friendSearchClear svg,
+html.friendsui-container .socialSearchContainer .friendSearchClear svg * {
+    fill: var(--aika-fg-subtle);
+}
+
+html.friendsui-container .socialSearchContainer .friendSearchClear:hover svg,
+html.friendsui-container .socialSearchContainer .friendSearchClear:hover svg * {
+    fill: var(--aika-fg);
+}

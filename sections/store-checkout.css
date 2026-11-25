@@ -1,0 +1,424 @@
+/* ==========================================================================
+   sections/store-checkout.css — checkout pages (checkout.steampowered.com,
+   body.v6.checkout; captured 2026-10-13 on ?purchasetype=updatebillinginfo —
+   "Update saved payment method"). Readable classes and ids throughout.
+
+     .page_header_ctn            — Steam's cluster_bg.png (a blue band)
+     #checkout_pipeline .cart_tab > .cart_tab_on (#66c0f4) + .cart_tab_left_on (a PNG notch)
+     .checkout_content h3.tab_header (uppercase, 2 px tracking)
+     .payment_info_form_area     — the form panel (black 20 %)
+       .form_row label + input.text (black 40 %, a black border, 3 px)
+       .dselect_container button.trigger::after (a PNG arrow)
+       #submit_payment_info_btn, #purchase_button_bottom (a lime gradient)
+     .rightcol .block (black 20 %) .block_header / .block_content
+
+   Theme JS does not run on checkout (Millennium injects no scripts into
+   checkout.steampowered.com — a safety rule for payment pages), so this is
+   CSS only. Nothing here reads or shows what is typed into the fields.
+   ========================================================================== */
+
+html body.v6.checkout .page_header_ctn {
+    background: none;
+}
+
+/* The step tab ("Payment info"): an accent pill instead of the light-blue box and its PNG notch */
+html body.v6.checkout :is(#checkout_pipeline, #receipt_pipeline) .cart_tab_on {
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent-soft);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+    text-transform: uppercase;
+}
+
+html body.v6.checkout :is(#checkout_pipeline, #receipt_pipeline) :is(.cart_tab_left_on, .cart_tab_right_on) {
+    background: none;
+}
+
+/* Headings: the store headline type, no uppercase tracking */
+html body.v6.checkout .checkout_content h3.tab_header {
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-h2);
+    font-weight: var(--aika-weight-semibold);
+    letter-spacing: var(--aika-tracking-h2);
+    text-transform: none;
+    color: var(--aika-fg);
+}
+
+html body.v6.checkout .checkout_content h3.tab_header:first-child {
+    font-size: var(--aika-home-title-size);
+    font-weight: var(--aika-home-title-weight);
+    letter-spacing: var(--aika-tracking-display);
+}
+
+/* The form panel and the side block: Aika cards */
+html body.v6.checkout .payment_info_form_area,
+html body.v6.checkout .rightcol .block {
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-xl);
+    background: var(--aika-card-bg);
+    box-shadow: var(--aika-shadow-card);
+}
+
+html body.v6.checkout .payment_info_form_area {
+    padding: var(--aika-space-5) var(--aika-space-6);
+}
+
+html body.v6.checkout .rightcol .block .block_header {
+    padding: var(--aika-space-3) var(--aika-space-4) 0;
+    line-height: normal;   /* Steam: 32 px — a tall gap under the caption */
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+    color: var(--aika-fg-subtle);
+}
+
+html body.v6.checkout .rightcol .block .block_content {
+    padding: var(--aika-space-2) var(--aika-space-4) var(--aika-space-4);
+    color: var(--aika-fg-muted);
+}
+
+/* Field captions (also the intro paragraph — the interface font: mono with label
+   tracking ran the long captions into each other) */
+html body.v6.checkout .form_row label {
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-meta);
+    letter-spacing: normal;
+    color: var(--aika-fg-muted);
+}
+
+/* Fields: the Aika input */
+html body.v6.checkout .checkout_content input.text {
+    box-sizing: border-box;
+    height: var(--aika-checkout-field);
+    padding: 0 var(--aika-space-3);
+    border: var(--aika-hairline) solid var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+    box-shadow: none;
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-body);
+    transition:
+        border-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html body.v6.checkout .checkout_content input.text:hover {
+    border-color: var(--aika-border-hover);
+}
+
+html body.v6.checkout .checkout_content input.text:focus {
+    border-color: var(--aika-accent);
+    box-shadow: var(--aika-shadow-input-focus);
+    outline: none;
+}
+
+/* The card number and the security code: mono figures */
+html body.v6.checkout .checkout_content :is(#card_number, #security_code) {
+    font-family: var(--aika-font-mono);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+/* Dropdowns: the same field look, our chevron instead of the PNG arrow */
+html body.v6.checkout .checkout_content .dselect_container button.trigger {
+    box-sizing: border-box;   /* Steam: content-box + 5 px padding — 48 px next to 36 px fields */
+    height: var(--aika-checkout-field);
+    min-width: max-content;   /* the month / year triggers are narrow — room for the chevron */
+    padding: 0 calc(var(--aika-space-2) * 2 + var(--aika-chevron-size)) 0 var(--aika-space-3);
+    border: var(--aika-hairline) solid var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+    box-shadow: none;
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+}
+
+html body.v6.checkout .checkout_content .dselect_container button.trigger::after {
+    background: var(--aika-fg-muted);
+    -webkit-mask: var(--aika-icon-chevron-down) right var(--aika-space-2) center / var(--aika-chevron-size) no-repeat;
+    mask: var(--aika-icon-chevron-down) right var(--aika-space-2) center / var(--aika-chevron-size) no-repeat;
+}
+
+html body.v6.checkout .checkout_content .dselect_container button:is(.trigger:hover, .activetrigger) {
+    border-color: var(--aika-border-hover);
+    background: var(--aika-bg-hover);
+}
+
+/* "Continue" and "Purchase": the Aika primary instead of the lime gradient */
+html body.v6.checkout :is(#submit_payment_info_btn, #purchase_button_bottom).btnv6_green_white_innerfade,
+html body.v6.checkout :is(#submit_payment_info_btn, #purchase_button_bottom).btnv6_green_white_innerfade > span {
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+    text-shadow: none;
+}
+
+html body.v6.checkout :is(#submit_payment_info_btn, #purchase_button_bottom).btnv6_green_white_innerfade {
+    box-shadow: var(--aika-shadow-cta);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html body.v6.checkout :is(#submit_payment_info_btn, #purchase_button_bottom).btnv6_green_white_innerfade > span {
+    padding: 0 var(--aika-space-5);
+    font-family: var(--aika-font-ui);
+    font-weight: var(--aika-weight-semibold);
+}
+
+html body.v6.checkout :is(#submit_payment_info_btn, #purchase_button_bottom).btnv6_green_white_innerfade:hover,
+html body.v6.checkout :is(#submit_payment_info_btn, #purchase_button_bottom).btnv6_green_white_innerfade:hover > span {
+    background: var(--aika-accent-fill-hover);
+    color: var(--aika-on-accent);
+}
+
+html body.v6.checkout :is(#submit_payment_info_btn, #purchase_button_bottom).btnv6_green_white_innerfade:hover {
+    box-shadow: var(--aika-shadow-cta-hover);
+}
+
+/* --------------------------------------------------------------------------
+   Review and receipt (screenshots 32, 36; captured 2026-10-27 — the receipt
+   step is in the same page, hidden until the purchase):
+     .checkout_steam_rewards_banner — "You'll get / You got Steam Points"
+       (a blue PNG with a #30538a border; the figures #reward_points_to_earn /
+       #reward_points_earned — a blue gradient clipped to the text)
+     .purchase_summary_area, .receipt_body, .checkout_receipt_gift_detail (black 20 %)
+     .payment_method_review_method_label — "My Steam Wallet" (#8bc53f)
+     #accept_ssa — the native checkbox (blue)
+   -------------------------------------------------------------------------- */
+
+html body.v6.checkout .checkout_steam_rewards_banner {
+    border: var(--aika-hairline) solid var(--aika-border-accent);
+    border-radius: var(--aika-radius-xl);
+    background: var(--aika-card-accent-bg);
+    color: var(--aika-fg-muted);
+}
+
+html body.v6.checkout .checkout_steam_rewards_banner :is(.congratulations, #reward_points_to_earn, #reward_points_earned) {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+}
+
+html body.v6.checkout .checkout_steam_rewards_banner .congratulations {
+    color: var(--aika-fg);
+}
+
+html body.v6.checkout .checkout_steam_rewards_banner :is(#reward_points_to_earn, #reward_points_earned) {
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-mono);
+    font-weight: var(--aika-weight-semibold);
+}
+
+html body.v6.checkout .checkout_steam_rewards_banner .balance {
+    color: var(--aika-fg-muted);
+}
+
+html body.v6.checkout :is(.purchase_summary_area, .receipt_body, .checkout_receipt_gift_detail) {
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-xl);
+    background: var(--aika-card-bg);
+    box-shadow: var(--aika-shadow-card);
+}
+
+html body.v6.checkout .receipt_confirmation_label {
+    color: var(--aika-fg-subtle);
+}
+
+html body.v6.checkout .receipt_confirmation_data {
+    color: var(--aika-fg);
+    font-family: var(--aika-font-mono);
+}
+
+html body.v6.checkout .payment_method_review_method_label {
+    color: var(--aika-ok);
+}
+
+html body.v6.checkout #accept_ssa {
+    accent-color: var(--aika-accent);
+    color-scheme: dark;   /* unchecked: a dark box instead of the white native one */
+}
+
+/* The review column (author 2026-10-27: buttons, forms and spacing like the
+   cart): .checkout_review_cart_item (an item, black 20 %, 3 px apart),
+   .checkout_content.confirm (the totals, the payment method + agreement —
+   black 20 %, square, 4 px apart), .cart_totals_area (16 px more inside the
+   16 px block), .cart_total_rule (#7092a5) / .rule (#194660) — dividers */
+html body.v6.checkout :is(.checkout_review_cart_item, .checkout_content.confirm) {
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-bg);
+    box-shadow: var(--aika-shadow-card);
+}
+
+/* Steam lays the row out with floats and top paddings (16 / 23 px) under a
+   77 px min-height — the cover and the title sat high. A centered flex row. */
+html body.v6.checkout .checkout_review_cart_item {
+    display: flex;
+    align-items: center;
+    gap: var(--aika-space-4);
+    min-height: 0;
+    margin: 0 0 var(--aika-space-2);
+    padding: var(--aika-space-3) var(--aika-space-5);
+}
+
+html body.v6.checkout .checkout_review_cart_item > :is(.checkout_review_item_img, .checkout_review_item_desc, .checkout_review_item_price) {
+    float: none;
+    padding: 0;
+}
+
+html body.v6.checkout .checkout_review_cart_item > .checkout_review_item_desc {
+    flex: 1;
+    order: 1;
+}
+
+html body.v6.checkout .checkout_review_cart_item > .checkout_review_item_price {
+    order: 2;
+}
+
+/* "Purchase": no empty strip under it; the e-mail note off the card */
+html body.v6.checkout #purchase_button_container_bottom {
+    padding-bottom: 0;
+}
+
+html body.v6.checkout .checkout_footer_notes {
+    margin-top: var(--aika-space-3);
+}
+
+html body.v6.checkout .checkout_review_item_img img {
+    border-radius: var(--aika-radius-md);
+}
+
+html body.v6.checkout .checkout_content.confirm {
+    margin-top: var(--aika-space-3);
+    padding: var(--aika-space-5);
+}
+
+html body.v6.checkout .checkout_content.confirm .cart_totals_area {
+    margin: 0;
+    padding: 0;
+}
+
+html body.v6.checkout .checkout_steam_rewards_banner {
+    margin: var(--aika-space-3) 0 0;
+}
+
+html body.v6.checkout :is(.cart_total_rule, .checkout_content .rule) {
+    border-color: var(--aika-border);
+}
+
+html body.v6.checkout .review_row_label {
+    color: var(--aika-fg-subtle);
+}
+
+/* --------------------------------------------------------------------------
+   The card (author 2026-10-13, after reactbits Pro "Credit Card"). The real
+   component fills the card with what you type — that needs JS, which never runs
+   on checkout, and CSS cannot read field values. So the card follows the focus
+   only: the number row, the holder or the expiry lights up while that field is
+   focused, and the card turns over for the security code. It shows placeholders
+   only — no field value is read or drawn anywhere.
+     Front — .rightcol::before (in the flow, as wide as the column, card
+     proportions), back — .rightcol::after laid over it; the art is
+     --aika-card-art-* (colors.css), the focus frame is a separate background
+     layer moved by --aika-card-focus-* (percentages — the art scales with the card).
+     Shown while the card fields are on the page. No check of #credit_card_row's
+     inline style: a :has() with a [style] attribute selector made the browser
+     re-check it on every inline style change anywhere — the store home (whose
+     carousels and cursor effects write styles every frame) dropped from ~165 to
+     ~40 fps (2026-10-13).
+   -------------------------------------------------------------------------- */
+
+/* The defaults — a low-specificity rule, so the focus rules below always win
+   (the card rules carry :has(#id) and are much stronger) */
+html body.v6.checkout .rightcol {
+    --aika-card-focus-x: 50%;
+    --aika-card-focus-y: 50%;
+    --aika-card-focus-w: 0%;
+    --aika-card-focus-h: 0%;
+    --aika-card-turn-front: 0deg;
+    --aika-card-turn-back: 180deg;
+}
+
+html body.v6.checkout:has(#card_number) .rightcol {
+    position: relative;
+    perspective: var(--aika-card-perspective);
+}
+
+html body.v6.checkout:has(#card_number) .rightcol::before,
+html body.v6.checkout:has(#card_number) .rightcol::after {
+    content: "";
+    aspect-ratio: var(--aika-card-ratio);
+    border-radius: var(--aika-radius-xl);
+    backface-visibility: hidden;
+    box-shadow: var(--aika-shadow-card), 0 18px 40px var(--aika-accent-haze);
+    transition:
+        transform var(--aika-card-flip) var(--aika-ease),
+        background-position var(--aika-dur-base) var(--aika-ease),
+        background-size var(--aika-dur-base) var(--aika-ease);
+    pointer-events: none;
+}
+
+/* The front: in the flow, as wide as the "Payment methods" block below */
+html body.v6.checkout:has(#card_number) .rightcol::before {
+    display: block;
+    margin-bottom: var(--aika-space-5);
+    background:
+        var(--aika-card-art-focus) var(--aika-card-focus-x) var(--aika-card-focus-y) / var(--aika-card-focus-w) var(--aika-card-focus-h) no-repeat,
+        var(--aika-card-art-front) 0 0 / 100% 100% no-repeat,
+        var(--aika-card-sheen),
+        var(--aika-card-face);
+    transform: rotateY(var(--aika-card-turn-front));
+}
+
+/* The back: laid exactly over the front */
+html body.v6.checkout:has(#card_number) .rightcol::after {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background:
+        var(--aika-card-art-back) 0 0 / 100% 100% no-repeat,
+        var(--aika-card-sheen),
+        var(--aika-card-back-face);
+    transform: rotateY(var(--aika-card-turn-back));
+}
+
+/* Which zone lights up. The art is drawn on a 300 × 188 card; a background
+   position P % puts the frame at P % of (card − frame), so x / (300 − w) and
+   y / (188 − h) give the same spot at any card width */
+html body.v6.checkout:has(#card_number:focus) .rightcol {
+    --aika-card-focus-x: 50%;        /* x 16, w 268 */
+    --aika-card-focus-y: 67.53%;     /* y 104, h 34 */
+    --aika-card-focus-w: 89.33%;
+    --aika-card-focus-h: 18.09%;
+}
+
+html body.v6.checkout:has(:is(#first_name, #last_name):focus) .rightcol {
+    --aika-card-focus-x: 9.76%;      /* x 16, w 136 */
+    --aika-card-focus-y: 92.11%;     /* y 140, h 36 */
+    --aika-card-focus-w: 45.33%;
+    --aika-card-focus-h: 19.15%;
+}
+
+html body.v6.checkout:has(:is(#expiration_month_trigger, #expiration_year_trigger):is(:focus, .activetrigger)) .rightcol {
+    --aika-card-focus-x: 92.45%;     /* x 196, w 88 */
+    --aika-card-focus-y: 92.11%;
+    --aika-card-focus-w: 29.33%;
+    --aika-card-focus-h: 19.15%;
+}
+
+/* The security code: the card turns over */
+html body.v6.checkout:has(#security_code:focus) .rightcol {
+    --aika-card-turn-front: -180deg;
+    --aika-card-turn-back: 0deg;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html body.v6.checkout .rightcol::before,
+    html body.v6.checkout .rightcol::after {
+        transition: none;
+    }
+}

@@ -1,0 +1,326 @@
+/* ==========================================================================
+   components/nav.css — Fluent-style navigation (DESIGN.md §4, Navigation).
+
+   The library's left panel (captured via CDP 2026-10-04):
+     .HomeBox .Bar[.Selected]          — the "Library" item (home)
+     .CollectionsButton .Bar           — the "Collections" button
+     .SearchInput input                — search by name
+     .ReactVirtualized__List .Container:has(> .GameListEntryContainer)
+                                       — a game row; .Installed / .Uninstalled
+   The selected game row is .Container.Selected (verified 2026-10-04).
+
+   The selection indicator is a vertical 3 px accent bar on the left with
+   rounded ends, it appears via scaleY 0 → 1 (with --aika-motion: 0 —
+   instantly). The .aika-nav-item[.is-selected] classes are for our own markup.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Shared item look and indicator
+   -------------------------------------------------------------------------- */
+
+@keyframes aika-indicator-in {
+    from {
+        transform: scaleY(calc(1 - var(--aika-motion)));
+    }
+}
+
+.aika-nav-item,
+html .HomeBox .Bar,
+html .CollectionsButton .Bar {
+    border-radius: var(--aika-radius-md);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+.aika-nav-item:hover,
+html .HomeBox .Bar:hover,
+html .CollectionsButton .Bar:hover {
+    background-color: var(--aika-surface-hover);
+}
+
+.aika-nav-item.is-selected,
+html .HomeBox .Bar.Selected,
+html .ReactVirtualized__List .Container.Selected:has(> .GameListEntryContainer),
+html .PagedSettingsDialog_PageList .PagedSettingsDialog_PageListItem.Active {
+    position: relative;
+    background-color: var(--aika-accent-soft);
+    color: var(--aika-fg);
+}
+
+.aika-nav-item.is-selected::before,
+html .HomeBox .Bar.Selected::before,
+html .ReactVirtualized__List .Container.Selected:has(> .GameListEntryContainer)::before,
+html .PagedSettingsDialog_PageList .PagedSettingsDialog_PageListItem.Active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: var(--aika-indicator-inset);
+    bottom: var(--aika-indicator-inset);
+    width: var(--aika-indicator);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent);
+    animation: aika-indicator-in var(--aika-dur-base) var(--aika-ease);
+    pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Game list rows
+   Steam: hover — "._2-O4…:hover" (0,2,0), state colors — up to (0,3,0).
+   Ours: html + 3 classes — (0,3,1)…(0,4,1).
+   -------------------------------------------------------------------------- */
+
+html .ReactVirtualized__List .Container:has(> .GameListEntryContainer) {
+    position: relative;
+    margin-inline: var(--aika-nav-inset);
+    padding-inline-start: var(--aika-nav-pad);
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+/* Installed — brighter, not installed — muted (DESIGN.md §9:
+   the state is also visible from Steam's status icon, not only from color) */
+html .ReactVirtualized__List .Container.Installed:has(> .GameListEntryContainer) {
+    color: var(--aika-fg);
+}
+
+html .ReactVirtualized__List .Container:has(> .GameListEntryContainer):hover {
+    background-color: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+/* The selected row — after hover, so the accent isn't lost on hover;
+   Steam's selection shadow ("._1UBp…" = .Selected) is removed */
+html .ReactVirtualized__List .Container.Selected:has(> .GameListEntryContainer),
+html .ReactVirtualized__List .Container.Selected:has(> .GameListEntryContainer):hover {
+    background-color: var(--aika-accent-soft);
+    box-shadow: none;
+    color: var(--aika-fg);
+}
+
+/* Row states (author's fix 2026-10-06, using Pratfall as the example —
+   "Update queued"). Steam (captured via CDP 2026-10-06):
+     .Container.Updating / .Synchronizing / .CloudError / .CloudOutOfDate —
+       title #26b7ff, weight 300; .Running — #adff2f;
+     .DownloadProgress — the caption on the right ("Update queued"), #74d1ff;
+     .AppIconDownloading — an icon with a progress ring: the icon is
+       brightness(0.4), the ring is an svg circle #74d1ff ((0,4,1)).
+   Ours: update and sync — fully accent (title, caption,
+   ring), the icon is dimmed less — the game doesn't look uninstalled;
+   cloud error — --aika-live, "cloud out of date" — --aika-warn,
+   running — --aika-ok. The color holds on hover and on the selected
+   row too — so the block comes after the hover / .Selected rules. */
+html .ReactVirtualized__List .Container:is(.Updating, .Synchronizing):has(> .GameListEntryContainer),
+html .ReactVirtualized__List .Container:is(.Updating, .Synchronizing):has(> .GameListEntryContainer):is(:hover, .Selected) {
+    color: var(--aika-accent-bright);
+    font-weight: var(--aika-weight-regular);
+}
+
+html .ReactVirtualized__List .Container.CloudError:has(> .GameListEntryContainer),
+html .ReactVirtualized__List .Container.CloudError:has(> .GameListEntryContainer):is(:hover, .Selected) {
+    color: var(--aika-live);
+    font-weight: var(--aika-weight-regular);
+}
+
+html .ReactVirtualized__List .Container.CloudOutOfDate:has(> .GameListEntryContainer),
+html .ReactVirtualized__List .Container.CloudOutOfDate:has(> .GameListEntryContainer):is(:hover, .Selected) {
+    color: var(--aika-warn);
+    font-weight: var(--aika-weight-regular);
+}
+
+html .ReactVirtualized__List .Container.Running:has(> .GameListEntryContainer),
+html .ReactVirtualized__List .Container.Running:has(> .GameListEntryContainer):is(:hover, .Selected) {
+    color: var(--aika-ok);
+}
+
+/* The caption on the right — in the row color; Steam colors it separately for a running game */
+html .ReactVirtualized__List .Container .GameListEntryContainer .DownloadProgress {
+    color: inherit;
+}
+
+html .ReactVirtualized__List .Container .GameListEntryContainer .DownloadDash {
+    color: var(--aika-fg-subtle);
+}
+
+/* The icon with a progress ring: dimmed less, the ring in the row color.
+   [class] on the svg — to beat Steam's triple hash (0,4,1) */
+html .ReactVirtualized__List .GameListEntryContainer .AppIconDownloading .GameIcon {
+    filter: var(--aika-download-icon-dim);
+}
+
+html .ReactVirtualized__List .GameListEntryContainer .AppIconDownloading svg[class] {
+    color: inherit;
+}
+
+html .ReactVirtualized__List .GameListEntryContainer .AppIconDownloading svg[class] circle {
+    stroke: currentColor;
+}
+
+/* The row a context menu is open on (right-click): Steam gives
+   .HasContextMenuOpen a gray-blue border #506588, background #293344, on hover
+   #586f96 (up to (0,3,0)). Captured 2026-10-06 (author's fix). Steam's 1 px border
+   stays — only its color changes so the row doesn't jump: an accent border,
+   the hover background; on the selected row — its accent background. */
+html .ReactVirtualized__List .Container.HasContextMenuOpen:has(> .GameListEntryContainer),
+html .ReactVirtualized__List .Container.HasContextMenuOpen:has(> .GameListEntryContainer):hover {
+    border-color: var(--aika-border-accent);
+    background-color: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+html .ReactVirtualized__List .Container.Selected.HasContextMenuOpen:has(> .GameListEntryContainer),
+html .ReactVirtualized__List .Container.Selected.HasContextMenuOpen:has(> .GameListEntryContainer):hover {
+    background-color: var(--aika-accent-soft);
+}
+
+/* When hovering the selected row Steam paints blue not the row itself but
+   its descendants: "._1UBp…._2-O4… :hover" (a space before :hover, (0,3,0)) —
+   the inner .GameListEntryContainer and everything under the cursor.
+   Descendants of the selected row have no background of their own, the row gives the accent. */
+html .ReactVirtualized__List .Container.Selected .GameListEntryContainer,
+html .ReactVirtualized__List .Container.Selected .GameListEntryContainer * {
+    background-color: var(--aika-transparent);
+}
+
+/* Game title: Steam colors the <span> itself for installed ones ("._2ws8… span",
+   white, weight 500) — use the row color */
+html .ReactVirtualized__List .Container:has(> .GameListEntryContainer) .GameListEntryContainer > span {
+    color: inherit;
+    font-weight: var(--aika-weight-regular);
+}
+
+/* The game icon — rounding to match the row */
+html .ReactVirtualized__List .GameListEntryContainer .GameIcon {
+    border-radius: var(--aika-radius-xs);
+}
+
+/* --------------------------------------------------------------------------
+   Search in the left panel. Steam paints the field with a (0,3,0) rule and draws
+   the magnifier icon as a background — Steam's icon and placeholder stay, the background and border are ours.
+   -------------------------------------------------------------------------- */
+
+/* Background — a translucent warm surface (like the cards): an opaque
+   --aika-bg-raised looked like a dark hole on the lit panel (author, 2026-10-04) */
+html .Container > .SearchInput input.DialogTextInputBase {
+    background-color: var(--aika-surface-hover);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        border-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+    border: var(--aika-hairline) solid var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+}
+
+html .Container > .SearchInput input.DialogTextInputBase:hover {
+    border-color: var(--aika-border-hover);
+    background-color: var(--aika-surface-active);
+}
+
+html .Container > .SearchInput input.DialogTextInputBase:focus {
+    background-color: var(--aika-surface-active);
+    border-color: var(--aika-accent);
+    box-shadow: var(--aika-shadow-input-focus);
+}
+
+/* --------------------------------------------------------------------------
+   Top tabs — icons instead of labels (at the author's request)
+
+   Steam (captured via CDP 2026-10-04):
+     .SuperNav > .SuperNavMenu[.Selected] > .MenuButton
+   The tabs have no classes of their own, the order is fixed:
+     1 Store · 2 Library · 3 Community · 4 profile (nickname in a <span>) ·
+     5 Console (only in -dev mode).
+   The profile is found by its <span> (:has), the rest by position among the divs.
+   Steam's label stays in the DOM (font-size: 0) — screen readers read it.
+   Steam: hover and selection — (0,4,0), the blue selection line is in ::after;
+   ours is (0,4,1)+.
+   -------------------------------------------------------------------------- */
+
+html .SuperNav .SuperNavMenu > .MenuButton {
+    --aika-tab-icon: var(--aika-icon-store);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--aika-space-1);
+    padding: var(--aika-space-1) var(--aika-space-2);
+    font-size: 0;
+    color: var(--aika-fg-muted);
+    text-shadow: none;
+    transition: color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .SuperNav .SuperNavMenu:nth-of-type(2) > .MenuButton { --aika-tab-icon: var(--aika-icon-library); }
+html .SuperNav .SuperNavMenu:nth-of-type(3) > .MenuButton { --aika-tab-icon: var(--aika-icon-community); }
+html .SuperNav .SuperNavMenu:nth-of-type(5) > .MenuButton { --aika-tab-icon: var(--aika-icon-console); }
+html .SuperNav .SuperNavMenu > .MenuButton:has(> span) { --aika-tab-icon: var(--aika-icon-profile); }
+
+html .SuperNav .SuperNavMenu > .MenuButton::before {
+    content: "";
+    width: var(--aika-tab-icon-size);
+    height: var(--aika-tab-icon-size);
+    background: currentColor;
+    -webkit-mask: var(--aika-tab-icon) center / contain no-repeat;
+    mask: var(--aika-tab-icon) center / contain no-repeat;
+    transition: transform var(--aika-dur-base) var(--aika-ease);
+}
+
+html .SuperNav .SuperNavMenu:hover > .MenuButton {
+    color: var(--aika-fg);
+}
+
+html .SuperNav .SuperNavMenu:hover > .MenuButton::before {
+    transform: translateY(var(--aika-lift-sm));
+}
+
+/* The selected tab: the icon in accent + an indicator line below */
+html .SuperNav .SuperNavMenu.Selected > .MenuButton {
+    color: var(--aika-accent-bright);
+    font-weight: var(--aika-weight-regular);
+    text-shadow: none;
+}
+
+/* The icon is centered in the tab (the 20 px icon sat at the top of a 24 px
+   box — 2 px above the row's middle line); the line hangs under it
+   out of the flow, so the selected tab's icon sits as high as the others' */
+html .SuperNav .SuperNavMenu > .MenuButton {
+    position: relative;
+    justify-content: center;
+    gap: 0;   /* the hidden label is a flex item too — the gap before it lifted the icon */
+}
+
+html .SuperNav .SuperNavMenu.Selected > .MenuButton::after {
+    position: absolute;
+    left: 50%;
+    top: calc(50% + var(--aika-tab-icon-size) / 2 + var(--aika-space-1));
+    translate: -50% 0;
+    width: var(--aika-tab-icon-size);
+    height: var(--aika-indicator);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent);
+    box-shadow: 0 0 var(--aika-space-2) var(--aika-accent-glow);
+}
+
+/* Tab position (center / left) is the "Top bar" theme setting:
+   centering is options/tabs-center.css (the default). Here — only
+   the button spacing shared by both variants. */
+html .SuperNav .SuperNavMenu > .MenuButton {
+    padding-inline: var(--aika-space-3);
+}
+
+/* A taller tab bar (Steam's .SuperNavBar has height/min-height 32 px, (0,1,0)),
+   so icons with an indicator caption have room; the buttons are centered
+   vertically */
+html .TopBar .SuperNavBar {
+    height: var(--aika-supernav-height);
+    min-height: var(--aika-supernav-height);
+}
+
+html .SuperNavBar .SuperNav > .MenuWrapper {
+    display: flex;
+    align-items: center;
+}
+
+html .SuperNav .SuperNavMenu > .MenuButton {
+    height: auto;
+}

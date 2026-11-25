@@ -1,0 +1,239 @@
+/* ==========================================================================
+   components/window.css — the window header: window buttons and the left menu.
+
+   Window buttons (captured via CDP 2026-10-04), in every client window:
+     .TitleBar .title-bar-actions.window-controls
+       .title-area-icon.windowControlButton.minimizeButton
+                                         .maximizeButton / .restoreButton
+                                         .closeButton
+         > .title-area-icon-inner > svg (SVGIcon_Minimize / _Maximize /
+           _Restore / _X_Line)
+   Steam: 32×32 squares, bold glyphs, hover #3d4450, "close" #e22a27;
+   rules up to (0,4,0). We do it like Windows 11: 46×32 buttons, thin
+   10×10 glyphs (our own SVG masks, Steam's svg is hidden), a soft surface
+   hover, "close" is Windows 11 red.
+
+   Left menu (.RootMenuBar): "Steam" → "Aika" (author's request 2026-10-04,
+   DESIGN.md §11; Steam's text is hidden with font-size: 0, ours is ::after),
+   the other items ("View", "Friends", "Games", "Help") are mono.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Window buttons
+   -------------------------------------------------------------------------- */
+
+/* Room for three buttons: Steam reserves a 99 px block (hash (0,2,0)), and our
+   buttons are wider — otherwise they overlapped the header buttons on the left */
+html .TitleBar > .WindowControls {
+    flex-basis: calc(var(--aika-window-button-width) * 3);
+}
+
+html .TitleBar .title-bar-actions .title-area-icon.windowControlButton {
+    width: var(--aika-window-button-width);
+    height: var(--aika-window-button-height);
+    color: var(--aika-fg-muted);
+    background: var(--aika-transparent);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .TitleBar .title-bar-actions .title-area-icon.windowControlButton:hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+html .TitleBar .title-bar-actions .title-area-icon.windowControlButton:active {
+    background: var(--aika-surface-active);
+}
+
+html .TitleBar .title-bar-actions .title-area-icon.windowControlButton.closeButton:hover {
+    background: var(--aika-close-hover);
+    color: var(--aika-on-accent);
+}
+
+/* Hide Steam's glyphs, draw our own */
+html .TitleBar .title-bar-actions .windowControlButton .title-area-icon-inner svg {
+    display: none;
+}
+
+html .TitleBar .title-bar-actions .windowControlButton .title-area-icon-inner::before {
+    content: "";
+    width: var(--aika-window-icon-size);
+    height: var(--aika-window-icon-size);
+    background-color: currentColor;
+    -webkit-mask: var(--aika-icon-win-maximize) center / contain no-repeat;
+    mask: var(--aika-icon-win-maximize) center / contain no-repeat;
+}
+
+html .TitleBar .title-bar-actions .minimizeButton .title-area-icon-inner::before {
+    -webkit-mask-image: var(--aika-icon-win-minimize);
+    mask-image: var(--aika-icon-win-minimize);
+}
+
+html .TitleBar .title-bar-actions .restoreButton .title-area-icon-inner::before,
+html .TitleBar .title-bar-actions .windowControlButton:has(svg.SVGIcon_Restore) .title-area-icon-inner::before {
+    -webkit-mask-image: var(--aika-icon-win-restore);
+    mask-image: var(--aika-icon-win-restore);
+}
+
+html .TitleBar .title-bar-actions .closeButton .title-area-icon-inner::before {
+    -webkit-mask-image: var(--aika-icon-win-close);
+    mask-image: var(--aika-icon-win-close);
+}
+
+/* The blue highlight strip above the buttons (opacity 0 in Steam, but just in case) */
+html .TitleBar .title-area-highlight {
+    background: var(--aika-transparent);
+}
+
+/* --------------------------------------------------------------------------
+   Every header item on its row's middle line (measured by the icons' ink,
+   2026-10-20). Steam offsets the menus (margin-top 2 px), the account
+   buttons (5 px) and the tab strip (padding-top 2 px); with the theme's
+   sizes that put them 2–2.5 px below the window buttons. The window buttons
+   keep the full row height.
+   -------------------------------------------------------------------------- */
+
+html .TopBar > .TitleBar {
+    align-items: center;
+}
+
+html .TopBar > .TitleBar > :is(.RootMenuBar, .TitleBarControls) {
+    margin-top: 0;
+}
+
+html .TopBar > .TitleBar > .WindowControls {
+    align-self: stretch;
+}
+
+html .TopBar > .SuperNavBar {
+    padding-top: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Left menu: "Aika" instead of "Steam", the other items are mono
+   -------------------------------------------------------------------------- */
+
+html .RootMenuBar .RootMenuButton .SteamButton {
+    font-size: 0;
+}
+
+html .RootMenuBar .RootMenuButton .SteamButton svg.Logo {
+    display: none;
+}
+
+/* The text and its face come from the "Header wordmark" setting (options/wordmark-*.css;
+   the default — tokens.css) */
+html .RootMenuBar .RootMenuButton .SteamButton::after {
+    content: var(--aika-wordmark-text);
+    padding-inline: var(--aika-wordmark-pad);
+    background: linear-gradient(to right, var(--aika-fg), var(--aika-accent-bright));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: var(--aika-transparent);
+    font-family: var(--aika-wordmark-font);
+    font-size: var(--aika-wordmark-size);
+    font-weight: var(--aika-wordmark-weight);
+    letter-spacing: var(--aika-wordmark-tracking);
+    line-height: var(--aika-wordmark-leading);
+}
+
+html .RootMenuBar .RootMenuButton:not(:has(.SteamButton)) > div {
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-meta);
+    letter-spacing: normal;
+}
+
+/* A narrow window in the compact header: View / Friends / Games / Help as
+   icons (js/header-compact.js sets html.aika-menus-icons when the tabs don't
+   fit; the label stays as the tooltip). Steam keeps them in this order — no
+   other mark tells them apart. "Aika" stays a word. */
+/* flex, line-height 0: the hidden label is an item too — in a grid it took a
+   second row and lifted the icon by 3 px */
+html.aika-menus-icons .RootMenuBar .RootMenuButton:not(:has(.SteamButton)) > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+    width: var(--aika-menu-icon-box);
+    height: var(--aika-menu-icon-box);
+    padding: 0;
+    border-radius: var(--aika-radius-md);
+    font-size: 0;
+}
+
+html.aika-menus-icons .RootMenuBar .RootMenuButton:not(:has(.SteamButton)) > div::before {
+    content: "";
+    width: var(--aika-menu-icon);
+    height: var(--aika-menu-icon);
+    background: currentColor;
+    -webkit-mask: var(--aika-menu-icon-image) center / contain no-repeat;
+    mask: var(--aika-menu-icon-image) center / contain no-repeat;
+}
+
+html .RootMenuBar .RootMenuButton:nth-child(2 of .RootMenuButton) { --aika-menu-icon-image: var(--aika-icon-menu-view); }
+html .RootMenuBar .RootMenuButton:nth-child(3 of .RootMenuButton) { --aika-menu-icon-image: var(--aika-icon-menu-friends); }
+html .RootMenuBar .RootMenuButton:nth-child(4 of .RootMenuButton) { --aika-menu-icon-image: var(--aika-icon-menu-games); }
+html .RootMenuBar .RootMenuButton:nth-child(5 of .RootMenuButton) { --aika-menu-icon-image: var(--aika-icon-menu-help); }
+
+/* --------------------------------------------------------------------------
+   Privacy blur in the header account menu (the "Privacy blur" setting, author
+   2026-10-13): the wallet balance — or the name and the balance — are blurred
+   until the pointer is over the menu, and blur again when it leaves. The option
+   files (options/privacy-*.css) set the amounts; without them nothing is blurred.
+     .TitleBarControls .AccountMenu > .avatarHolder + div (the name) + svg +
+       .WalletBalance — readable classes, captured 2026-10-13.
+   -------------------------------------------------------------------------- */
+
+html .TitleBarControls .AccountMenu > :is(.WalletBalance, div:not(.avatarHolder, .WalletBalance)) {
+    filter: blur(var(--aika-privacy-amount, 0px));
+    transition: filter var(--aika-dur-base) var(--aika-ease);
+}
+
+html .TitleBarControls .AccountMenu > .WalletBalance {
+    --aika-privacy-amount: var(--aika-privacy-balance, 0px);
+}
+
+html .TitleBarControls .AccountMenu > div:not(.avatarHolder, .WalletBalance) {
+    --aika-privacy-amount: var(--aika-privacy-name, 0px);
+}
+
+html .TitleBarControls .AccountMenu:hover > :is(.WalletBalance, div:not(.avatarHolder, .WalletBalance)),
+html .TitleBarControls .tool-tip-source:focus-visible .AccountMenu > :is(.WalletBalance, div:not(.avatarHolder, .WalletBalance)) {
+    --aika-privacy-amount: 0px;
+}
+
+/* --------------------------------------------------------------------------
+   Rounded hover / press / focus states in the header (fix: square black
+   corners behind the Store / Library / profile tabs, the account menu and the
+   news / notifications buttons). Steam paints their hover, active and focus
+   fill and shadow on a square box; give every one of those boxes the theme
+   radius so the fill, the glow and the focus ring follow it, and drop the
+   square outline / shadow Steam adds on top.
+   -------------------------------------------------------------------------- */
+
+html .SuperNav .SuperNavMenu,
+html .SuperNav .SuperNavMenu > .MenuButton,
+html .TitleBar .Button,
+html .TitleBarControls .Button,
+html .TitleBarControls .AccountMenu,
+html .TitleBarControls .tool-tip-source,
+html .TitleBar .RootMenuButton,
+html .TitleBar .RootMenuButton > div {
+    border-radius: var(--aika-radius-md);
+}
+
+html .SuperNav .SuperNavMenu > .MenuButton,
+html .TitleBarControls .AccountMenu,
+html .TitleBarControls .tool-tip-source {
+    background-clip: padding-box;
+    outline: none;
+}
+
+html .SuperNav .SuperNavMenu > .MenuButton:is(:hover, :active, :focus, :focus-visible),
+html .TitleBarControls .AccountMenu:is(:hover, :active, :focus),
+html .TitleBarControls .tool-tip-source:is(:hover, :active, :focus, :focus-visible) {
+    outline: none;
+    box-shadow: none;
+}

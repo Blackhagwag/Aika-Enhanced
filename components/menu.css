@@ -1,0 +1,769 @@
+/* ==========================================================================
+   components/menu.css — menus, dropdowns, tooltips (DESIGN.md §4, Menus).
+
+   Steam menus are separate windows (Steam / View / Games…, context menus,
+   Supernav on the tabs, DialogDropDown lists). Their <html> is .ContextMenuPopup,
+   <body> is .ContextMenuPopupBody; html and body are transparent, so the
+   rounding is visible. Imported via popup.css (a Patch in skin.json).
+
+   Steam (captured via CDP 2026-10-04):
+     .contextMenu > .contextMenuContents     — the menu box
+       .contextMenuItem[.MenuItem][.disabled] — an item
+       hr.MenuItem.Separator                  — a separator
+   Steam's item hover is a light fill ".DesktopUI ._1n7W…:hover" (0,3,0),
+   for a disabled one — (0,4,0); Steam holds the box with rules up to (0,2,1),
+   so ours is html body .contextMenu.ContextMenuPosition (0,2,2).
+   Keyboard highlight is a hash class, see selectors.css.
+
+   This is the only place with a translucent surface.
+   ========================================================================== */
+
+/* Card Nav (reactbits idea, author 2026-10-14): the box unfolds down from its
+   top edge, then the items rise one after another (below). A clip, not
+   height or scale: Steam measures the menu box (with transform) when it
+   appears and sizes the window from it — with scale(0.97) the window came
+   out ~3 % narrower than the menu and the rounded right edge was clipped
+   (2026-10-04); clip-path doesn't change the measured box. */
+@keyframes aika-menu-unfold {
+    from {
+        clip-path: inset(0 0 100% 0 round var(--aika-radius-lg));
+    }
+    to {
+        clip-path: inset(0 round var(--aika-radius-lg));
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Menu box
+   -------------------------------------------------------------------------- */
+
+.aika-menu,
+html body .contextMenu.ContextMenuPosition {
+    padding: var(--aika-space-1);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface-translucent);
+    box-shadow: var(--aika-shadow-menu);
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+}
+
+/* Steam keeps a menu window and its box between openings: the same element
+   is hidden and shown again, so an animation on the box alone played only
+   the first time (author 2026-10-14: "on the second click the animations
+   are gone"). Steam drops .ready on close and adds it back on open (~9 ms
+   before the window shows, verified on the Steam root menu) — every
+   animation here hangs on .ready, so it restarts on each opening. */
+.aika-menu,
+html body .contextMenu.ContextMenuPosition.ready {
+    animation: aika-menu-unfold var(--aika-cardnav-dur) var(--aika-ease-fold);
+}
+
+/* …but .ready comes while the menu window is still hidden, and a hidden
+   window's animation clock stands still: the animations started on it were
+   over in the first visible frame (every opening after the first). In menu
+   windows js/menu-motion.js marks the visible window (html.aika-menu-open);
+   until then the menu waits in its starting state — folded, items hidden —
+   and the animations start when the class comes. */
+html.aika-menu-js:not(.aika-menu-open) body .contextMenu.ContextMenuPosition.ready {
+    clip-path: inset(0 0 100% 0 round var(--aika-radius-lg));
+    animation: none;
+}
+
+html.aika-menu-js:not(.aika-menu-open) body .contextMenu.ready :is(.contextMenuContents > :is(.contextMenuItem, hr.Separator), .NotificationsMenu :is(.NotificationHeader, .NotificationMenuItem)) {
+    opacity: 0;
+    animation: none;
+}
+
+/* The items rise in one after another (a separator too, so the groups keep
+   their rhythm); the tenth and later together. Transforms only on the
+   items — the box stays where Steam measured it. */
+@keyframes aika-menu-item-in {
+    from {
+        opacity: 0;
+        transform: translateY(var(--aika-menu-item-rise));
+    }
+}
+
+html body .contextMenu.ready .contextMenuContents > :is(.contextMenuItem, hr.Separator) {
+    animation: aika-menu-item-in var(--aika-cardnav-item-dur) var(--aika-ease-fold) backwards;
+    animation-delay: calc(var(--aika-cardnav-item-delay) + var(--aika-menu-i, 0) * var(--aika-menu-item-stagger));
+}
+
+html body .contextMenu .contextMenuContents > :nth-child(2) { --aika-menu-i: 1; }
+html body .contextMenu .contextMenuContents > :nth-child(3) { --aika-menu-i: 2; }
+html body .contextMenu .contextMenuContents > :nth-child(4) { --aika-menu-i: 3; }
+html body .contextMenu .contextMenuContents > :nth-child(5) { --aika-menu-i: 4; }
+html body .contextMenu .contextMenuContents > :nth-child(6) { --aika-menu-i: 5; }
+html body .contextMenu .contextMenuContents > :nth-child(7) { --aika-menu-i: 6; }
+html body .contextMenu .contextMenuContents > :nth-child(8) { --aika-menu-i: 7; }
+html body .contextMenu .contextMenuContents > :nth-child(9) { --aika-menu-i: 8; }
+html body .contextMenu .contextMenuContents > :nth-child(n + 10) { --aika-menu-i: 9; }
+
+html .contextMenu .contextMenuContents {
+    background: var(--aika-transparent);
+}
+
+/* --------------------------------------------------------------------------
+   Items
+   -------------------------------------------------------------------------- */
+
+.aika-menu__item,
+html .contextMenu .contextMenuContents .contextMenuItem {
+    padding: var(--aika-space-2) var(--aika-space-3);
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg);
+    font-size: var(--aika-text-body);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+.aika-menu__item:hover,
+html .contextMenu .contextMenuContents .contextMenuItem:not(.disabled):hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+/* On hover Steam paints the nested text dark (0,4,0) — use the item color */
+html .contextMenu .contextMenuContents .contextMenuItem:not(.disabled):hover * {
+    color: inherit;
+}
+
+html .contextMenu .contextMenuContents .contextMenuItem.disabled {
+    color: var(--aika-fg-subtle);
+}
+
+/* An action item in the game context menu (right-click in the library list;
+   the menu is drawn inside the main window). Steam: .ContextMenuAction
+   with an action class: "green" (.Play, .Launch, .Stream, .Connect,
+   .PlayMusic) and "blue" (.Install, .Download, .Update, .Resume…),
+   gradients (0,3,0), on hover (0,3,1), uppercase text. Captured 2026-10-06.
+   Like on the game page: "Play" is bright (--aika-play-fill),
+   other actions use the regular accent. The label isn't uppercase, like
+   the "Play" button (components/button.css). */
+html .contextMenu .contextMenuContents .contextMenuItem.ContextMenuAction {
+    background: var(--aika-accent-fill);
+    box-shadow: var(--aika-shadow-cta);
+    color: var(--aika-on-accent);
+    font-weight: var(--aika-weight-semibold);
+    letter-spacing: normal;
+    text-transform: none;
+}
+
+html .contextMenu .contextMenuContents .contextMenuItem.ContextMenuAction:not(.disabled):is(:hover, :focus) {
+    background: var(--aika-accent-fill-hover);
+    box-shadow: var(--aika-shadow-cta-hover);
+    color: var(--aika-on-accent);
+}
+
+html .contextMenu .contextMenuContents .contextMenuItem.ContextMenuAction:is(.Play, .Launch, .Stream, .Connect, .PlayMusic) {
+    background: var(--aika-play-fill);
+    background-size: var(--aika-play-fill-size);
+    box-shadow: var(--aika-shadow-play);
+}
+
+html .contextMenu .contextMenuContents .contextMenuItem.ContextMenuAction:is(.Play, .Launch, .Stream, .Connect, .PlayMusic):not(.disabled):is(:hover, :focus) {
+    background: var(--aika-play-fill);
+    background-size: var(--aika-play-fill-size);
+    background-position: 100% 50%;
+    box-shadow: var(--aika-shadow-play-hover);
+}
+
+html .contextMenu .contextMenuContents .contextMenuItem.ContextMenuAction svg :is(path, polygon, rect, circle) {
+    fill: currentColor;
+}
+
+/* The action is separated from the regular items below */
+html .contextMenu .contextMenuContents .contextMenuItem.ContextMenuAction + .contextMenuItem {
+    margin-top: var(--aika-space-1);
+}
+
+/* Separator — a thin line with margins */
+.aika-menu__separator,
+html .contextMenu .contextMenuContents hr.Separator {
+    /* width: auto — Steam has width: 100% (hash (0,2,0)): together with our
+       side padding the line stuck out of the box by 16 px, Steam measured
+       the menu including it, and the window came out narrower than the box */
+    width: auto;
+    height: var(--aika-hairline);
+    margin: var(--aika-space-1) var(--aika-space-2);
+    border: none;
+    background: var(--aika-border);
+}
+
+/* The friends menus separate every item with a border-top (Steam: white 5 %);
+   on our rounded items it curved at both ends. The items are spaced and
+   highlighted on hover — no lines between them, like the other menus. */
+html .contextMenu .contextMenuContents .contextMenuItem {
+    border-top-color: var(--aika-transparent);
+}
+
+/* --------------------------------------------------------------------------
+   The "Add a Game" menu (.AddGameMenu — from the floating "+" at the bottom
+   left of the library, sections/library.css): "Add a Non-Steam Game…",
+   "Activate a Product on Steam…", "Browse the Steam Store…".
+   A floating action button menu (motion.dev FAB idea, author 2026-10-14):
+   no plate — the items stack above the "+" as round icons (the dock
+   material, like the "+") with the label in a pill beside them, and pop out
+   of the button one after another, nearest first, on a gentle spring.
+   Steam opens the window at the click point; js/menu-motion.js moves it so
+   the icon column stands over the "+" (it waits folded until then).
+   One element per item, so: the circle is the item's own background (a
+   radial gradient: fill + hairline ring), ::before — the label pill behind
+   the text, ::after — the icon (decoration — the text is Steam's): a plus,
+   a key, the store bag. The circle color is registered so it can fade.
+   -------------------------------------------------------------------------- */
+
+@property --aika-fab-circle {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: transparent;
+}
+
+/* No room on the left: the window then sits ~14 px from the screen edge —
+   at 4 px Windows kept snapping it to 0 (the column 4 px off the "+") */
+html body .contextMenu.ContextMenuPosition:has(> .AddGameMenu) {
+    padding: var(--aika-fab-pad) var(--aika-fab-pad) var(--aika-fab-pad) var(--aika-hairline);
+    border-radius: 0;
+    background: var(--aika-transparent);
+    box-shadow: none;
+}
+
+html body .contextMenu.ContextMenuPosition.ready:has(> .AddGameMenu),
+html.aika-menu-js:not(.aika-menu-open) body .contextMenu.ContextMenuPosition.ready:has(> .AddGameMenu) {
+    clip-path: none;
+    animation: none;
+}
+
+html .contextMenu .AddGameMenu.contextMenuContents {
+    padding: 0;   /* Steam: html._14wq… ._2Est… 4 px (0,2,1) */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--aika-fab-row-gap);
+}
+
+html body .contextMenu .AddGameMenu.contextMenuContents > .contextMenuItem {
+    --aika-fab-circle: var(--aika-dock-material-menu);
+    --aika-fab-r: calc(var(--aika-dock-size) / 2);
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    height: var(--aika-dock-size);
+    padding: 0 var(--aika-space-3) 0 calc(var(--aika-dock-size) + var(--aika-fab-label-gap) + var(--aika-space-3));
+    border-radius: 0;
+    background: radial-gradient(
+        circle at var(--aika-fab-r) 50%,
+        var(--aika-fab-circle) calc(var(--aika-fab-r) - var(--aika-hairline)),
+        var(--aika-border-hover) calc(var(--aika-fab-r) - var(--aika-hairline)) var(--aika-fab-r),
+        var(--aika-transparent) calc(var(--aika-fab-r) + 0.5px)
+    );
+    color: var(--aika-fg);
+    font-size: var(--aika-text-meta);
+    white-space: nowrap;
+    transition: --aika-fab-circle var(--aika-dur-base) var(--aika-ease-hover);
+}
+
+/* The label pill */
+html body .contextMenu .AddGameMenu.contextMenuContents > .contextMenuItem::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: calc(var(--aika-dock-size) + var(--aika-fab-label-gap));
+    right: 0;
+    top: calc(50% - var(--aika-fab-label-height) / 2);
+    height: var(--aika-fab-label-height);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-surface-translucent);
+    box-shadow:
+        inset 0 0 0 var(--aika-hairline) var(--aika-border-hover),
+        var(--aika-shadow-menu);
+    transition: box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+/* The icon, centered in the circle */
+html body .contextMenu .AddGameMenu.contextMenuContents > .contextMenuItem::after {
+    content: "";
+    position: absolute;
+    left: calc(var(--aika-fab-r) - var(--aika-dock-icon) / 2);
+    top: calc(50% - var(--aika-dock-icon) / 2);
+    width: var(--aika-dock-icon);
+    height: var(--aika-dock-icon);
+    background: var(--aika-accent-bright);
+    -webkit-mask: var(--aika-menu-item-icon, var(--aika-icon-plus)) center / contain no-repeat;
+    mask: var(--aika-menu-item-icon, var(--aika-icon-plus)) center / contain no-repeat;
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        transform var(--aika-fab-dur) var(--aika-ease-spring);
+}
+
+html .contextMenu .AddGameMenu > .contextMenuItem:nth-child(2) { --aika-menu-item-icon: var(--aika-icon-key); }
+html .contextMenu .AddGameMenu > .contextMenuItem:nth-child(3) { --aika-menu-item-icon: var(--aika-icon-store); }
+
+/* Hover: the circle fills with the accent (like the open "+"), the icon
+   turns light and grows a little, the pill gets an accent rim. Steam's item
+   hover plate (menu.css above) doesn't apply here — the circle is the plate. */
+html body .contextMenu .AddGameMenu.contextMenuContents > .contextMenuItem:not(.disabled):hover {
+    --aika-fab-circle: var(--aika-accent-fill);
+    background: radial-gradient(
+        circle at var(--aika-fab-r) 50%,
+        var(--aika-fab-circle) calc(var(--aika-fab-r) - var(--aika-hairline)),
+        var(--aika-border-accent) calc(var(--aika-fab-r) - var(--aika-hairline)) var(--aika-fab-r),
+        var(--aika-transparent) calc(var(--aika-fab-r) + 0.5px)
+    );
+    color: var(--aika-fg);
+}
+
+html body .contextMenu .AddGameMenu.contextMenuContents > .contextMenuItem:not(.disabled):hover::before {
+    box-shadow:
+        inset 0 0 0 var(--aika-hairline) var(--aika-border-accent),
+        var(--aika-shadow-menu),
+        0 0 18px var(--aika-accent-haze);
+}
+
+html body .contextMenu .AddGameMenu.contextMenuContents > .contextMenuItem:not(.disabled):hover::after {
+    background: var(--aika-on-accent);
+    transform: scale(var(--aika-menu-icon-hover));
+}
+
+/* The pop: the item comes out of the button below (it rises and grows on the
+   spring), the label slides out of the icon a beat later. The nearest item
+   (the last one) first. */
+@keyframes aika-fab-pop {
+    from {
+        opacity: 0;
+        transform: translateY(var(--aika-fab-pop)) scale(var(--aika-fab-pop-scale));
+    }
+}
+
+@keyframes aika-fab-label {
+    from {
+        opacity: 0;
+        transform: translateX(calc(-1 * var(--aika-fab-label-shift)));
+    }
+}
+
+html body .contextMenu.ready .AddGameMenu.contextMenuContents > .contextMenuItem {
+    transform-origin: var(--aika-fab-r) 50%;
+    animation: aika-fab-pop var(--aika-fab-dur) var(--aika-ease-spring) backwards;
+    animation-delay: calc(var(--aika-fab-i, 0) * var(--aika-fab-stagger));
+}
+
+html body .contextMenu.ready .AddGameMenu.contextMenuContents > .contextMenuItem::before {
+    animation: aika-fab-label var(--aika-fab-dur) var(--aika-ease-spring) backwards;
+    animation-delay: calc(var(--aika-fab-i, 0) * var(--aika-fab-stagger) + var(--aika-fab-stagger));
+}
+
+/* Steam usually makes this window for the one opening, visible at once at the
+   click point, and js/menu-motion.js comes ~24 ms later: hide the items until
+   then too, so they don't flash where the window is about to leave. No
+   script at all — they show after --aika-fab-fallback. */
+@keyframes aika-fab-fallback {
+    to { opacity: 1; }
+}
+
+html:not(.aika-menu-js) body .contextMenu.ready .AddGameMenu.contextMenuContents > .contextMenuItem {
+    opacity: 0;
+    animation: aika-fab-fallback 1ms linear var(--aika-fab-fallback) forwards;
+}
+
+html .contextMenu .AddGameMenu > .contextMenuItem:nth-last-child(2) { --aika-fab-i: 1; }
+html .contextMenu .AddGameMenu > .contextMenuItem:nth-last-child(n + 3) { --aika-fab-i: 2; }
+
+@media (prefers-reduced-motion: reduce) {
+    html body .contextMenu.ready .AddGameMenu.contextMenuContents > .contextMenuItem,
+    html body .contextMenu.ready .AddGameMenu.contextMenuContents > .contextMenuItem::before {
+        animation: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   "Reduce motion": no entrance animation
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+    .aika-menu,
+    html body .contextMenu.ContextMenuPosition.ready,
+    html body .contextMenu.ready .contextMenuContents > :is(.contextMenuItem, hr.Separator),
+    html .contextMenu.ready .NotificationsMenu :is(.NotificationHeader, .NotificationMenuItem) {
+        animation: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   The account menu (the "Account Menu" window, .AccountMenuPopup): Steam paints the account name
+   and the Steam wallet balance light blue #4cb4ff (hash (0,2,0)).
+   The name is light, the balance is mono in accent.
+   -------------------------------------------------------------------------- */
+
+html .AccountMenuPopup .LogoutButton .AccountName {
+    color: var(--aika-fg);
+    font-weight: var(--aika-weight-medium);
+}
+
+html .AccountMenuPopup .LogoutButton .WalletBalance {
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-mono);
+}
+
+/* Privacy blur inside the menu (author 2026-10-14): "Account details: <login>"
+   and "My wallet <balance>" (.LogoutButton > .AccountName / .WalletBalance) —
+   blurred until the pointer is on the item. The login here is the sign-in
+   name, not the nickname, so with the setting on at all (options/privacy-*.css,
+   which reach this window too) both are blurred. Labels stay sharp. */
+html .AccountMenuPopup .LogoutButton :is(.AccountName, .WalletBalance) {
+    filter: blur(var(--aika-privacy-menu, 0px));
+    transition: filter var(--aika-dur-base) var(--aika-ease);
+}
+
+html .AccountMenuPopup .contextMenuItem:is(:hover, :focus-visible) .LogoutButton :is(.AccountName, .WalletBalance) {
+    filter: none;
+}
+
+/* The header menus (account, notifications) stood right against the header —
+   a gap below it (author 2026-10-14). Steam sizes the menu window from the
+   box, so the gap is a see-through strip inside the box (its top padding)
+   and the plate moves to the contents below it. Not to a ::before plate:
+   Chromium didn't paint the pseudo-element while the box's clip-path
+   animated — the menu was all but transparent for the whole unfold and the
+   plate popped in at the end (author 2026-10-14; frames: alpha 0–27 → 237,
+   the Steam menu with its own plate 74 → 236 as it unfolds). */
+html:is(.Account_Menu, .Notifications_Menu) body .contextMenu.ContextMenuPosition {
+    padding: var(--aika-header-menu-gap) 0 0;
+    background: var(--aika-transparent);
+    box-shadow: none;
+}
+
+html:is(.Account_Menu, .Notifications_Menu) body .contextMenu.ContextMenuPosition > .contextMenuContents {
+    padding: var(--aika-space-2);   /* the box padding + Steam's 4 px, as on the other menus */
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface-translucent);
+    box-shadow: var(--aika-shadow-menu);
+}
+
+/* Steam: ._1UgM… { padding: 2px !important } on the notifications list —
+   only !important beats it */
+html.Notifications_Menu body .contextMenu.ContextMenuPosition > .contextMenuContents.NotificationsMenu {
+    padding: var(--aika-space-2) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Menu box size (verified via CDP 2026-10-04)
+
+   1. The right rounding was clipped on every menu: the box padding was added
+      to the width (content-box), while Steam sizes the menu window to the content —
+      the box came out 8 px wider than the window (916 vs 910, the account one 314 vs 308).
+   2. Tab menus ("Store", "Library"… — the "… Supernav" windows) and the account menu
+      were wider than the text: Steam sets an inline min-width (seen 908 px).
+      Steam fits the menu window to the measured box width, so
+      sizing to content gives a window as wide as the longest label + equal
+      padding on the left and right (the item padding). The inline style can only be
+      overridden with !important. Dropdowns (DialogDropDown) are left alone:
+      there min-width is the field width, as it should be.
+   -------------------------------------------------------------------------- */
+
+html body .contextMenu.ContextMenuPosition {
+    box-sizing: border-box;
+}
+
+html:is([class*="_Supernav"], .Account_Menu) body .contextMenu.ContextMenuPosition {
+    width: max-content;
+    min-width: 0 !important;
+}
+
+/* --------------------------------------------------------------------------
+   Client tooltips (.HoverPosition > .TextToolTip; captured via
+   CDP 2026-10-04, hovering the "Downloads" gear). Steam: a light
+   plate with a radial gradient, dark text, Motiva Sans, hash (0,1,0).
+   A tooltip is one of the places with a translucent surface (DESIGN.md §11).
+   -------------------------------------------------------------------------- */
+
+html .HoverPosition .TextToolTip {
+    padding: var(--aika-space-1) var(--aika-space-2);
+    border: var(--aika-hairline) solid var(--aika-border-hover);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface-translucent);
+    box-shadow: var(--aika-shadow-menu);
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-meta);
+}
+
+/* --------------------------------------------------------------------------
+   The notifications dropdown (the bell in the header; the "Notifications Menu" window,
+   screenshots 8 and 10). Inside our .contextMenu box Steam draws its own:
+   .NotificationsMenu — a 1 px #000 border, two inset shadows, square corners and
+   a gray-blue radial background. Together with our rounded box it
+   read as a double frame (author's fix 2026-10-07) — the inner one is removed.
+   Cards use the .AllNotificationsTemplate template (regular — black 20 %,
+   unread .Unread — #3d4450 with a border, hover — #474f5c), the type
+   icon and time #8b929a / #67707b, the "new" dot is green #57a11c.
+   Classes are readable names from Steam's CSS module (next to the hash), Steam's
+   strength is (0,1,0)…(0,2,0). Verified 2026-10-07.
+   -------------------------------------------------------------------------- */
+
+html .contextMenu .contextMenuContents.NotificationsMenu {
+    border: none;
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-transparent);
+    box-shadow: none;
+}
+
+html .NotificationsMenu .NotificationHeader .AllNotificationsTitle {
+    color: var(--aika-fg);
+    font-weight: var(--aika-weight-semibold);
+}
+
+/* "View all": gray-blue #3d4450 (hover #67707b) → secondary */
+html .NotificationsMenu .NotificationHeader .AllNotificationsButton {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-surface);
+    box-shadow: var(--aika-shadow-secondary);
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html .NotificationsMenu .NotificationHeader .AllNotificationsButton:hover {
+    background-color: var(--aika-surface-hover);
+    box-shadow: var(--aika-shadow-secondary-hover);
+}
+
+html .NotificationsMenu .EmptyNotificationsCtn .EmptyNotificationsTitle {
+    color: var(--aika-fg);
+}
+
+html .NotificationsMenu .EmptyNotificationsCtn .EmptyNotificationsBody {
+    color: var(--aika-fg-subtle);
+}
+
+/* The list: cards with a gap and rounding. Steam draws a card with one of
+   its notification templates (module 75883, verified 2026-10-14):
+   .AllNotificationsTemplate (older), .StandardTemplateDesktop (wishlist sale,
+   inventory item… — black 50 % / unread #323640, 11 px #8b929a captions,
+   (0,1,0)…(0,2,0)), .PinnedTemplateDesktop (pinned on top) — all three get
+   the same Aika card. The type line is .Header > .Icon + .Title +
+   .Timestamp / .TimestampDesktop; the art — .AppLogo or .StandardLogoDimensions. */
+html .NotificationsMenu .NotificationsMenuEntriesContainer {
+    gap: var(--aika-space-1);
+}
+
+html .NotificationsMenu .NotificationMenuItem {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+}
+
+html .NotificationsMenu .NotificationMenuItem:hover {
+    background: var(--aika-transparent);
+}
+
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop) {
+    position: relative;
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        border-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop):hover {
+    border-color: var(--aika-border-hover);
+    background: var(--aika-surface-hover);
+}
+
+/* Unread — an accent backing and outline plus the Fluent mark on the left */
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop).Unread,
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop).Unread:hover {
+    border-color: var(--aika-border-accent);
+    background: var(--aika-accent-soft);
+}
+
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop).Unread::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: var(--aika-home-mark-width);
+    height: var(--aika-home-mark-height);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent);
+    box-shadow: var(--aika-home-mark-glow);
+    transform: translateY(-50%);
+}
+
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop) .StandardNotificationDescription,
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop).Unread .StandardNotificationDescription {
+    color: var(--aika-fg);
+    font-weight: var(--aika-weight-semibold);
+}
+
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop) .StandardNotificationSubText {
+    color: var(--aika-fg-muted);
+}
+
+/* The sale price inside the subtext: Steam paints it white inline
+   (style="color: rgb(255, 255, 255)") — only !important beats an inline
+   style. The discounted price is green, mono, as everywhere in the store. */
+html .NotificationsMenu .StandardNotificationSubText span[style*="color"] {
+    color: var(--aika-ok) !important;
+    font-family: var(--aika-font-mono);
+}
+
+/* The "icon · type · time" line */
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop) :is(.Title, .Header) {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-ui);
+}
+
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop) :is(.Timestamp, .TimestampDesktop) {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop) .Icon,
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop) .Icon svg {
+    color: var(--aika-accent-bright);
+    fill: var(--aika-accent-bright);
+}
+
+/* The cover/logo on the left (Steam: a black border and shadow) */
+html .NotificationsMenu .AllNotificationsTemplate .AppLogo > img,
+html .NotificationsMenu :is(.StandardTemplateDesktop, .PinnedTemplateDesktop) .StandardLogoDimensions img:not([style*="position"]) {
+    border: none;
+    border-radius: var(--aika-radius-md);
+    box-shadow: var(--aika-shadow-cover);
+}
+
+/* The "new" dot: green with a glow → accent */
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop) .NewIndicator {
+    filter: drop-shadow(0 0 4px var(--aika-accent-glow));
+}
+
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop) .NewIndicator svg {
+    color: var(--aika-accent-bright);
+}
+
+/* The dot sits absolutely at the top right (10 px in) — over the end of
+   the mono time; the type line makes room for it */
+html .NotificationsMenu :is(.AllNotificationsTemplate, .StandardTemplateDesktop, .PinnedTemplateDesktop):has(> .NewIndicator) .Header {
+    padding-right: var(--aika-space-3);
+}
+
+/* Card Nav: the header and the cards rise one after another while the box
+   unfolds (the common menu animation above covers .contextMenuItem only) */
+html .contextMenu.ready .NotificationsMenu :is(.NotificationHeader, .NotificationMenuItem) {
+    animation: aika-notice-in var(--aika-cardnav-card-dur) var(--aika-ease-fold) backwards;
+    animation-delay: calc(var(--aika-cardnav-item-delay) + var(--aika-notice-i, 0) * var(--aika-cardnav-notice-stagger));
+}
+
+@keyframes aika-notice-in {
+    from {
+        opacity: 0;
+        transform: translateY(var(--aika-cardnav-notice-rise));
+    }
+}
+
+html .NotificationsMenu .NotificationMenuItem:nth-child(1) { --aika-notice-i: 1; }
+html .NotificationsMenu .NotificationMenuItem:nth-child(2) { --aika-notice-i: 2; }
+html .NotificationsMenu .NotificationMenuItem:nth-child(3) { --aika-notice-i: 3; }
+html .NotificationsMenu .NotificationMenuItem:nth-child(4) { --aika-notice-i: 4; }
+html .NotificationsMenu .NotificationMenuItem:nth-child(n + 5) { --aika-notice-i: 5; }
+
+/* Native popup surfaces crop external shadows to a rectangular OS window.
+   Keep the rounded material and inset rim, with transparent pixels outside. */
+/* The Add a Game FAB has separate circles/pills and must have no outer rim. */
+html.ContextMenuPopup body .contextMenu.ContextMenuPosition:not(:has(> .AddGameMenu)),
+html.ContextMenuPopup:is(.Account_Menu, .Notifications_Menu) body .contextMenu.ContextMenuPosition > .contextMenuContents {
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-hover), var(--aika-highlight-top);
+    background-clip: padding-box;
+}
+
+/* Linux/Wayland popup compositing: do not paint a square backing behind
+   the rounded menu. Applies only to separate Steam context-menu windows. */
+html.aika-linux.ContextMenuPopup,
+html.aika-linux.ContextMenuPopup body,
+html.aika-linux.ContextMenuPopup body.ContextMenuPopupBody {
+    background: transparent !important;
+    background-image: none !important;
+}
+
+/* Keep rounded menu geometry without the large external dark shadow that
+   reaches the rectangular boundary of the native popup window. */
+html.aika-linux.ContextMenuPopup body .contextMenu.ContextMenuPosition {
+    box-shadow: inset 0 0 0 1px var(--aika-border-hover) !important;
+    background-clip: padding-box;
+}
+
+/* Account/notifications draw the actual rounded plate on their contents. */
+html.aika-linux.ContextMenuPopup:is(.Account_Menu, .Notifications_Menu) body
+.contextMenu.ContextMenuPosition > .contextMenuContents {
+    box-shadow: inset 0 0 0 1px var(--aika-border-hover) !important;
+    background-clip: padding-box;
+}
+
+/* --------------------------------------------------------------------------
+   Linux fix: menu windows are not truly transparent here, so everything that
+   is painted outside the window box shows as black — the soft menu shadow
+   (black strip/corners on the notifications and account menus), the
+   see-through gap above the header menus, and the unfold clip. Steam also
+   sizes the window from the box before the padding / clip settle, which cut
+   off the bottom of the View / Friends menus (the status list stopped at
+   "Offline"). Flat, shadowless menus with no extra top gap and no clip
+   animation fit the window exactly.
+   -------------------------------------------------------------------------- */
+
+html.aika-linux body .contextMenu.ContextMenuPosition,
+html.aika-linux body .contextMenu.ContextMenuPosition.ready,
+html.aika-linux.aika-menu-js:not(.aika-menu-open) body .contextMenu.ContextMenuPosition.ready,
+html.aika-linux .aika-menu {
+    animation: none !important;
+    clip-path: none !important;
+    box-shadow: none !important;
+    max-height: var(--aika-linux-menu-max-height, 100vh) !important;
+    max-width: var(--aika-linux-menu-max-width, 100vw);
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+html.aika-linux:is(.Account_Menu, .Notifications_Menu) body .contextMenu.ContextMenuPosition {
+    padding: 0 !important;
+}
+
+html.aika-linux:is(.Account_Menu, .Notifications_Menu) body .contextMenu.ContextMenuPosition > .contextMenuContents,
+html.aika-linux .contextMenu .contextMenuContents,
+html.aika-linux .contextMenu .contextMenuContents.NotificationsMenu {
+    box-shadow: none !important;
+}
+
+html.aika-linux body .contextMenu .contextMenuContents {
+    max-height: var(--aika-linux-menu-max-height, 100vh) !important;
+    max-width: var(--aika-linux-menu-max-width, 100vw);
+    box-sizing: border-box;
+    overflow: auto;
+}
+
+html.aika-linux body .contextMenu.ready .contextMenuContents > :is(.contextMenuItem, hr.Separator) {
+    animation: none !important;
+}
+
+html.aika-linux.aika-menu-js:not(.aika-menu-open) body .contextMenu.ready :is(.contextMenuContents > :is(.contextMenuItem, hr.Separator), .NotificationsMenu :is(.NotificationHeader, .NotificationMenuItem)) {
+    opacity: 1 !important;
+}
+
+/* Steam sizes the menu window from the contents box and ignores the outer
+   box's own padding, so the bottom 8 px of every menu (the last item —
+   "Offline", "Steam Replay", "Charts") fell outside the window. All spacing
+   lives inside .contextMenuContents instead; the outer box has none. */
+html.aika-linux body .contextMenu.ContextMenuPosition {
+    padding: 0 !important;
+    background: var(--aika-transparent);
+    border-radius: 0;
+}
+
+html.aika-linux body .contextMenu.ContextMenuPosition > .contextMenuContents:not(.AddGameMenu) {
+    padding: var(--aika-space-2) !important;
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface-translucent);
+}

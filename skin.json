@@ -1,0 +1,448 @@
+{
+    "name": "Aika",
+    "author": "hatewxb",
+    "description": "A warm dark theme for Steam: Fluent structure, file-system-style panels and soft spots of light on a near-black background.",
+    "version": "0.1.8",
+    "tags": ["Fluent", "Dark", "Warm", "Minimal", "WIP"],
+    "header_image": "https://raw.githubusercontent.com/hatewxb/Aika/main/screenshots/preview.gif",
+    "splash_image": "https://raw.githubusercontent.com/hatewxb/Aika/main/screenshots/store-app.jpg",
+
+    "github": {
+    "owner": "hatewxb",
+    "repo_name": "Aika"
+},
+
+    "RootColors": "root-colors.css",
+    "Steam-WebKit": "webkit.css",
+
+    "Conditions": {
+        "Color preset": {
+            "description": "The theme color set: the accent and the light spots. To set colors manually, turn on \"Custom colors\" in the \"Color set\" tab.",
+            "tab": "Main",
+            "default": "Aika",
+            "values": {
+                "Aika": {
+                    "TargetCss": { "affects": [".*"], "src": "options/presets/aika.css" }
+                },
+                "Hello Bert": {
+                    "TargetCss": { "affects": [".*"], "src": "options/presets/hello-bert.css" }
+                },
+                "Greeny": {
+                    "TargetCss": { "affects": [".*"], "src": "options/presets/greeny.css" }
+                },
+                "Rose Ash": {
+                    "TargetCss": { "affects": [".*"], "src": "options/presets/rose-ash.css" }
+                }
+            }
+        },
+        "Top bar": {
+            "description": "Where the Store, Library, Community and profile tabs sit in the top bar.",
+            "tab": "Main",
+            "default": "Center",
+            "values": {
+                "Center": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/tabs-center.css" }
+                },
+                "Left": {}
+            }
+        },
+        "Compact header": {
+            "description": "Compact: the menus, the tabs and the account buttons share one line.",
+            "tab": "Main",
+            "default": "Normal",
+            "values": {
+                "Normal": {},
+                "Compact": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/header-compact.css" }
+                }
+            }
+        },
+        "Header wordmark": {
+            "description": "The \"Aika\" name at the top left of the window: the classic serif, calligraphy, or アイカ in katakana with a brush.",
+            "tab": "Main",
+            "default": "Classic",
+            "values": {
+                "Classic": {},
+                "Calligraphy": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/wordmark-calligraphy.css" }
+                },
+                "Katakana brush": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/wordmark-syuku.css" }
+                },
+                "Katakana soft": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/wordmark-mai.css" }
+                }
+            }
+        },
+        "Preloader": {
+            "description": "The \"Sign in to Steam\" window shown while Steam starts. Classic: the cover grid in your preset's hue and a comet ring. Terminal: falling hex glyphs and the Aika logo. Horizon: a glowing planet rim. Orbits: bits circling the mark. Aurora: soft aurora sheets. Frame: a beam running round the window and a heartbeat of dots. Glitter warp: a starfield flying out of the mark. All follow the color preset; seen at the next Steam start.",
+            "tab": "Main",
+            "default": "Classic",
+            "values": {
+                "Classic": {},
+                "Terminal": {
+                    "TargetCss": { "affects": ["^(تسجيل الدخول إلى Steam|Iniciar a sessão no Steam|Вписване в Steam|Přihlášení do služby Steam|Log på Steam|Aanmelden bij Steam|Sign in to Steam|Kirjaudu Steamiin|Se connecter à Steam|Bei Steam anmelden|Σύνδεση στο Steam|Bejelentkezés a Steambe|Login ke Steam|Accedi a Steam|Steamにサインイン|Steam 로그인|Iniciar sesión en Steam|Daftar masuk ke Steam|Logg inn på Steam|Zaloguj się do Steam|Iniciar sessão no Steam|Conectează-te la Steam|Войти в Steam|登录 Steam|登录蒸汽平台|Logga in på Steam|登入 Steam|เข้าสู่ระบบ Steam|Steam'e Giriş Yap|Вхід до Steam|Đăng nhập vào Steam)$"], "src": "options/preloader-terminal.css" }
+                },
+                "Horizon": {
+                    "TargetCss": { "affects": ["^(تسجيل الدخول إلى Steam|Iniciar a sessão no Steam|Вписване в Steam|Přihlášení do služby Steam|Log på Steam|Aanmelden bij Steam|Sign in to Steam|Kirjaudu Steamiin|Se connecter à Steam|Bei Steam anmelden|Σύνδεση στο Steam|Bejelentkezés a Steambe|Login ke Steam|Accedi a Steam|Steamにサインイン|Steam 로그인|Iniciar sesión en Steam|Daftar masuk ke Steam|Logg inn på Steam|Zaloguj się do Steam|Iniciar sessão no Steam|Conectează-te la Steam|Войти в Steam|登录 Steam|登录蒸汽平台|Logga in på Steam|登入 Steam|เข้าสู่ระบบ Steam|Steam'e Giriş Yap|Вхід до Steam|Đăng nhập vào Steam)$"], "src": "options/preloader-horizon.css" }
+                },
+                "Orbits": {
+                    "TargetCss": { "affects": ["^(تسجيل الدخول إلى Steam|Iniciar a sessão no Steam|Вписване в Steam|Přihlášení do služby Steam|Log på Steam|Aanmelden bij Steam|Sign in to Steam|Kirjaudu Steamiin|Se connecter à Steam|Bei Steam anmelden|Σύνδεση στο Steam|Bejelentkezés a Steambe|Login ke Steam|Accedi a Steam|Steamにサインイン|Steam 로그인|Iniciar sesión en Steam|Daftar masuk ke Steam|Logg inn på Steam|Zaloguj się do Steam|Iniciar sessão no Steam|Conectează-te la Steam|Войти в Steam|登录 Steam|登录蒸汽平台|Logga in på Steam|登入 Steam|เข้าสู่ระบบ Steam|Steam'e Giriş Yap|Вхід до Steam|Đăng nhập vào Steam)$"], "src": "options/preloader-orbits.css" }
+                },
+                "Aurora": {
+                    "TargetCss": { "affects": ["^(تسجيل الدخول إلى Steam|Iniciar a sessão no Steam|Вписване в Steam|Přihlášení do služby Steam|Log på Steam|Aanmelden bij Steam|Sign in to Steam|Kirjaudu Steamiin|Se connecter à Steam|Bei Steam anmelden|Σύνδεση στο Steam|Bejelentkezés a Steambe|Login ke Steam|Accedi a Steam|Steamにサインイン|Steam 로그인|Iniciar sesión en Steam|Daftar masuk ke Steam|Logg inn på Steam|Zaloguj się do Steam|Iniciar sessão no Steam|Conectează-te la Steam|Войти в Steam|登录 Steam|登录蒸汽平台|Logga in på Steam|登入 Steam|เข้าสู่ระบบ Steam|Steam'e Giriş Yap|Вхід до Steam|Đăng nhập vào Steam)$"], "src": "options/preloader-aurora.css" }
+                },
+                "Frame": {
+                    "TargetCss": { "affects": ["^(تسجيل الدخول إلى Steam|Iniciar a sessão no Steam|Вписване в Steam|Přihlášení do služby Steam|Log på Steam|Aanmelden bij Steam|Sign in to Steam|Kirjaudu Steamiin|Se connecter à Steam|Bei Steam anmelden|Σύνδεση στο Steam|Bejelentkezés a Steambe|Login ke Steam|Accedi a Steam|Steamにサインイン|Steam 로그인|Iniciar sesión en Steam|Daftar masuk ke Steam|Logg inn på Steam|Zaloguj się do Steam|Iniciar sessão no Steam|Conectează-te la Steam|Войти в Steam|登录 Steam|登录蒸汽平台|Logga in på Steam|登入 Steam|เข้าสู่ระบบ Steam|Steam'e Giriş Yap|Вхід до Steam|Đăng nhập vào Steam)$"], "src": "options/preloader-frame.css" }
+                },
+                "Glitter warp": {
+                    "TargetCss": { "affects": ["^(تسجيل الدخول إلى Steam|Iniciar a sessão no Steam|Вписване в Steam|Přihlášení do služby Steam|Log på Steam|Aanmelden bij Steam|Sign in to Steam|Kirjaudu Steamiin|Se connecter à Steam|Bei Steam anmelden|Σύνδεση στο Steam|Bejelentkezés a Steambe|Login ke Steam|Accedi a Steam|Steamにサインイン|Steam 로그인|Iniciar sesión en Steam|Daftar masuk ke Steam|Logg inn på Steam|Zaloguj się do Steam|Iniciar sessão no Steam|Conectează-te la Steam|Войти в Steam|登录 Steam|登录蒸汽平台|Logga in på Steam|登入 Steam|เข้าสู่ระบบ Steam|Steam'e Giriş Yap|Вхід до Steam|Đăng nhập vào Steam)$"], "src": "options/preloader-glitter.css" }
+                }
+            }
+        },
+        "Wallet visibility": {
+            "description": "The wallet balance next to the account name in the top bar.",
+            "tab": "Elements",
+            "default": "yes",
+            "values": {
+                "yes": {},
+                "no": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/hide-wallet.css" }
+                }
+            }
+        },
+        "URL visibility": {
+            "description": "The address capsule over store and community pages, top left (takes a Steam restart to reach the pages).",
+            "tab": "Elements",
+            "default": "yes",
+            "values": {
+                "yes": {},
+                "no": {
+                    "TargetCss": { "affects": [".*"], "src": "options/hide-url.css" }
+                }
+            }
+        },
+        "What's New visibility": {
+            "description": "The \"What's New\" shelf at the top of the library home.",
+            "tab": "Elements",
+            "default": "yes",
+            "values": {
+                "yes": {},
+                "no": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/hide-whats-new.css" }
+                }
+            }
+        },
+        "Add Shelf visibility": {
+            "description": "The \"Add shelf\" row at the bottom of the library home.",
+            "tab": "Elements",
+            "default": "yes",
+            "values": {
+                "yes": {},
+                "no": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/hide-add-shelf.css" }
+                }
+            }
+        },
+        "Steam News visibility": {
+            "description": "The Steam news (megaphone) button in the top bar.",
+            "tab": "Elements",
+            "default": "yes",
+            "values": {
+                "yes": {},
+                "no": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/hide-news.css" }
+                }
+            }
+        },
+        "Friends background": {
+            "description": "The pattern behind the friends list: a halftone wave of dots, softly blinking squares, or only the light spots. Drawn at a few frames a second, paused while the window is hidden; one still frame on Performance: Low.",
+            "tab": "Friends list",
+            "default": "Halftone wave",
+            "values": {
+                "Halftone wave": {
+                    "TargetCss": { "affects": [".*"], "src": "options/friends-bg-halftone.css" }
+                },
+                "Blinking squares": {
+                    "TargetCss": { "affects": [".*"], "src": "options/friends-bg-squares.css" }
+                },
+                "Off": {}
+            }
+        },
+        "Friends background opacity": {
+            "description": "How visible the pattern behind the friends list is.",
+            "tab": "Friends list",
+            "default": 25,
+            "slider": {
+                "cssVariable": "--aika-setting-fl-bg-opacity",
+                "min": 5,
+                "max": 100,
+                "step": 5,
+                "unit": "%"
+            }
+        },
+        "Offline friends": {
+            "description": "The friends list's offline group: a grid of faces (the name shows on hover) or Steam's list.",
+            "tab": "Friends list",
+            "default": "Faces",
+            "values": {
+                "Faces": {
+                    "TargetCss": { "affects": [".*"], "src": "options/friends-offline-faces.css" }
+                },
+                "List": {}
+            }
+        },
+        "Friend search": {
+            "description": "The search in the Friends tab. Magnifier: a round button that stretches into a field when clicked. Command line: always a field, monospace, with a \"›\" prompt and the number of friends found.",
+            "tab": "Friends list",
+            "default": "Magnifier",
+            "values": {
+                "Magnifier": {},
+                "Command line": {
+                    "TargetCss": { "affects": [".*"], "src": "options/friends-search-cmd.css" }
+                }
+            }
+        },
+        "Friends list layout": {
+            "description": "Only the list density: regular or compact. As in Steam keeps Steam's density setting. Game banners are controlled separately below.",
+            "tab": "Friends list",
+            "default": "As in Steam",
+            "values": {
+                "As in Steam": {},
+                "Regular": {
+                    "TargetCss": { "affects": [".*"], "src": "options/friends-list-normal.css" }
+                },
+                "Dense": {
+                    "TargetCss": { "affects": [".*"], "src": "options/friends-list-compact.css" }
+                }
+            }
+        },
+        "Friends game banners": {
+            "description": "Show game artwork and compact game/lobby cards in the friends list. Off uses plain Steam rows and group headings, keeping names, game status and party information.",
+            "tab": "Friends list",
+            "default": "On",
+            "values": {
+                "On": {},
+                "Off": {
+                    "TargetCss": { "affects": [".*"], "src": "options/friends-banners-off.css" }
+                }
+            }
+        },
+        "Performance": {
+            "description": "How much the theme moves on its own. Full: everything as designed (the default; already tuned to cost as little as it can). Balanced: fewer moving elements on and around items — no light following the cursor around store blocks and library panels, no shimmer on Play, no glares or light sweeps, 3D tilt covers lift instead, the Cinematic description stays still, the background light spots stand still; menus, hovers, page transitions, trailers, the store backgrounds (30 frames a second) and the glass notifications stay. Low: no Aika motion and no heavy effects at all — every look stays, but nothing the theme added moves (only Steam's own animations remain); the light spots are one still picture, no backdrop blur, no glass on notifications, no animated store backgrounds, no trailers playing behind the Cinematic page.",
+            "tab": "Animations",
+            "default": "Full",
+            "values": {
+                "Full": {},
+                "Balanced": {
+                    "TargetCss": { "affects": [".*"], "src": "options/perf-balanced.css" }
+                },
+                "Low": {
+                    "TargetCss": { "affects": [".*"], "src": "options/perf-low.css" }
+                }
+            }
+        },
+        "Store": {
+            "description": "The layout of a game's store page. Cinematic: the trailers play muted over the whole window behind the logo, price and buttons, with a media gallery below; the editions and everything else stay as in Classic. Needs theme scripts.",
+            "tab": "Animations",
+            "default": "Cinematic",
+            "values": {
+                "Cinematic": {
+                    "TargetCss": { "affects": [".*"], "src": "options/store-cinematic.css" }
+                },
+                "Classic": {}
+            }
+        },
+        "Library scrolling": {
+            "description": "Mouse-wheel motion in the left library game list only. Standard (default): Steam scrolling. Soft: optional short, smooth easing. Cinematic: optional longer glide with short, fading motion trails away from the cursor; the area around the cursor stays sharp. Keyboard and scrollbar dragging stay native; Low performance and reduced motion use Standard.",
+            "tab": "Animations",
+            "default": "Standard",
+            "values": {
+                "Standard": {},
+                "Soft": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/scroll-soft.css" }
+                },
+                "Cinematic": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/scroll-cinematic.css" }
+                }
+            }
+        },
+        "Library covers": {
+            "description": "How game covers in the library (Home shelves, collections) react to the cursor. 3D tilt: the cover turns toward the cursor in 3D with a moving glare. Lift: it rises a little. Zoom: the art zooms in its frame with a glare sweep.",
+            "tab": "Animations",
+            "default": "3D tilt",
+            "values": {
+                "3D tilt": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/covers-tilt.css" }
+                },
+                "Lift": {},
+                "Zoom": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/covers-zoom.css" }
+                }
+            }
+        },
+        "Cover press": {
+            "description": "What a library cover does while you hold the mouse button on it. Press: it sinks a little. Ripple: rings of accent light run out from the press point. Charge: an accent line runs round its edge and the cover lights up once it closes. Off: nothing.",
+            "tab": "Animations",
+            "default": "Press",
+            "values": {
+                "Press": {},
+                "Ripple": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/hold-ripple.css" }
+                },
+                "Charge": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/hold-charge.css" }
+                },
+                "Off": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/hold-off.css" }
+                }
+            }
+        },
+        "Cursor glow": {
+            "description": "A soft accent glow under the cursor on large library blocks (game page panels, What's New, collections).",
+            "tab": "Animations",
+            "default": "yes",
+            "values": {
+                "yes": {},
+                "no": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/spotlight-off.css" }
+                }
+            }
+        },
+        "Cursor glow radius": {
+            "description": "The size of the cursor glow, in pixels.",
+            "tab": "Animations",
+            "default": 160,
+            "slider": {
+                "cssVariable": "--aika-setting-spot-size",
+                "min": 60,
+                "max": 400,
+                "step": 20,
+                "unit": "px"
+            }
+        },
+        "Privacy blur": {
+            "description": "Blurs the wallet balance (or the account name and the balance) in the top-right account button until you hover over it; inside its menu the login and the balance are blurred until hovered — handy for streams and screenshots.",
+            "tab": "Advanced",
+            "default": "Balance",
+            "values": {
+                "Balance": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$", "^Account Menu$"], "src": "options/privacy-balance.css" }
+                },
+                "Name and balance": {
+                    "TargetCss": { "affects": ["^(Steam|Steam Games List)$", "^Account Menu$"], "src": "options/privacy-account.css" }
+                },
+                "Off": {}
+            }
+        },
+        "Notification wordmark": {
+            "description": "Background wordmark on notification toasts: Gothic, brush-style Aika, katakana アイカ like the header, or Off. Glass and abstract lights remain in every option.",
+            "tab": "Advanced",
+            "default": "Gothic",
+            "values": {
+                "Gothic": {},
+                "Japanese": {
+                    "TargetCss": { "affects": [".*"], "src": "options/toast-mark-brush.css" }
+                },
+                "Katakana": {
+                    "TargetCss": { "affects": [".*"], "src": "options/toast-mark-katakana.css" }
+                },
+                "Off": {
+                    "TargetCss": { "affects": [".*"], "src": "options/toast-mark-off.css" }
+                }
+            }
+        },
+        "Notification opacity": {
+            "description": "How much a notification covers the desktop: lower is more transparent.",
+            "tab": "Advanced",
+            "default": 62,
+            "slider": {
+                "cssVariable": "--aika-setting-toast-tint",
+                "min": 20,
+                "max": 95,
+                "step": 5,
+                "unit": "%"
+            }
+        },
+        "Custom colors": {
+            "description": "Use your own colors instead of the preset. The colors themselves (accent, accent hover, three light spots) are on the \"Colors\" page right below.",
+            "tab": "Color set",
+            "default": "no",
+            "values": {
+                "no": {},
+                "yes": {
+                    "TargetCss": { "affects": [".*"], "src": "options/colors-manual.css" }
+                }
+            }
+        }
+    },
+
+    "Patches": [
+        {
+            "MatchRegexString": "^(Steam|Steam Games List)$",
+            "TargetCss": "main.css",
+            "TargetJs": "js/client-main.js"
+        },
+        {
+            "MatchRegexString": ".ModalDialogPopup",
+            "TargetCss": "main.css",
+            "TargetJs": "js/client-classes.js"
+        },
+        {
+            "MatchRegexString": ".friendsui-container",
+            "TargetCss": "main.css",
+            "TargetJs": "js/client-friends.js"
+        },
+        {
+            "MatchRegexString": ".ContextMenuPopup",
+            "TargetCss": "popup.css",
+            "TargetJs": "js/client-menu-motion.js"
+        },
+        {
+            "MatchRegexString": ".DesktopToastContainer",
+            "TargetCss": "toast.css",
+            "TargetJs": "js/client-toast.js"
+        },
+        {
+            "MatchRegexString": "^SP Overlay:.*",
+            "TargetCss": "overlay.css"
+        },
+        {
+            "MatchRegexString": "^(تسجيل الدخول إلى Steam|Iniciar a sessão no Steam|Вписване в Steam|Přihlášení do služby Steam|Log på Steam|Aanmelden bij Steam|Sign in to Steam|Kirjaudu Steamiin|Se connecter à Steam|Bei Steam anmelden|Σύνδεση στο Steam|Bejelentkezés a Steambe|Login ke Steam|Accedi a Steam|Steamにサインイン|Steam 로그인|Iniciar sesión en Steam|Daftar masuk ke Steam|Logg inn på Steam|Zaloguj się do Steam|Iniciar sessão no Steam|Conectează-te la Steam|Войти в Steam|登录 Steam|登录蒸汽平台|Logga in på Steam|登入 Steam|เข้าสู่ระบบ Steam|Steam'e Giriş Yap|Вхід до Steam|Đăng nhập vào Steam)$",
+            "TargetCss": "login.css",
+            "TargetJs": "js/client-classes.js"
+        },
+        {
+            "MatchRegexString": "^https://store\\.steampowered\\.com/app/.*",
+            "TargetJs": "js/store-app.js"
+        },
+        {
+            "MatchRegexString": "^https://store\\.steampowered\\.com/(\\?.*)?$",
+            "TargetJs": "js/store-home.js"
+        },
+        {
+            "MatchRegexString": "^https://store\\.steampowered\\.com/search/.*",
+            "TargetJs": "js/store-search.js"
+        },
+        {
+            "MatchRegexString": "^https://store\\.steampowered\\.com/wishlist/.*",
+            "TargetJs": "js/store-wishlist.js"
+        },
+        {
+            "MatchRegexString": "^https://steamcommunity\\.com/(id|profiles)/[^/]+/home.*",
+            "TargetJs": "js/community-activity.js"
+        },
+        {
+            "MatchRegexString": "^https://(store\\.steampowered|steamcommunity)\\.com/.*",
+            "TargetJs": "js/pin-slots.js"
+        },
+        {
+            "MatchRegexString": "^https://(store\\.steampowered|steamcommunity)\\.com/.*",
+            "TargetJs": "js/url-capsule.js"
+        },
+        {
+            "MatchRegexString": "^https://steamcommunity\\.com/(id|profiles)/[^/]+/screenshots.*",
+            "TargetJs": "js/content-shelves.js"
+        }
+    ]
+}

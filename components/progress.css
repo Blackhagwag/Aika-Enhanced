@@ -1,0 +1,64 @@
+/* ==========================================================================
+   components/progress.css — progress bars (DESIGN.md §4, Progress).
+
+   A 4 px --aika-surface track, the fill is an accent gradient; a light
+   stripe slowly runs across the fill (transform of a pseudo-element, not
+   background-position — we animate only transform/opacity). With
+   --aika-motion: 0 there is no stripe. Percent and speed use .aika-meta.
+
+   Own classes: .aika-progress > .aika-progress__fill (width is inline).
+
+   Steam (captured via CDP 2026-10-04):
+     .AchievementProgressContainer > .AchievementProgress — achievements
+       on the game page; Steam (0,1,0), ours (0,1,1)…(0,2,1).
+   TODO: the download bar in the bottom panel and on the "Downloads" page —
+   capture the classes while a download is running (it's not in the DOM now).
+   ========================================================================== */
+
+@keyframes aika-shimmer {
+    from {
+        transform: translateX(var(--aika-shine-from));
+    }
+    to {
+        transform: translateX(var(--aika-shine-to));
+    }
+}
+
+/* Track */
+.aika-progress,
+html .AchievementProgressContainer {
+    position: relative;
+    height: var(--aika-progress-height);
+    overflow: hidden;
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-surface);
+}
+
+/* Fill */
+.aika-progress__fill,
+html .AchievementProgressContainer .AchievementProgress {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    border-radius: inherit;
+    background: var(--aika-progress-fill);
+}
+
+/* Shimmer */
+.aika-progress__fill::after,
+html .AchievementProgressContainer .AchievementProgress::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--aika-shine-gradient);
+    opacity: var(--aika-motion);
+    animation: aika-shimmer var(--aika-dur-shimmer) var(--aika-ease-ambient) infinite;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aika-progress__fill::after,
+    html .AchievementProgressContainer .AchievementProgress::after {
+        animation: none;
+    }
+}

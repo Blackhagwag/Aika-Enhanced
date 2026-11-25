@@ -1,0 +1,12 @@
+/* ==========================================================================
+   The "Aika" wordmark in notifications as a "Japanese brush" (Shojumaru)
+   instead of blackletter. Conditions "Notification wordmark" → "Japanese"
+   ("Main → Notification wordmark"). Shojumaru letters are wider — the mark is a bit smaller and calmer.
+   ========================================================================== */
+
+html:root {
+    --aika-toast-mark-font: var(--aika-font-brush);
+    --aika-toast-mark-size: 40px;
+    --aika-toast-mark-bottom: 6px;
+    --aika-toast-mark-tilt: -3deg;
+}

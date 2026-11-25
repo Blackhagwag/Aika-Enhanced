@@ -1,0 +1,512 @@
+/* ==========================================================================
+   components/input.css — text fields and dropdowns (DESIGN.md §4, Inputs).
+
+   Steam (captured via CDP 2026-10-04):
+     input.DialogTextInputBase  — text fields in every dialog
+     button._DialogInputContainer.DialogDropDown — a dropdown
+   Steam's base rule is ".DialogTextInputBase, ._DialogInputContainer"
+   (0,1,0); ours is html + tag/class — stronger, without !important.
+
+   Individual fields with hash rules (the search in the library's left panel)
+   are finished in sections / selectors.css.
+   Toggles (.Toggle > .ToggleRail + .ToggleSwitch, on — .On)
+   and checkboxes (.DialogCheckbox) — captured in the settings window 2026-10-04, see the end of the file.
+   ========================================================================== */
+
+html :is(.aika-input, input.DialogTextInputBase, .Login input.TextInput, button._DialogInputContainer) {
+    background-color: var(--aika-bg-raised);
+    border: var(--aika-hairline) solid var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+    box-shadow: none;
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+    font-weight: var(--aika-weight-regular);
+    transition:
+        border-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html :is(.aika-input, input.DialogTextInputBase, .Login input.TextInput, button._DialogInputContainer):hover {
+    border-color: var(--aika-border-hover);
+}
+
+/* Focus: an accent border + a soft ring. That ring is the focus indicator,
+   so the outline from base.css isn't needed here — otherwise there'd be two rings. */
+html :is(.aika-input, input.DialogTextInputBase, .Login input.TextInput, button._DialogInputContainer):focus-visible,
+html :is(.aika-input, input.DialogTextInputBase, .Login input.TextInput):focus {
+    border-color: var(--aika-accent);
+    box-shadow: var(--aika-shadow-input-focus);
+    outline: none;
+}
+
+html :is(.aika-input, input.DialogTextInputBase, .Login input.TextInput)::placeholder {
+    color: var(--aika-fg-subtle);
+}
+
+/* An open dropdown — same as focused */
+html button._DialogInputContainer[aria-expanded="true"] {
+    border-color: var(--aika-accent);
+    box-shadow: var(--aika-shadow-input-focus);
+}
+
+/* Dropdowns in the library filters (.CompatDropDown, "Controller support" etc.):
+   Steam repaints them with a (0,2,0) rule — restore our background */
+html .CompatDropDown button._DialogInputContainer {
+    background-color: var(--aika-bg-raised);
+}
+
+/* The dropdown arrow: Steam paints it gray rgb(150,150,150) with a rule
+   up to (0,3,1), and light blue in places — ours is (0,3,3)…(0,4,3) */
+html button._DialogInputContainer .DialogDropDown_Arrow svg.SVGIcon_Button,
+html button._DialogInputContainer .DialogDropDown_Arrow svg.SVGIcon_Button polygon {
+    fill: var(--aika-fg-subtle);
+}
+
+html button._DialogInputContainer:hover .DialogDropDown_Arrow svg.SVGIcon_Button,
+html button._DialogInputContainer:hover .DialogDropDown_Arrow svg.SVGIcon_Button polygon {
+    fill: var(--aika-fg-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Toggles: .Toggle(.On) > .ToggleRail (white 15 %) + .ToggleSwitch
+   (a white knob). Steam — hash twins (0,1,0)…(0,3,0).
+   On — an accent track, a light knob.
+   -------------------------------------------------------------------------- */
+
+html .Toggle .ToggleRail {
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-surface-active);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-strong);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .Toggle:hover .ToggleRail {
+    background: var(--aika-surface-hover);
+}
+
+/* On — the main lavender accent (not --aika-accent-fill: that one is darkened
+   for white button text and reads blue-indigo on a small track —
+   author's fix 2026-10-04: "the switches are blue"), a soft glow */
+html .Toggle.On .ToggleRail {
+    background: var(--aika-accent);
+    box-shadow: 0 0 var(--aika-space-2) var(--aika-accent-glow);
+}
+
+html .Toggle.On:hover .ToggleRail {
+    background: var(--aika-accent-bright);
+    box-shadow: 0 0 var(--aika-space-2) var(--aika-accent-glow);
+}
+
+html .Toggle .ToggleSwitch {
+    background: var(--aika-fg);
+    box-shadow: var(--aika-shadow-card);
+}
+
+/* --------------------------------------------------------------------------
+   .DialogCheckbox checkboxes (black 27 %, hover — almost black). Individual
+   places with special coloring (the red "block" on invites etc.)
+   are styled by Steam's own rules — we leave them alone.
+   -------------------------------------------------------------------------- */
+
+html .DialogCheckbox {
+    border-radius: var(--aika-radius-xs);
+    background-color: var(--aika-surface-active);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-strong);
+}
+
+html :is(.DialogCheckbox_Container:hover .DialogCheckbox:not(.Disabled), .DialogCheckbox:hover:not(.Disabled)) {
+    background-color: var(--aika-surface-hover);
+}
+
+html .DialogCheckbox svg,
+html .DialogCheckbox svg path {
+    color: var(--aika-accent-bright);
+    fill: var(--aika-accent-bright);
+}
+
+/* The tick's outline is a blue gradient stroke (seen in Properties → DLC) */
+html .DialogCheckbox svg path {
+    stroke: none;
+}
+
+/* The ring around a toggle on hover/focus (Steam: white 30 %,
+   ".hash:not(.hash):hover" (0,3,0) — we use :not() too) */
+html .Toggle:not(.Disabled):is(:hover, :focus-visible, .gpfocus) {
+    box-shadow: 0 0 0 var(--aika-space-1) var(--aika-accent-haze);
+}
+
+/* A dropdown on hover in dialog windows: Steam has
+   ".hash .DialogDropDown:hover" (0,3,0) — gray #464d58 (e.g. picking a drive
+   in "Storage"). We repeat our hover, stronger. */
+html button._DialogInputContainer.DialogDropDown:not(.Disabled):hover {
+    background-color: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+/* --------------------------------------------------------------------------
+   An open dropdown list inside a window (.DialogMenuPosition >
+   .DialogDropDownMenu._DialogInputContainer, items .DialogDropDownMenu_Item) —
+   e.g. picking a drive in "Storage". Steam: #373c44 with 3 px rounding,
+   the selected/hovered item #3e444d, (0,2,0). Like the Aika menu
+   (components/menu.css): a translucent surface, a shadow, rounding.
+   -------------------------------------------------------------------------- */
+
+/* Opaque (2026-10-20): unlike a menu window it opens over the window's own
+   rows — through 92 % the setting labels under it read through its items
+   (the Millennium theme editor's tab list) */
+html .DialogDropDownMenu._DialogInputContainer {
+    padding: var(--aika-space-1);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-bg-raised);
+    box-shadow: var(--aika-shadow-menu);
+}
+
+html .DialogDropDownMenu .DialogDropDownMenu_Item {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-transparent);
+    color: var(--aika-fg-muted);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .DialogDropDownMenu .DialogDropDownMenu_Item:is(:hover, :focus, .ContextMenuAutoFocus) {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+/* Drive items: name, size (mono), icon; "Add Drive…" */
+html .DialogDropDownMenu .InstallDropdownOption .DriveName {
+    color: var(--aika-fg);
+}
+
+html .DialogDropDownMenu .InstallDropdownOption .DriveSize {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+html .DialogDropDownMenu :is(.InstallDropdownOption, .AddFolderDropdownOption) > svg path {
+    fill: var(--aika-fg-subtle);
+}
+
+html .DialogDropDownMenu .AddFolderDropdownOption {
+    color: var(--aika-fg-muted);
+}
+
+/* The "default" star on a drive (yellow, color on the svg) */
+html :is(.DialogDropDownMenu, .DialogDropDown) .DriveName .tool-tip-source > svg {
+    color: var(--aika-warn);
+}
+
+/* The same in the closed dropdown field (the current drive) */
+html .DialogDropDown .InstallDropdownOption .DriveName {
+    color: var(--aika-fg);
+}
+
+html .DialogDropDown .InstallDropdownOption .DriveSize {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+html .DialogDropDown .InstallDropdownOption > svg path {
+    fill: var(--aika-fg-subtle);
+}
+
+/* The "on" fill is actually drawn by the track's ::before: Steam shifts
+   it with translateX (off — slides away to the left), color #1a9fff (0,1,1).
+   It hid from checking the computed styles of .ToggleRail itself — found
+   from the author's screenshot 2026-10-04. */
+html .Toggle .ToggleRail {
+    overflow: hidden;
+}
+
+html .Toggle .ToggleRail::before {
+    background: var(--aika-accent);
+}
+
+html .Toggle.On:hover .ToggleRail::before {
+    background: var(--aika-accent-bright);
+}
+
+/* --------------------------------------------------------------------------
+   Sliders (.SliderControl > .SliderTrack(::before — the fill) + .SliderHandle):
+   Steam's fill is var(--left-track-color, #1a9fff) on ::before, the track is
+   white 15 %, the handle is a white knob with a black shadow. Found by an audit
+   of pseudo-elements 2026-10-04 (settings: "Accessibility", "Voice", "Music").
+   The store player sets its own values in selectors.css — stronger there.
+   -------------------------------------------------------------------------- */
+
+html .SliderControl .SliderTrack {
+    --left-track-color: var(--aika-accent);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-surface-active);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+}
+
+html .SliderControl .SliderTrack::before {
+    border-radius: var(--aika-radius-full);
+    background: var(--left-track-color);
+}
+
+html .SliderControl:hover .SliderTrack {
+    --left-track-color: var(--aika-accent-bright);
+}
+
+html .SliderControl .SliderHandle {
+    background: var(--aika-fg);
+    box-shadow: var(--aika-shadow-card);
+}
+
+/* --------------------------------------------------------------------------
+   A segmented toggle group (.Shared_Radio_Group > .Button.RadioButton, the selected one —
+   .Active; Steam has a blue radial gradient, dividers — ::before #3d4450)
+   -------------------------------------------------------------------------- */
+
+html .Shared_Radio_Group > .Button.RadioButton.Active,
+html .Shared_Radio_Group > .Button.RadioButton.Active:hover {
+    background: var(--aika-accent-soft);
+    color: var(--aika-fg);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+}
+
+/* The divider between unselected ones: Steam has ".hash:not(.hash) + .hash:not(.hash)::before" (0,4,1) */
+html .Shared_Radio_Group > .Button.RadioButton:not(.Active) + .Button.RadioButton:not(.Active)::before {
+    background: var(--aika-border);
+}
+
+/* The PIN field (moved here from sections/settings.css 2026-10-08 — shared):
+   Family View in the client (.GenericConfirmDialog) and on community pages
+   (#parental_main_content, the "Family View" web page).
+   Four cells.  The dots are monospace with a --aika-pin-pitch step,
+   the first shifted to the cell center; under each cell — a dash
+   (a repeating gradient). The dash color is --aika-pin-line (by state). */
+html :is(.GenericConfirmDialog .Body > input.TextInput[type="password"], #parental_main_content form input[type="password"]) {
+    --aika-pin-line: var(--aika-border-strong);
+    /* The same footprint as the script's cells (.aika-pin-js below), so the
+       dialog never changes size when they take over */
+    --aika-pin-box: calc(var(--aika-pin-digits) * var(--aika-pin-cell) + (var(--aika-pin-digits) - 1) * var(--aika-pin-gap));
+    --aika-pin-pad: calc((var(--aika-pin-box) - var(--aika-pin-digits) * var(--aika-pin-pitch)) / 2);
+    box-sizing: border-box;
+    width: var(--aika-pin-box);
+    max-width: none;
+    height: var(--aika-pin-height);
+    padding: 0 var(--aika-pin-pad);
+    border: var(--aika-hairline) solid var(--aika-border-strong);
+    border-radius: var(--aika-radius-lg);
+    background:
+        repeating-linear-gradient(
+            90deg,
+            var(--aika-transparent) 0 var(--aika-pin-line-inset),
+            var(--aika-pin-line) var(--aika-pin-line-inset) calc(var(--aika-pin-pitch) - var(--aika-pin-line-inset)),
+            var(--aika-transparent) calc(var(--aika-pin-pitch) - var(--aika-pin-line-inset)) var(--aika-pin-pitch)
+        )
+        var(--aika-pin-pad) calc(100% - var(--aika-pin-line-bottom)) / calc(var(--aika-pin-digits) * var(--aika-pin-pitch)) var(--aika-pin-line-width) no-repeat,
+        var(--aika-bg-raised);
+    box-shadow: none;
+    color: var(--aika-fg);
+    caret-color: var(--aika-accent);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-pin-font-size);
+    letter-spacing: calc(var(--aika-pin-pitch) - var(--aika-pin-glyph));
+    text-align: left;
+    text-indent: calc((var(--aika-pin-pitch) - var(--aika-pin-glyph)) / 2);
+    transition:
+        border-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+/* Until js/pin-slots.js lays its cells over the field, the field is not shown
+   in this no-script look — otherwise it flashed for a moment and then turned
+   into the cells (author 2026-10-12: "it first shows our old interface, then
+   abruptly the new one"). The client dialog gets the cells in the same frame;
+   a web page gets the script only at full load. No script at all — this look
+   fades in after --aika-pin-fallback-delay. */
+@keyframes aika-pin-fallback {
+    to { opacity: 1; }
+}
+
+html :is(.GenericConfirmDialog .Body > input.TextInput[type="password"], #parental_main_content form input[type="password"]):not(.aika-pin-js) {
+    opacity: 0;
+    animation: aika-pin-fallback var(--aika-dur-base) var(--aika-ease) var(--aika-pin-fallback-delay) forwards;
+}
+
+html :is(.GenericConfirmDialog .Body > input.TextInput[type="password"], #parental_main_content form input[type="password"]):hover {
+    border-color: var(--aika-border-hover);
+}
+
+html :is(.GenericConfirmDialog .Body > input.TextInput[type="password"], #parental_main_content form input[type="password"]):focus {
+    --aika-pin-line: var(--aika-border-accent);
+    border-color: var(--aika-accent);
+    box-shadow: var(--aika-shadow-input-focus);
+    outline: none;
+}
+
+/* The PIN as four animated cells (js/pin-slots.js; the idea — reactbits.dev
+   "Code Slots", the motion — Aika's: expo-out, no spring, DESIGN.md §1).
+   The script marks the field .aika-pin-js and puts .aika-pin-slots right after
+   it, over it: the field turns see-through (it still takes focus, typing and
+   submit), the cells draw everything. Without the script — the box above. */
+/* The same :is() as the field rules above (an id inside — (1,1,3)) plus the
+   class, otherwise their background dashes, border and focus ring show
+   between the cells */
+html :is(.GenericConfirmDialog .Body > input.TextInput[type="password"], #parental_main_content form input[type="password"]).aika-pin-js {
+    box-sizing: border-box;
+    width: calc(var(--aika-pin-digits) * var(--aika-pin-cell) + (var(--aika-pin-digits) - 1) * var(--aika-pin-gap));
+    padding: 0;
+    border-color: var(--aika-transparent);
+    background: var(--aika-transparent);
+    box-shadow: none;
+    color: var(--aika-transparent);
+    caret-color: var(--aika-transparent);
+}
+
+html :is(.GenericConfirmDialog .Body > input.TextInput[type="password"], #parental_main_content form input[type="password"]).aika-pin-js:is(:hover, :focus) {
+    border-color: var(--aika-transparent);
+    box-shadow: none;
+}
+
+/* The row's parent — marked by the script. Not :has(> .aika-pin-slots) on
+   any element: a :has() with no element in front sat on every page and
+   taxed every style recalc (performance pass 2026-10-14). */
+html .aika-pin-host {
+    position: relative;
+}
+
+html .aika-pin-slots {
+    position: absolute;
+    display: grid;
+    grid-template-columns: repeat(var(--aika-pin-digits), 1fr);
+    gap: var(--aika-pin-gap);
+    pointer-events: none;
+}
+
+html .aika-pin-cell {
+    position: relative;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-bg-raised);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-strong), var(--aika-highlight-top);
+    transition: box-shadow var(--aika-dur-base) var(--aika-ease), background-color var(--aika-dur-base) var(--aika-ease-hover);
+}
+
+/* The cell the next digit goes into — the input focus ring, on the cell */
+html .aika-pin-cell.is-active {
+    box-shadow:
+        inset 0 0 0 var(--aika-hairline) var(--aika-accent),
+        var(--aika-shadow-input-focus);
+}
+
+/* The accent fill grows from the center of the cell (and shrinks back) */
+html .aika-pin-fill {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--aika-accent-fill);
+    box-shadow: inset 0 var(--aika-hairline) 0 0 var(--aika-highlight-cta);
+    opacity: 0;
+    transform: scale(var(--aika-pin-fill-from));
+    transition:
+        transform var(--aika-dur-base) var(--aika-ease) var(--aika-pin-delay, 0ms),
+        opacity var(--aika-dur-fast) var(--aika-ease-hover) var(--aika-pin-delay, 0ms);
+}
+
+html .aika-pin-dot {
+    position: relative;
+    width: var(--aika-pin-dot);
+    height: var(--aika-pin-dot);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-on-accent);
+    opacity: 0;
+    transform: translateY(var(--aika-pin-drop)) scale(var(--aika-press-scale));
+    transition:
+        transform var(--aika-dur-base) var(--aika-ease) var(--aika-pin-delay, 0ms),
+        opacity var(--aika-dur-fast) var(--aika-ease-hover) var(--aika-pin-delay, 0ms);
+}
+
+/* Filled: its own accent outline and a short soft shadow — the CTA glow
+   (12 px wide) reached the neighbors and merged into one uneven blot */
+html .aika-pin-cell.is-filled {
+    box-shadow: var(--aika-pin-shadow-filled);
+}
+
+html .aika-pin-cell.is-filled .aika-pin-fill {
+    opacity: 1;
+    transform: none;
+}
+
+/* In: the dot starts a little low and rises into place (Steam's typing is
+   instant — the motion is all ours); out — it drops further and fades */
+@keyframes aika-pin-rise {
+    from {
+        opacity: 0;
+        transform: translateY(var(--aika-pin-rise));
+    }
+}
+
+html .aika-pin-cell.is-filled .aika-pin-dot {
+    opacity: 1;
+    transform: none;
+    animation: aika-pin-rise var(--aika-dur-enter) var(--aika-ease);
+}
+
+/* The caret: glides to the active cell (a transform across the row), blinks
+   in steps like a terminal cursor (DESIGN.md §3.6, --aika-ease-term) */
+@keyframes aika-pin-blink {
+    50% { opacity: 0; }
+}
+
+html .aika-pin-caret {
+    position: absolute;
+    left: 0;
+    top: calc((100% - var(--aika-pin-caret-height)) / 2);
+    width: calc((100% - (var(--aika-pin-digits) - 1) * var(--aika-pin-gap)) / var(--aika-pin-digits));
+    height: var(--aika-pin-caret-height);
+    opacity: 0;
+    transform: translateX(calc(var(--aika-pin-active, 0) * (100% + var(--aika-pin-gap))));
+    transition:
+        transform var(--aika-dur-base) var(--aika-ease),
+        opacity var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .aika-pin-caret::before {
+    content: "";
+    display: block;
+    width: var(--aika-pin-caret-width);
+    height: 100%;
+    margin: 0 auto;
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent-bright);
+    box-shadow: var(--aika-pin-caret-glow);
+    animation: aika-pin-blink var(--aika-pin-blink) var(--aika-ease-term) infinite;
+}
+
+html .aika-pin-slots.has-caret .aika-pin-caret {
+    opacity: 1;
+}
+
+/* A wrong PIN: the dots fall out right to left (the script staggers
+   --aika-pin-delay), the cells flash red and the row shudders once */
+@keyframes aika-pin-shake {
+    25% { transform: translateX(calc(-1 * var(--aika-pin-shake))); }
+    50% { transform: translateX(var(--aika-pin-shake)); }
+    75% { transform: translateX(calc(-0.5 * var(--aika-pin-shake))); }
+}
+
+html .aika-pin-slots.is-error {
+    animation: aika-pin-shake var(--aika-dur-enter) var(--aika-ease);
+}
+
+html .aika-pin-slots.is-error .aika-pin-cell {
+    background: var(--aika-live-soft);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-live);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html :is(.aika-pin-fill, .aika-pin-dot, .aika-pin-caret) {
+        transition-duration: 0ms;
+    }
+
+    html :is(.aika-pin-slots.is-error, .aika-pin-cell.is-filled .aika-pin-dot, .aika-pin-caret::before) {
+        animation: none;
+    }
+}

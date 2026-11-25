@@ -1,0 +1,23 @@
+/* ==========================================================================
+   login.css — entry point for the "Sign in to Steam" window (the account name
+   and spinner shown before the main window opens).
+   Attached via Patches in skin.json by the window title — the window has no
+   class of its own on <html>/<body> (only the generic SteamUIPopup* ones), so
+   the localized title is matched: every client language (SignIn_Title from
+   steamui/localization/steamui_*-json.js, collected 2026-10-28).
+
+   @import only. No background.css: the window keeps Steam's cover grid,
+   sections/login.css veils it.
+   ========================================================================== */
+
+@import url("./root-colors.css");
+@import url("./colors.css");
+@import url("./tokens.css");
+@import url("./base.css");
+
+@import url("./components/window.css");
+@import url("./components/input.css");
+@import url("./components/button.css");
+@import url("./sections/login.css");
+
+@import url("./selectors.css");

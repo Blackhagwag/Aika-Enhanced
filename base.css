@@ -1,0 +1,176 @@
+/* ==========================================================================
+   base.css — the foundation for every window (DESIGN.md §3.3, §9):
+   fonts, base typography, selection, focus, scrollbars, reduced-motion.
+
+   Standard selectors only — no Steam classes.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Fonts are local, all OFL (licenses next to them in assets/fonts/OFL-*.txt).
+   Variable TTFs from github.com/google/fonts: one file for all weights.
+   The path is relative — to this file.
+
+   Cyrillic: Inter and Geist Mono have it (verified in Steam 2026-10-04);
+   Fraunces doesn't — large Russian headings fall back (Georgia).
+
+   Inter and Geist Mono weights start at 400: Steam sometimes asks for 100 and 300
+   (for its Motiva Sans), and in the variable Inter those are real Thin/Light —
+   the text becomes unreadable. The browser clamps the requested weight
+   to the @font-face range, so 100/300 render as 400.
+
+   font-display: fallback, not swap: the fonts are local (millennium.host) and
+   arrive ~30 ms after the CSS, but swap drew those first frames in the system
+   font and then switched — visible in fresh windows (the sign-in window,
+   author 2026-10-12). fallback hides the text for up to 100 ms instead.
+   -------------------------------------------------------------------------- */
+
+@font-face {
+    font-family: "Inter";
+    src: url("./assets/fonts/Inter-Variable.ttf") format("truetype");
+    font-weight: 400 900;
+    font-style: normal;
+    font-display: fallback;
+}
+
+@font-face {
+    font-family: "Geist Mono";
+    src: url("./assets/fonts/GeistMono-Variable.ttf") format("truetype");
+    font-weight: 400 900;
+    font-style: normal;
+    font-display: fallback;
+}
+
+@font-face {
+    font-family: "Fraunces";
+    src: url("./assets/fonts/Fraunces-Variable.ttf") format("truetype");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: fallback;
+}
+
+/* The friends list window (sections/friends-list.css): Onest — geometric like
+   Outfit, which the author liked, but with Cyrillic (Outfit and DM Sans have
+   none). Author 2026-10-21. */
+@font-face {
+    font-family: "Onest";
+    src: url("./assets/fonts/Onest-Variable.ttf") format("truetype");
+    font-weight: 400 900;
+    font-style: normal;
+    font-display: fallback;
+}
+
+/* Heavy display headings (Unbounded, author 2026-10-20: chosen over Dela Gothic One
+   and Rubik Black — wide and dense, Cyrillic included). */
+@font-face {
+    font-family: "Unbounded";
+    src: url("./assets/fonts/Unbounded-Variable.ttf") format("truetype");
+    font-weight: 200 900;   /* the file's full axis: the preloader presets use 300 */
+    font-style: normal;
+    font-display: fallback;
+}
+
+/* The "Aika" wordmark on the notification background (components/toast.css): blackletter
+   UnifrakturMaguntia and the "Japanese brush" Latin Shojumaru. Latin
+   only — enough for one word. Chosen via Conditions
+   "Notification wordmark". */
+@font-face {
+    font-family: "UnifrakturMaguntia";
+    src: url("./assets/fonts/UnifrakturMaguntia-Book.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+}
+
+@font-face {
+    font-family: "Shojumaru";
+    src: url("./assets/fonts/Shojumaru-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+}
+
+/* --------------------------------------------------------------------------
+   Default typography. Steam elements with their own font-family
+   are overridden in sections/ — only the inherited base here.
+   -------------------------------------------------------------------------- */
+
+body {
+    font-family: var(--aika-font-ui);
+    color: var(--aika-fg);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+/* Inputs and buttons don't inherit the font by default — fix that.
+   :where() — zero specificity, sections can refine it easily. */
+:where(button, input, textarea, select) {
+    font-family: inherit;
+}
+
+/* Digits in metadata don't jump (DESIGN.md §3.3, Meta) */
+:where(time, progress, meter) {
+    font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   Selection and focus
+   -------------------------------------------------------------------------- */
+
+::selection {
+    background: var(--aika-accent-glow);
+    color: var(--aika-fg);
+}
+
+/* Focus is always visible: an accent ring with a gap (DESIGN.md §9).
+   Globally — an offset outline, not box-shadow: Steam element shadows
+   would override the ring and focus would disappear. Our own components may
+   use --aika-shadow-focus. In Chromium the outline rounding
+   follows the element's border-radius. */
+:where(:focus-visible) {
+    outline: calc(var(--aika-focus-ring) - var(--aika-focus-gap)) solid var(--aika-accent-ring);
+    outline-offset: var(--aika-focus-gap);
+}
+
+/* --------------------------------------------------------------------------
+   Scrollbars: thin, transparent track, brighter on hover.
+   :root lifts them over the store's own ::-webkit-scrollbar (loaded after us).
+   -------------------------------------------------------------------------- */
+
+:root::-webkit-scrollbar,
+:root ::-webkit-scrollbar {
+    width: var(--aika-scrollbar-size);
+    height: var(--aika-scrollbar-size);
+    background: var(--aika-transparent);
+}
+
+:root::-webkit-scrollbar-track,
+:root ::-webkit-scrollbar-track,
+:root::-webkit-scrollbar-corner,
+:root ::-webkit-scrollbar-corner {
+    background: var(--aika-transparent);
+}
+
+:root::-webkit-scrollbar-thumb,
+:root ::-webkit-scrollbar-thumb {
+    background-color: var(--aika-surface-active);
+    border-radius: var(--aika-radius-full);
+    border: var(--aika-scrollbar-inset) solid var(--aika-transparent);
+    background-clip: padding-box;
+}
+
+:root::-webkit-scrollbar-thumb:hover,
+:root ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--aika-fg-subtle);
+}
+
+/* --------------------------------------------------------------------------
+   "Reduce motion": turn off everything decorative (DESIGN.md §9).
+   Components multiply amplitudes by --aika-motion, the background also
+   removes its animations in background.css.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --aika-motion: 0;
+    }
+}

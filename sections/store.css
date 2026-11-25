@@ -1,0 +1,2276 @@
+/* ==========================================================================
+   store.css — the store.
+
+   The store in Steam is two different things:
+   a) the "frame" inside the main window (the address bar, back/forward buttons,
+      the store submenu) — it gets here via main.css;
+   b) the store.steampowered.com web pages themselves — a separate document,
+      they get here via webkit.css (the Steam-WebKit field in skin.json).
+
+   Since the file is imported in both places, rules for different
+   documents must be separated by root selectors.
+
+   File sections:
+   1. The browser bar (address, reload).                       TODO: back/forward
+   2. The web store, home: design system variables, background, menu, search,
+      prices, purchase buttons, capsules, tabs, the hover card.
+   3. The game page (app/…): summary, right column, purchase, DLC,
+      description and requirements, controllers, carousels at the bottom.
+      Hash parts (screenshot player, reviews, carousel panels) — selectors.css.
+   TODO: wishlist, cart, search (search/…), the "Browse…" menu.
+   ========================================================================== */
+
+/* Scroll performance (author 2026-10-13: the store home stuttered when scrolling
+   down). While the store menu docks and floats (the first ~700 px of a page),
+   Steam rewrites --store-menu-floating-height inline on
+   #responsive_page_template_content several times a frame. A custom property is
+   inherited, so every write re-styled the whole page — with the theme's
+   hundreds of --aika-* tokens that was a ~65 ms frame, four in a row. No Steam
+   CSS reads this variable (its script does, from that element), so it is
+   registered as non-inherited: the writes stay on that one element.
+   Measured on a fast scroll of the store home: frames over 50 ms 4 → 0. */
+@property --store-menu-floating-height {
+    syntax: "*";
+    inherits: false;
+}
+
+/* --------------------------------------------------------------------------
+   1. The client browser bar above web pages (store, community)
+      (captured via CDP 2026-10-04, main window):
+        .BrowserWrapper > .URLBar
+          > .StatusIcon.ReloadButton          — reload (while a page loads:
+            gone, a .Spinner shows inside .URLBarText — captured 2026-10-16)
+          > .URLBarText (.StatusIcon.LockIcon + .URL) — the address
+      Hidden in every header mode (author 2026-10-16): the address floats over
+      the page instead, as a small capsule beside the store menu — drawn inside
+      the page by js/url-capsule.js (components/url-capsule.css), since nothing
+      of the window's DOM can lie over those native pages. Loading shows in that
+      capsule (a Heart Pulse dot matrix).
+      The library keeps an empty strip of the same height (.URLBarReplacement)
+      — hidden too, so the content starts under the tabs on every page.
+   -------------------------------------------------------------------------- */
+
+/* .ContentFrame — to also beat the maximized window variant
+   (".Maximized .hash .hash", (0,3,0)) */
+html .ContentFrame .BrowserWrapper > .URLBar,
+html .LocalContentContainer > .URLBarReplacement {
+    display: none;
+}
+
+/* …except when the Extendium plugin has put its extension toolbar into it
+   (.extensions-bar-container, captured 2026-10-20): then the bar takes no
+   room (display: contents — no strip, the page still starts under the tabs),
+   Steam's reload button and address stay hidden (the address is in the page
+   capsule), and the toolbar floats in the top bar right after ← →
+   (sections/plugins.css). */
+html .ContentFrame .BrowserWrapper > .URLBar:has(> :is(.extensions-bar-container, .autoclaim-toolbar-container)) {
+    display: contents;
+}
+
+html .ContentFrame .BrowserWrapper > .URLBar:has(> :is(.extensions-bar-container, .autoclaim-toolbar-container)) > :not(.extensions-bar-container, .autoclaim-toolbar-container) {
+    display: none;
+}
+
+/* ==========================================================================
+   2. The web store store.steampowered.com (a Steam-WebKit document).
+      Captured via CDP 2026-10-04 (home page, during a seasonal sale).
+
+      All rules are under body.v6: only store pages have this class,
+      so they don't reach the main window (which also gets this file via main.css).
+
+      Store v7 is painted with its own CSS variables: the old "container" ones
+      (--light-ctn-bg, --price-dark-bg, --green, --blue…) are set on :root
+      and on `:root .seasonal_sale` (0,2,0) — the seasonal sale skin;
+      the new React blocks take --font-family and --color-text-light-*.
+      We remap them to the Aika palette once — this survives both a sale skin
+      change and markup updates.
+
+      Two levels:
+      a) the store document's :root — html:root:has(> body.v6), (0,2,2):
+         the design system scales (Radix-like --color-greyneutral-1…12 —
+         "dull", --color-blue-1…12 — "accent"), the --color-text-light-* texts,
+         the font. Steam declares the derivatives (--color-dull-N, --color-text-body-*)
+         on :root via var() — they're computed right there, so
+         the source scales must be replaced on :root, not on body.
+         Scale: 1–2 canvas, 3–5 surfaces, 6–8 borders, 9–10 solids,
+         11 — secondary text, 12 — primary.
+      b) body.v6 — :root body.v6 (0,2,1): the old variables that the
+         seasonal skin redeclares on body.
+   ========================================================================== */
+
+/* The new store engine (wishlist etc., 2026): body without .v6,
+   everything inside #StoreTemplate — the same scales, a different root */
+html:root:is(:has(> body.v6), :has(> body > #StoreTemplate)) {
+    --font-family: var(--aika-font-ui);
+    --color-text-light-title: var(--aika-fg);
+    --color-text-light-subtitle: var(--aika-fg);
+    --color-text-light-body: var(--aika-fg-muted);
+    --color-text-light-description: var(--aika-fg-muted);
+    --color-text-light-note: var(--aika-fg-subtle);
+
+    --color-greyneutral-1: var(--aika-bg-deep);
+    --color-greyneutral-2: var(--aika-bg-base);
+    --color-greyneutral-3: var(--aika-bg-elevated);
+    --color-greyneutral-4: var(--aika-bg-raised);
+    --color-greyneutral-5: var(--aika-bg-hover);
+    --color-greyneutral-6: var(--aika-bg-high);
+    --color-greyneutral-7: var(--aika-bg-edge);
+    --color-greyneutral-8: var(--aika-bg-line);
+    --color-greyneutral-9: var(--aika-bg-line);
+    --color-greyneutral-10: var(--aika-fg-subtle);
+    --color-greyneutral-11: var(--aika-fg-muted);
+    --color-greyneutral-12: var(--aika-fg);
+
+    --color-blue-1: var(--aika-accent-deep);
+    --color-blue-2: var(--aika-accent-deep);
+    --color-blue-3: var(--aika-accent-deep);
+    --color-blue-4: var(--aika-accent-dim);
+    --color-blue-5: var(--aika-accent-dim);
+    --color-blue-6: var(--aika-accent-dim);
+    --color-blue-7: var(--aika-accent-mid);
+    --color-blue-8: var(--aika-accent-fill);
+    --color-blue-9: var(--aika-accent-fill);
+    --color-blue-10: var(--aika-accent-fill-hover);
+    --color-blue-11: var(--aika-accent-bright);
+    --color-blue-12: var(--aika-fg);
+
+    /* "Store green" — supported, owned, a good deal: Aika ok */
+    --color-storegreen-1: var(--aika-ok-dim);
+    --color-storegreen-2: var(--aika-ok-dim);
+    --color-storegreen-3: var(--aika-ok-dim);
+    --color-storegreen-4: var(--aika-ok-dim);
+    --color-storegreen-5: var(--aika-ok-mid);
+    --color-storegreen-6: var(--aika-ok-mid);
+    --color-storegreen-7: var(--aika-ok);
+    --color-storegreen-8: var(--aika-ok);
+    --color-storegreen-9: var(--aika-ok);
+    --color-storegreen-10: var(--aika-ok);
+    --color-storegreen-11: var(--aika-ok);
+    --color-storegreen-12: var(--aika-fg);
+
+    /* React store neutrals (mega menu etc.): Steam doesn't declare them,
+       it takes the fallback from var(--Neutrals-*, #…) — we declare them ourselves */
+    --Neutrals-white: var(--aika-fg);
+    --Neutrals-lightestGrey: var(--aika-fg-muted);
+    --Neutrals-lighterGrey: var(--aika-fg-subtle);
+    --Colors-blue: var(--aika-accent-bright);
+    --Blue-gredient: var(--aika-accent-fill);
+    --Text-Main: var(--aika-on-accent);
+    --Blues-darkestGrey: var(--aika-fg);
+
+    /* New engine popovers: background and shadow via
+       var(--popover-*, …), Steam doesn't declare them */
+    --popover-background: var(--aika-surface-translucent);
+    --popover-shadow: var(--aika-shadow-menu);
+
+    /* Footer (React, footer#footer): Steam has rgba(15,25,36,.9) */
+    --footer-bg-color: var(--aika-bg-elevated);
+}
+
+:root body.v6 {
+    --light-fg: var(--aika-fg);
+    --midlight-fg: var(--aika-fg-muted);
+    --dimlight-fg: var(--aika-fg-subtle);
+    --dimmestlight-fg: var(--aika-border-hover);
+    --bright-fg: var(--aika-fg);
+
+    /* Containers: sections, plates, price backings */
+    --page-background: var(--aika-bg-deep);
+    --light-ctn-bg: var(--aika-surface);
+    --light-ctn-bg-hover: var(--aika-surface-hover);
+    --light-ctn-bg-gradient: var(--aika-card-bg);
+    --light-ctn-bg-gradient-top-color: var(--aika-border-hover);
+    --mid-ctn-bg: var(--aika-surface-active);
+    --dark-ctn-bg: var(--aika-surface);
+    --dark-ctn-bg-gradient: var(--aika-card-bg);
+    --price-dark-bg: var(--aika-bg-raised);
+    --blue-gradient-bg-bold: var(--aika-card-accent-bg);
+    --blue-gradient-bg-muted: var(--aika-card-bg);
+    --blue-gradient-bg-muted-opaque: var(--aika-raised-bg);
+    --multi-color-bg-gradient-1: var(--aika-card-accent-bg);
+    --multi-color-bg-gradient-2: var(--aika-card-accent-bg);
+    /* 3–6: teal / magenta event labels and plates on the home page */
+    --multi-color-bg-gradient-3: var(--aika-card-accent-bg);
+    --multi-color-bg-gradient-4: var(--aika-card-bg);
+    --multi-color-bg-gradient-5: var(--aika-card-accent-bg);
+    --multi-color-bg-gradient-6: var(--aika-card-accent-bg);
+    --hightlight-bottom: var(--aika-highlight-top);
+
+    /* Semantic: a discount — Aika green (like Steam — "a good deal"),
+       Steam blue — accent */
+    --green: var(--aika-ok);
+    --green-mid: var(--aika-ok);
+    --blue: var(--aika-accent-fill);
+    --blue-translucent: var(--aika-accent-soft);
+    --blue-translucent-light: var(--aika-border-accent);
+    --bright-teal: var(--aika-accent-bright);
+}
+
+/* --------------------------------------------------------------------------
+   Page background: Steam's body.v7 is a radial blue, during a sale
+   body.v7.seasonal_sale (0,2,1) — the skin wallpaper. Kill it — our background
+   from background.css shows. The sale "takeover" banner at the top is content
+   (a link to the sale), it's left alone.
+   -------------------------------------------------------------------------- */
+
+/* "News Hub": html body.events_hub.v6 (0,2,2), #171a21 —
+   hence the triple .v6 */
+html body.v6.v6.v6,
+html body:has(> #StoreTemplate) {
+    background: var(--aika-transparent);
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-ui);
+}
+
+/* --------------------------------------------------------------------------
+   The store menu (React, hash classes) — stable anchors:
+     [data-featuretarget="store-menu-v7"] [role="navigation"]
+       button[role="button"][aria-expanded]  — "Browse", "Recommendations"…
+       form[role="search"] > div > input[name="term"] + button[type="submit"]
+       a[href*="/wishlist/"]                 — "Wishlist" + counter
+   Steam: white Motiva text 13 px, search — a white 12 % plate + a blue
+   square button #1a9fff, 2 px rounding.
+   -------------------------------------------------------------------------- */
+
+/* The menu strip — the navigation's parent (Steam: a full-width radial
+   blue-gray gradient). A floating capsule as wide as the content, sticky with
+   the page; an open menu unfolds from it into a rounded card (author's request
+   2026-10-08: "the black strip doesn't fit the style"). The menu material —
+   translucent with blur (DESIGN.md §11: menus are the translucent layer); on the
+   cinematic game page the trailer runs under it. The open part — selectors.css.
+   Steam's loading stand-in (.StoreMenuLoadingPlaceholder > .PlaceholderInner,
+   the same 46 px blue strip, shown for ~1 s while the React menu loads) gets the
+   same capsule — before, the blue strip flashed and then turned into ours
+   (author 2026-10-12). */
+html body.v6 [data-featuretarget="store-menu-v7"] :has(> [role="navigation"]),
+html body.v6 .StoreMenuLoadingPlaceholder > .PlaceholderInner {
+    box-sizing: border-box;
+    width: min(100% - 2 * var(--aika-storebar-gutter), var(--aika-storebar-content) + 2 * var(--aika-space-4));
+    margin: var(--aika-storebar-top) auto 0;
+    padding-inline: var(--aika-space-4);
+    border: none;
+    border-radius: var(--aika-radius-xl);
+    background: var(--aika-storebar-material);
+    backdrop-filter: var(--aika-player-blur);
+    box-shadow:
+        inset 0 0 0 var(--aika-hairline) var(--aika-border-hover),
+        var(--aika-highlight-top),
+        var(--aika-shadow-menu);
+}
+
+/* Card Nav (reactbits idea, author 2026-10-14): when a menu opens, the capsule
+   unfolds down from the strip (a clip from the strip height to the whole
+   capsule, power3.out), and the cards inside rise one after another
+   (selectors.css, "Card Nav cards"). The trigger — the open part appearing
+   in the capsule (selectors.css, hash classes); switching between menus keeps
+   it open, so only the cards play again. A clip, not height: Steam sets the
+   height, and the cards' layout must not move. */
+@keyframes aika-storebar-unfold {
+    from {
+        clip-path: inset(0 0 calc(100% - var(--aika-storebar-height)) 0 round var(--aika-radius-xl));
+    }
+    to {
+        clip-path: inset(0 round var(--aika-radius-xl));
+    }
+}
+
+html body.v6 [data-featuretarget="store-menu-v7"] [role="navigation"] :is(button[role="button"], a) {
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-ui);
+    transition: color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+/* Hover and the open menu: only the label lights up, no plate behind it
+   (author 2026-10-14: "the gray button behind doesn't look good"); the open
+   one also keeps the accent line under it (selectors.css) */
+html body.v6 [data-featuretarget="store-menu-v7"] [role="navigation"] :is(button[role="button"], a):hover,
+html body.v6 [data-featuretarget="store-menu-v7"] [role="navigation"] button[aria-expanded="true"] {
+    background-color: var(--aika-transparent);
+    color: var(--aika-fg);
+}
+
+/* The wishlist counter — mono, like the theme's other numbers */
+html body.v6 [data-featuretarget="store-menu-v7"] a[href*="/wishlist/"] span {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+/* Search — the Aika field (components/input.css): a raised surface,
+   a thin border, an accent ring on focus */
+html body.v6 [data-featuretarget="store-menu-v7"] form[role="search"] {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-strong);
+    transition: box-shadow var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 [data-featuretarget="store-menu-v7"] form[role="search"]:focus-within {
+    box-shadow: var(--aika-shadow-input-focus);
+}
+
+html body.v6 [data-featuretarget="store-menu-v7"] form[role="search"] input[name="term"] {
+    border: none;
+    background: var(--aika-transparent);
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+}
+
+html body.v6 [data-featuretarget="store-menu-v7"] form[role="search"] input[name="term"]::placeholder {
+    color: var(--aika-fg-subtle);
+}
+
+html body.v6 [data-featuretarget="store-menu-v7"] form[role="search"] button[type="submit"] {
+    border-radius: 0;
+    background: var(--aika-transparent);
+    color: var(--aika-fg-muted);
+    transition: color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 [data-featuretarget="store-menu-v7"] form[role="search"] button[type="submit"]:hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-accent-bright);
+}
+
+/* Search suggestions — a dropdown under the field (hash classes, we rely on structure:
+   form + div > div[inert while closed] > div — the box, > a — "Advanced
+   search"). Steam has a gray-blue gradient and a link plate. We make it like the
+   Aika menu (components/menu.css): a translucent surface, a border, a shadow. */
+html body.v6 [data-featuretarget="store-menu-v7"] form[role="search"] + div > div > div {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface-translucent);
+    color: var(--aika-fg-muted);
+    box-shadow: var(--aika-shadow-menu);
+}
+
+html body.v6 [data-featuretarget="store-menu-v7"] form[role="search"] + div > div > div {
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 [data-featuretarget="store-menu-v7"] form[role="search"] + div > div > div > a {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    color: var(--aika-fg);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 [data-featuretarget="store-menu-v7"] form[role="search"] + div > div > div > a:hover {
+    background: var(--aika-surface-hover);
+}
+
+/* Empty query: the "Frequently searched" groups (rows — cover + title)
+   and "Your favorite genres" (tiles with an image and a label). A group is
+   box > div > [heading, list > a]. Steam's rows and tiles are
+   gray-blue gradients, the genre label is a white plate. The colored backings
+   of genre images stay (each genre has its own, like category tiles). */
+html body.v6 [data-featuretarget="store-menu-v7"] form[role="search"] + div > div > div > div > div:first-child {
+    color: var(--aika-fg-subtle);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+    text-transform: uppercase;
+}
+
+html body.v6 [data-featuretarget="store-menu-v7"] form[role="search"] + div > div > div > div > div > a {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    color: var(--aika-fg);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 [data-featuretarget="store-menu-v7"] form[role="search"] + div > div > div > div > div > a:hover {
+    background: var(--aika-surface-hover);
+}
+
+/* The cover in a "Frequently searched" row and the image backing — without gray-blue */
+html body.v6 [data-featuretarget="store-menu-v7"] form[role="search"] + div > div > div > div > div > a > div:has(> img) {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-transparent);
+    background-image: none;
+}
+
+/* The genre label on a tile (a white plate) — in selectors.css by its class:
+   a structural rule hit the text of "Frequently searched" rows */
+
+/* --------------------------------------------------------------------------
+   Prices and discounts (.discount_block — the shared block across the store).
+   Steam: plates without rounding, % in black on --green, the old price
+   gray-blue, the new one white/lime. Prices are mono (DESIGN.md §5).
+   -------------------------------------------------------------------------- */
+
+html body.v6 .discount_block {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+}
+
+html body.v6 .discount_block .discount_pct {
+    background: var(--aika-ok);
+    color: var(--aika-bg-deep);
+    font-family: var(--aika-font-mono);
+    font-weight: var(--aika-weight-semibold);
+}
+
+/* Prices: Steam uses weight 300 — a mono font at 11–13 px gets faint
+   (author's fix 2026-10-04: "the digits are barely legible"). A backing under
+   the prices, the final one is semibold, the old one is muted but readable. */
+html body.v6 .discount_block .discount_prices {
+    background: var(--aika-bg-raised);
+    font-family: var(--aika-font-mono);
+    font-weight: var(--aika-weight-medium);
+}
+
+html body.v6 .discount_block .discount_prices .discount_original_price {
+    color: var(--aika-fg-muted);
+    font-weight: var(--aika-weight-regular);
+}
+
+html body.v6 .discount_block .discount_prices .discount_final_price {
+    color: var(--aika-fg);
+    font-weight: var(--aika-weight-semibold);
+}
+
+/* No discount (.no_discount): one price, on the same backing */
+html body.v6 .discount_block.no_discount .discount_prices .discount_final_price {
+    color: var(--aika-fg);
+}
+
+/* --------------------------------------------------------------------------
+   Purchase buttons: .btn_green_steamui ("Add to Cart") — Aika primary,
+   .btn_blue_steamui — secondary. Steam puts the color on the inner <span>
+   (0,1,1) — a gradient and 2 px rounding; hover — a chain of four
+   :not() (0,6,1), we repeat it.
+   -------------------------------------------------------------------------- */
+
+html body.v6 :is(.btn_green_steamui, .btn_blue_steamui) {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-transparent);
+}
+
+html body.v6 :is(.btn_green_steamui, .btn_blue_steamui) > span {
+    border-radius: var(--aika-radius-md);
+    font-family: var(--aika-font-ui);
+    font-weight: var(--aika-weight-medium);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html body.v6 .btn_green_steamui > span {
+    background: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+    box-shadow: var(--aika-shadow-cta);
+}
+
+html body.v6 .btn_green_steamui:not(.btn_disabled):not(:disabled):not(.btn_active):not(.active):hover > span {
+    background: var(--aika-accent-fill-hover);
+    color: var(--aika-on-accent);
+    box-shadow: var(--aika-shadow-cta-hover);
+}
+
+html body.v6 .btn_blue_steamui > span {
+    background: var(--aika-surface);
+    color: var(--aika-fg);
+    box-shadow: var(--aika-shadow-secondary);
+}
+
+html body.v6 .btn_blue_steamui:not(.btn_disabled):not(:disabled):not(.btn_active):not(.active):hover > span {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+    box-shadow: var(--aika-shadow-secondary-hover);
+}
+
+/* --------------------------------------------------------------------------
+   Main carousel capsules (.hero_capsule): the info block to the right of the cover
+   takes --blue-gradient-bg-muted-opaque (remapped above), genre labels —
+   --mid-ctn-bg. Here — rounding and the "on wishlist" flag.
+   -------------------------------------------------------------------------- */
+
+html body.v6 .hero_capsule {
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg);
+}
+
+html body.v6 .hero_capsule .hero_tag {
+    border-radius: var(--aika-radius-full);
+    color: var(--aika-fg-muted);
+}
+
+/* The "On Wishlist" / "In Library" flag — an Aika badge.
+   Steam has body.v7 .ds_flag.ds_wishlist_flag (0,3,1) — :is() gives us (0,3,2) */
+html body.v6 :is(.ds_flag.ds_wishlist_flag, .ds_flag.ds_owned_flag, .ds_flag) {
+    border-radius: var(--aika-radius-xs);
+    background-color: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+    font-family: var(--aika-font-mono);
+    box-shadow: var(--aika-shadow-card); /* Steam: a black 90 % shadow */
+}
+
+/* Review scores: all "…Positive" (Steam — one .positive class,
+   light blue) — Aika ok green (author's request 2026-10-04: green, not
+   purple), "Mixed" — warm, "Negative" — live */
+html body.v6 .game_review_summary.positive {
+    color: var(--aika-ok);
+}
+
+html body.v6 .game_review_summary.mixed {
+    color: var(--aika-warn);
+}
+
+html body.v6 .game_review_summary.negative {
+    color: var(--aika-live);
+}
+
+/* "!" — the reviews had an activity spike */
+html body.v6 .review_anomaly_icon {
+    color: var(--aika-fg-subtle);
+}
+
+/* --------------------------------------------------------------------------
+   Home sections: subheadings, "More" (.btnv6_white_transparent — Steam has
+   a gray #ccc plate, text white with !important), the gift card banner
+   -------------------------------------------------------------------------- */
+
+html body.v6 .home_section_subtitle {
+    color: var(--aika-fg-muted);
+}
+
+/* Steam has .home_pagecontent_ctn.featured_special_deals .ctn_background
+   .btnv6_white_transparent (0,4,0); :is() with a long branch gives (0,4,2) */
+html body.v6 :is(.home_pagecontent_ctn .ctn_background, .home_pagecontent_ctn) .btnv6_white_transparent {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    box-shadow: var(--aika-shadow-secondary);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 :is(.home_pagecontent_ctn .ctn_background, .home_pagecontent_ctn) .btnv6_white_transparent:hover {
+    background: var(--aika-surface-hover);
+}
+
+html body.v6 :is(.home_pagecontent_ctn .ctn_background, .home_pagecontent_ctn) .btnv6_white_transparent > span {
+    color: var(--aika-fg);
+}
+
+/* Sale and collection capsules: rounding, the label strip at the bottom — inside it */
+html body.v6 a.sale_capsule {
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg);
+}
+
+/* The "New & Trending / Top Sellers…" tabs: Steam has white text,
+   the active one — a blue 3 px line below. Fluent: muted, the active one —
+   the primary text and an accent line. */
+html body.v6 .home_tabs_row_ctn .home_tab_button {
+    color: var(--aika-fg-muted);
+    transition: color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 .home_tabs_row_ctn .home_tab_button:hover,
+html body.v6 .home_tabs_row_ctn .home_tab_button.active {
+    color: var(--aika-fg);
+}
+
+html body.v6 .home_tabs_row_ctn .home_tab_button.active {
+    border-bottom-color: var(--aika-accent);
+}
+
+/* List rows in the tabs and the preview on the right (the background comes from variables) */
+html body.v6 a.tab_row_item {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+}
+
+html body.v6 .tab_preview {
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg);
+}
+
+/* --------------------------------------------------------------------------
+   The game popup card on hovering a capsule (.game_hover_box) —
+   an Aika tooltip (components/menu.css): a translucent surface, a border,
+   a layered shadow. Steam has a gray-blue gradient, labels #A7BACC,
+   rules up to (0,2,1) — ours are html body.v6 + the same classes.
+   -------------------------------------------------------------------------- */
+
+html body.v6 .game_hover_box.hover_box {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface-translucent);
+    color: var(--aika-fg-muted);
+    box-shadow: var(--aika-shadow-menu);
+}
+
+html body.v6 .game_hover_box h4.hover_title {
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+}
+
+html body.v6 .game_hover_box .hover_release {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+html body.v6 .game_hover_box .hover_body .hover_review_summary {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-surface);
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 .game_hover_box .hover_tag_row .app_tag {
+    border-radius: var(--aika-radius-full);
+    background-color: var(--aika-surface-active);
+    color: var(--aika-fg-muted);
+}
+
+/* "N friends recommend this game", "Wishlisted by…" (screenshot 22): Steam —
+   .hover_details_block(_full), rgba(38,54,69,.6) at 2 px, a blue thumbs-up PNG
+   (.hover_category_icon) — a surface plate like the review summary, the icon
+   tinted to the accent, the friend count in the accent */
+html body.v6 .game_hover_box :is(.hover_details_block, .hover_details_block_full) {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-surface);
+    color: var(--aika-fg-muted);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+}
+
+html body.v6 .game_hover_box :is(.hover_details_block, .hover_details_block_full) > span {
+    color: var(--aika-accent-bright);
+}
+
+html body.v6 .game_hover_box .hover_category_icon img {
+    filter: var(--aika-tint-accent);
+}
+
+/* Footer: background and colors from the scales above; full width — a line on top */
+html body.v6 footer#footer {
+    box-shadow: inset 0 var(--aika-hairline) 0 0 var(--aika-border);
+}
+
+html body.v6 a.home_gift_card_link {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-accent-bg);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+    transition: box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html body.v6 a.home_gift_card_link:hover {
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-accent-ring), 0 0 20px var(--aika-accent-haze);
+}
+
+/* The fan of gift cards (gc_fan.webp — Steam's brand blue) in the accent
+   (author's request 2026-10-12); the fan opens a little on hover */
+html body.v6 a.home_gift_card_link .home_gift_card_img {
+    filter: var(--aika-tint-accent);
+    transition: transform var(--aika-dur-base) var(--aika-ease);
+}
+
+html body.v6 a.home_gift_card_link:hover .home_gift_card_img {
+    transform: translateY(var(--aika-lift-sm)) rotate(var(--aika-gift-tilt)) scale(var(--aika-home-zoom));
+}
+
+/* ==========================================================================
+   3. The store game page (store.steampowered.com/app/…)
+      Captured via CDP 2026-10-04 (ELDEN RING, body.v6.app.game_bg).
+      Old markup: readable classes, colors hard-coded in rules (not in
+      variables), strength (0,1,0)…(0,3,0); html body.v6 gives a margin.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   The top of the page: .game_page_background_ctn has a blue radial light
+   (#254b79). The blurred colored copy of the cover inside (img.gameColor) is
+   unique to each game, it stays; the light is accent.
+   -------------------------------------------------------------------------- */
+
+html body.v6 .game_page_background_ctn {
+    background: var(--aika-store-app-glow);
+}
+
+/* The highlight under the queue bar — a blue radial (hsl 212) */
+html body.v6 .game_background_lighten {
+    background: var(--aika-store-queue-glow);
+}
+
+/* The "All Games > Action > …" breadcrumbs */
+html body.v6 .breadcrumbs,
+html body.v6 .breadcrumbs .blockbg {
+    color: var(--aika-fg-subtle);
+}
+
+html body.v6 .breadcrumbs a {
+    color: var(--aika-fg-muted);
+    transition: color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 .breadcrumbs a:hover {
+    color: var(--aika-fg);
+}
+
+/* --------------------------------------------------------------------------
+   Blue "ghost" buttons .btnv6_blue_hoverfade ("Community Hub",
+   "Add to your wishlist", "Follow", "Ignore", "More"): Steam has
+   light blue 20 %, hover — a blue-cyan gradient. We make them Aika secondary.
+   -------------------------------------------------------------------------- */
+
+html body.v6 .btnv6_blue_hoverfade,
+html body.v6 .glance_ctn .more_btn {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    color: var(--aika-fg) !important; /* Steam: #67c1f5 !important */
+    box-shadow: var(--aika-shadow-secondary);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+/* Steam's hover is four :not() in a row, (0,6,0); we repeat the chain */
+html body.v6 .btnv6_blue_hoverfade:not(.btn_disabled):not(:disabled):not(.btn_active):not(.active):hover,
+html body.v6 .glance_ctn .more_btn:hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg) !important; /* Steam: #fff !important */
+    box-shadow: var(--aika-shadow-secondary-hover);
+}
+
+html body.v6 .btnv6_blue_hoverfade > span {
+    border-radius: var(--aika-radius-md);
+}
+
+/* Pressed: "On Wishlist", "Following", the open queue menu */
+html body.v6 :is(.btnv6_blue_hoverfade.btn_active, .btnv6_blue_hoverfade.active, .btnv6_blue_hoverfade.queue_btn_active) {
+    background: var(--aika-accent-soft);
+    color: var(--aika-accent-bright) !important; /* Steam: #fff !important */
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+}
+
+/* --------------------------------------------------------------------------
+   The quick summary to the right of the screenshots (.glance_ctn): the captions
+   "Reviews / Release date / Developer" — #798a95, links — light blue,
+   tags (.app_tag) — light blue 20 %, hover — a gradient.
+   -------------------------------------------------------------------------- */
+
+html body.v6 .glance_ctn :is(.subtitle, .user_reviews_summary_row .responsive_hidden, .glance_tags_label) {
+    color: var(--aika-fg-subtle);
+}
+
+html body.v6 .glance_ctn .release_date .date {
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-mono);
+}
+
+html body.v6 .glance_ctn .dev_row a,
+html body.v6 .details_block a,
+html body.v6 .rightcol.game_meta_data a.all_languages,
+html body.v6 p.reason.for a,
+html body.v6 p.reason.info a {
+    color: var(--aika-accent-bright);
+}
+
+html body.v6 .glance_ctn .dev_row a:hover,
+html body.v6 .details_block a:hover,
+html body.v6 .rightcol.game_meta_data a.all_languages:hover,
+html body.v6 p.reason.for a:hover {
+    color: var(--aika-fg);
+}
+
+html body.v6 .glance_tags .app_tag {
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-surface);
+    color: var(--aika-fg-muted);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 .glance_tags .app_tag:hover {
+    background: var(--aika-accent-soft);
+    color: var(--aika-fg);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+}
+
+/* --------------------------------------------------------------------------
+   The right column (.rightcol.game_meta_data .block): Steam has a black
+   translucent gradient without rounding. We make them Aika cards.
+   -------------------------------------------------------------------------- */
+
+html body.v6 .rightcol.game_meta_data .block {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-bg);
+    box-shadow: var(--aika-shadow-card);
+}
+
+/* "Is this game relevant to you?" — the header above the recommendation reasons (Steam: black 20 %) */
+html body.v6 .rightcol.game_meta_data .block.heading {
+    background: var(--aika-card-accent-bg);
+    color: var(--aika-fg);
+}
+
+html body.v6 .rightcol.game_meta_data .block_title,
+html body.v6 .shared_game_rating .block_title {
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 p.reason,
+html body.v6 .details_block,
+html body.v6 .shared_game_rating :is(.game_rating_agency, .descriptorText) {
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 .details_block b {
+    color: var(--aika-fg-subtle);
+    font-weight: var(--aika-weight-regular);
+}
+
+/* "Similar to what you played" (capsules under the reasons): play time —
+   mono (DESIGN.md §11), capsules rounded */
+html body.v6 .similar_recent_apps_container a.similarapp {
+    margin-right: var(--aika-space-2);
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-meta);
+}
+
+html body.v6 .similar_recent_apps_container a.similarapp img {
+    border-radius: var(--aika-radius-md);
+    box-shadow: var(--aika-shadow-cover);
+}
+
+/* Dividers between the reasons (author's report 2026-10-08: "blue lines"):
+   Steam: .block.recommendation_reasons hr — #273747 */
+html body.v6 .block.recommendation_reasons hr {
+    background-color: var(--aika-border-hover);
+}
+
+/* Features ("Single-player", "Steam Achievements"…): plate rows
+   with a light-blue 10 % backing, linked ones — a gradient on hover */
+html body.v6 .game_area_details_specs_ctn {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-surface);
+}
+
+html body.v6 .game_area_details_specs_ctn .label {
+    border-radius: 0;
+    background: var(--aika-transparent);
+    color: var(--aika-fg-muted);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 a.game_area_details_specs_ctn .label {
+    color: var(--aika-fg);
+}
+
+html body.v6 a.game_area_details_specs_ctn:hover .label {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+/* Strip links in "Details" ("Visit the website", "View update history"…) */
+html body.v6 .block a.linkbar {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    color: var(--aika-fg-muted);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 .block a.linkbar:hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+/* Third-party DRM / EULA — Aika's warm warn instead of bronze */
+html body.v6 .DRM_notice {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-warn-soft);
+    color: var(--aika-warn);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-warn-border);
+}
+
+/* The language table: light-blue ✓, gray dividers #626366 */
+html body.v6 .game_language_options tr {
+    border-bottom-color: var(--aika-border);
+}
+
+html body.v6 .game_language_options th {
+    color: var(--aika-fg-subtle);
+}
+
+html body.v6 .game_language_options td {
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 .game_language_options td span {
+    color: var(--aika-accent-bright);
+}
+
+html body.v6 .game_language_options tr.unsupported td {
+    color: var(--aika-fg-subtle);
+}
+
+/* Points Shop items and "+N" */
+html body.v6 .communitylink_points_shop_images a.communitylink_points_shop_item {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+}
+
+html body.v6 .communitylink_points_shop_images a.communitylink_achivement_plusmore {
+    background: var(--aika-surface);
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-mono);
+}
+
+/* --------------------------------------------------------------------------
+   The purchase block (.game_area_purchase_game): Steam has a light-blue
+   diagonal gradient, the price on a black plate without rounding.
+   An Aika card, the price is mono on a raised backing.
+   -------------------------------------------------------------------------- */
+
+html body.v6 :is(.game_area_purchase_game, .game_area_offsite_purchase) {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-bg);
+    color: var(--aika-fg-muted);
+    box-shadow: var(--aika-shadow-card);
+}
+
+/* An active trial subscription — Steam has a green gradient: Aika ok */
+html body.v6 .game_area_purchase_game.pt_active {
+    background: var(--aika-ok-soft);
+    color: var(--aika-fg);
+}
+
+html body.v6 .game_area_purchase_game h1 {
+    color: var(--aika-fg);
+}
+
+html body.v6 .game_purchase_action_bg {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+}
+
+html body.v6 .game_purchase_action .game_purchase_price {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-bg-raised);
+    color: var(--aika-fg);
+    font-family: var(--aika-font-mono);
+}
+
+/* "Includes N items: …" */
+html body.v6 .package_contents {
+    color: var(--aika-fg-subtle);
+}
+
+html body.v6 .package_contents b {
+    color: var(--aika-ok);
+}
+
+html body.v6 .package_contents a {
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 .package_contents_capsules_ctn,
+html body.v6 .package_contents_capsule a {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+}
+
+/* "Compare editions" */
+html body.v6 button.game_purchase_options_editions_header_compare_button {
+    border-color: var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+}
+
+/* Section headings ("Downloadable content for this game"): Steam has
+   h2.gradientbg — a blue gradient; the note on the right — a gray border */
+html body.v6 .game_area_purchase h2.gradientbg,
+html body.v6 .early_access_announcements h2 {
+    border-bottom: var(--aika-hairline) solid var(--aika-border);
+    background: var(--aika-transparent);
+    color: var(--aika-fg);
+}
+
+html body.v6 h2.gradientbg .note,
+html body.v6 .early_access_announcements h2 a {
+    border-color: var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    color: var(--aika-fg-muted);
+}
+
+/* DLC rows: a gray-blue gradient, "recommended" — #417a9b */
+html body.v6 .game_area_dlc_row {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    color: var(--aika-fg-muted);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 .game_area_dlc_row:hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+html body.v6 .game_area_dlc_row .game_area_dlc_name {
+    color: inherit;
+}
+
+html body.v6 .game_area_dlc_row .dlc_highlight_reason {
+    border-radius: var(--aika-radius-xs);
+    background: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+}
+
+html body.v6 .game_area_dlc_row .game_area_dlc_price,
+html body.v6 .gameDlcBlocks .game_purchase_price {
+    color: var(--aika-fg);
+    font-family: var(--aika-font-mono);
+}
+
+/* --------------------------------------------------------------------------
+   Description and system requirements
+   -------------------------------------------------------------------------- */
+
+/* Font: "Motiva Sans" on web pages is swapped for Inter (web-fonts.css).
+   Steam sets Arial separately — the requirement labels (strong), "Follow"
+   in carousels (Arial in a hash rule), bold inserts (b). */
+html body.v6 .page_content_ctn :is(b, strong),
+html body.v6 .related_items_ctn :is(.FollowButton, .btnv6_grey_black) {
+    font-family: var(--aika-font-ui);
+}
+
+/* "About this game": the text is Inter with our line height, the page section
+   headings ("About this game", "System requirements", "Downloadable
+   content…") — Steam has 14 px Motiva with a ruler image below */
+html body.v6 .game_area_description {
+    color: var(--aika-fg-muted);
+    font-size: var(--aika-text-body);
+    line-height: var(--aika-leading-body);
+}
+
+html body.v6 .game_description_column h2,
+html body.v6 .game_area_description h2 {
+    padding-bottom: var(--aika-space-2);
+    border-bottom: var(--aika-hairline) solid var(--aika-border);
+    background-image: none;
+    color: var(--aika-fg);
+    font-size: var(--aika-text-h3);
+    font-weight: var(--aika-weight-semibold);
+    letter-spacing: var(--aika-tracking-h2);
+    line-height: var(--aika-leading-heading);
+    text-transform: none;
+}
+
+/* Headings inside the publisher's text (h2.bb_tag) — no ruler */
+html body.v6 .game_area_description h2.bb_tag {
+    border-bottom: none;
+    color: var(--aika-fg);
+}
+
+/* Images, gifs and videos in the description (.bb_img_ctn > img/video.bb_img) */
+html body.v6 .game_area_description :is(.bb_img_ctn, img.bb_img, video.bb_img) {
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg);
+}
+
+/* "Read more" — Steam has light-blue text on a blue strip
+   (.widestore .game_page_autocollapse_readmore, (0,2,0)) */
+html body.v6.widestore .game_page_autocollapse_readmore {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-store-readmore-bg);
+    color: var(--aika-accent-bright);
+}
+
+html body.v6.widestore .game_page_autocollapse_readmore:hover {
+    background: var(--aika-store-readmore-hover-bg);
+    color: var(--aika-fg);
+}
+
+html body.v6 .game_area_sys_req :is(strong, .album_metadata_chunk_name) {
+    color: var(--aika-fg);
+}
+
+html body.v6 .game_area_sys_req ul li {
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 .game_area_sys_req ul li strong {
+    color: var(--aika-fg-subtle);
+}
+
+html body.v6 .game_area_sys_req_note {
+    color: var(--aika-fg-subtle);
+}
+
+/* OS tabs in the requirements (Windows / macOS / SteamOS) */
+html body.v6 .sysreq_tabs {
+    background: var(--aika-transparent);
+    box-shadow: inset 0 calc(-1 * var(--aika-hairline)) 0 0 var(--aika-border);
+}
+
+html body.v6 .sysreq_tab {
+    border-radius: var(--aika-radius-md) var(--aika-radius-md) 0 0;
+    color: var(--aika-fg-subtle);
+}
+
+html body.v6 .sysreq_tab:hover {
+    color: var(--aika-fg);
+}
+
+html body.v6 .sysreq_tab.active {
+    background-color: var(--aika-surface);
+    color: var(--aika-fg);
+    box-shadow: inset 0 calc(-1 * var(--aika-indicator)) 0 0 var(--aika-accent);
+}
+
+/* "More from …" / "More like this" at the bottom: a strip with a white radial light
+   from below — kill it, our background shows */
+html body.v6 .related_items_ctn {
+    background: var(--aika-transparent);
+    box-shadow: inset 0 var(--aika-hairline) 0 0 var(--aika-border);
+}
+
+/* The curators block: "You are not following any curators…" */
+html body.v6 .steam_curators_block .no_curators_followed {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface);
+    color: var(--aika-fg-muted);
+}
+
+/* "Follow" for curators on the right of the block header — light blue 20 % */
+html body.v6 .game_description_column .block .block_header .right a {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-surface);
+    color: var(--aika-fg);
+}
+
+html body.v6 .game_description_column .block .block_header .right a:hover {
+    background-color: var(--aika-surface-hover);
+}
+
+/* The queue menu arrow ("▾" next to "Ignore"; screenshot 19): Steam has
+   .queue_btn_menu > .queue_menu_arrow, color #67c1f5 !important, a PNG arrow,
+   and keeps .queue_btn_active on it even while the menu is closed — so it is
+   a plain secondary button (not "pressed"), the arrow — our chevron mask */
+html body.v6 .queue_btn_menu > .queue_menu_arrow {
+    background: var(--aika-surface);
+    color: var(--aika-fg-muted) !important; /* Steam: !important */
+    box-shadow: var(--aika-shadow-secondary);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 .queue_btn_menu:hover > .queue_menu_arrow {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg) !important;
+}
+
+html body.v6 .queue_btn_menu > .queue_menu_arrow > span {
+    display: block;
+    width: var(--aika-icon-inline);
+    height: 100%;
+    background: currentColor;
+    mask: var(--aika-icon-chevron-down) center / var(--aika-icon-inline) no-repeat;
+}
+
+html body.v6 .queue_btn_menu > .queue_menu_arrow > span img {
+    display: none;
+}
+
+/* Icons inside store buttons (Steam's icons_16 sprite: a light-blue arrow
+   on "Your recommendation queue →", a blue flag on "Report"; screenshots 19, 24) —
+   our masks in the button text color */
+html body.v6 .btnv6_blue_hoverfade i.ico16:is(.arrow_next, .reportv6) {
+    background: currentColor;
+    mask: var(--aika-icon-arrow-right) center / contain no-repeat;
+}
+
+html body.v6 .btnv6_blue_hoverfade i.ico16.reportv6 {
+    mask-image: var(--aika-icon-flag);
+}
+
+/* "Report" — a square icon button (Steam: the icon + a &nbsp; for width) */
+html body.v6 #ReportAppBtn {
+    color: var(--aika-fg-muted) !important; /* Steam: !important */
+}
+
+html body.v6 #ReportAppBtn:hover {
+    color: var(--aika-live) !important;
+}
+
+/* The "Embed / Report" row (author's report 2026-10-08: "the flag sits
+   unevenly"): Steam lines the buttons up on the text baseline — the icon-only
+   button (font-size 0) jumped 4 px up and was 1 px taller. A flex row, centered;
+   "Report" — a square as tall as "Embed", the icon centered without Steam's
+   .ico16 7 px margin */
+html body.v6 #shareEmbedRow {
+    display: flex;
+    align-items: center;
+    gap: var(--aika-space-2);
+}
+
+html body.v6 #shareEmbedRow > a {
+    display: inline-flex;
+    margin: 0;
+}
+
+/* flex, not grid: the &nbsp; text node would be a second grid row */
+html body.v6 #ReportAppBtn > span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: var(--aika-store-btn-height);
+    height: var(--aika-store-btn-height);
+    padding: 0;
+    font-size: 0;
+}
+
+html body.v6 #ReportAppBtn i.ico16.reportv6 {
+    width: var(--aika-icon-report);
+    height: var(--aika-icon-report);
+    margin: 0;
+}
+
+/* The recommendation queue (screenshot 26): "Next" — Steam's gold gradient
+   arrow (.next_in_queue_content + a border triangle in ::after) — the Aika
+   primary with an arrow; the hint under the buttons (#ffcc6a on a gold
+   gradient) — a quiet warn note */
+html body.v6 .btn_next_in_queue {
+    background: var(--aika-transparent);
+}
+
+html body.v6 .btn_next_in_queue::after {
+    display: none;
+}
+
+html body.v6 .btn_next_in_queue .next_in_queue_content {
+    display: flex;
+    flex-direction: row; /* Steam: column — the arrow fell under the text */
+    align-items: center;
+    justify-content: center;
+    padding-inline: var(--aika-space-4);
+    gap: var(--aika-space-3);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+    box-shadow: var(--aika-shadow-cta);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease),
+        transform var(--aika-dur-base) var(--aika-ease);
+}
+
+html body.v6 .btn_next_in_queue .next_in_queue_content::after {
+    content: "";
+    flex: none;
+    width: var(--aika-icon-inline);
+    height: var(--aika-icon-inline);
+    background: currentColor;
+    mask: var(--aika-icon-arrow-right) center / contain no-repeat;
+    transition: transform var(--aika-dur-base) var(--aika-ease);
+}
+
+html body.v6 .btn_next_in_queue:hover .next_in_queue_content {
+    background: var(--aika-accent-fill-hover);
+    box-shadow: var(--aika-shadow-cta-hover);
+    transform: translateY(var(--aika-lift-sm));
+}
+
+html body.v6 .btn_next_in_queue:hover .next_in_queue_content::after {
+    transform: translateX(var(--aika-nudge));
+}
+
+html body.v6 .btn_next_in_queue .next_in_queue_content > span {
+    color: var(--aika-on-accent);
+    font-weight: var(--aika-weight-semibold);
+}
+
+html body.v6 .btn_next_in_queue .queue_sub_text {
+    color: var(--aika-on-accent);
+    font-family: var(--aika-font-mono);
+    font-weight: var(--aika-weight-regular);
+    text-transform: none;
+    opacity: 0.72;
+}
+
+html body.v6 .queue_controls_description {
+    width: fit-content;
+    padding: var(--aika-space-1) var(--aika-space-3);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-warn-soft);
+    color: var(--aika-warn);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-warn-border);
+}
+
+/* --------------------------------------------------------------------------
+   Controllers (React, under "Features"): #category_block > div without
+   a class — the same "icon + caption" rows as .game_area_details_specs_ctn
+   (Steam: the icon on #101822, the caption light blue 10 %). The classes inside are
+   hashes, we rely on structure: rows are a and summary (an expandable list),
+   the row parts are their direct children. The green "Your controller…" takes
+   --color-storegreen-7 (remapped to ok above).
+   -------------------------------------------------------------------------- */
+
+/* A row is a/summary with two parts (icon + caption); the expandable
+   list (details) in .game_area_features_list_ctn is built the same way */
+html body.v6 #category_block :is(a, summary):not(.game_area_details_specs_ctn):has(> :is(div, span) + :is(div, span)) {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 #category_block :is(a, summary):not(.game_area_details_specs_ctn):has(> :is(div, span) + :is(div, span)):hover {
+    background: var(--aika-surface-hover);
+}
+
+html body.v6 #category_block :is(a, summary):not(.game_area_details_specs_ctn):has(> :is(div, span) + :is(div, span)) > :is(div, span),
+html body.v6 #category_block :is(a, summary):not(.game_area_details_specs_ctn):has(> :is(div, span) + :is(div, span)):hover > :is(div, span) {
+    border-radius: 0;
+    background: var(--aika-transparent);
+    color: var(--aika-fg);
+}
+
+html body.v6 #category_block :is(a, summary):not(.game_area_details_specs_ctn):has(> :is(div, span) + :is(div, span)) > span span {
+    color: inherit;
+}
+
+/* Rows inside the expandable list: li > a > span (a single caption) */
+html body.v6 #category_block details li > a {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 #category_block details li > a:hover {
+    background: var(--aika-surface-hover);
+}
+
+html body.v6 #category_block details li > a > span,
+html body.v6 #category_block details li > a:hover > span {
+    border-radius: 0;
+    background: var(--aika-transparent);
+    color: var(--aika-fg);
+}
+
+html body.v6 #category_block details li > a > span span {
+    color: inherit;
+}
+
+/* The "?" link in the list heading (gray 10 %) */
+html body.v6 #category_block details > summary > span > a {
+    border-radius: var(--aika-radius-xs);
+    background: var(--aika-surface-active);
+}
+
+/* Group captions ("Full controller support", "Xbox", "PlayStation") */
+html body.v6 #category_block :is(div, li) > :is(div, span):not(:has(*)):not(:is(a, summary) > *) {
+    color: var(--aika-fg-subtle);
+}
+
+/* The age rating description — Steam has
+   .shared_game_rating p.descriptorText with !important */
+html body.v6 .shared_game_rating p.descriptorText {
+    color: var(--aika-fg-muted) !important; /* Steam: #c6d4df !important */
+}
+
+/* --------------------------------------------------------------------------
+   "Steam Achievements" on the right (React in .noOpinionatedGlobalStyles, hashes):
+   Steam has the same black gradient as .block, icons without rounding.
+   -------------------------------------------------------------------------- */
+
+html body.v6 .rightcol.game_meta_data .noOpinionatedGlobalStyles > div {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-bg);
+    color: var(--aika-fg-muted);
+    box-shadow: var(--aika-shadow-card);
+}
+
+html body.v6 .rightcol.game_meta_data .noOpinionatedGlobalStyles > div > span {
+    color: var(--aika-fg-subtle);
+}
+
+html body.v6 .rightcol.game_meta_data .noOpinionatedGlobalStyles > div a > div > div,
+html body.v6 .rightcol.game_meta_data .noOpinionatedGlobalStyles > div a > div > div img {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+}
+
+/* Achievement icons: Steam has a gray 33 % shadow */
+html body.v6 .rightcol.game_meta_data .noOpinionatedGlobalStyles > div a > div > div img {
+    box-shadow: var(--aika-shadow-cover);
+}
+
+/* Description: the copyright under the requirements (#game_area_legal, #566168) */
+html body.v6 #game_area_legal p {
+    color: var(--aika-fg-subtle);
+}
+
+/* "Recent Events" (React, .early_access_announcements): event
+   cards (a.OtherEvents_EventCtn — a gray radial gradient)
+   and the "All updates" button (a white 40 % border) */
+html body.v6 .early_access_announcements a.OtherEvents_EventCtn {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-bg);
+    color: var(--aika-fg-muted);
+    box-shadow: var(--aika-shadow-card);
+    transition: box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html body.v6 .early_access_announcements a.OtherEvents_EventCtn:hover {
+    box-shadow: var(--aika-shadow-card-hover);
+}
+
+/* The event date (Steam: white 50 %) — the date line inside the card */
+html body.v6 a.OtherEvents_EventCtn > div > div:has(> div > span) {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+html body.v6 .early_access_announcements > div > .Focusable {
+    border-color: var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Prices on React carousel capsules ("More from…", "More like this"):
+   .StoreSalePriceWidgetContainer.Discounted > [discount] + [old / new].
+   Steam: a #344654 backing, the discount — lime #beee11 on #4c6b22,
+   the old price — #738895. Like .discount_block above: Aika green, mono.
+   Parts without readable classes — by order.
+   -------------------------------------------------------------------------- */
+
+html body.v6 .StoreSalePriceWidgetContainer {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+    color: var(--aika-fg);
+    font-family: var(--aika-font-mono);
+}
+
+/* A note instead of a price ("Pre-Purchase"): Steam has lime on #344654 */
+html body.v6 .StoreSalePriceWidgetContainer > div > span {
+    border-radius: var(--aika-radius-xs);
+    background: var(--aika-accent-soft);
+    color: var(--aika-accent-bright);
+}
+
+html body.v6 .StoreSalePriceWidgetContainer.Discounted > div:first-child {
+    background: var(--aika-ok);
+    color: var(--aika-bg-deep);
+    font-weight: var(--aika-weight-semibold);
+}
+
+html body.v6 .StoreSalePriceWidgetContainer.Discounted > div:last-child > div:first-child {
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 .StoreSalePriceWidgetContainer.Discounted > div:last-child > div:last-child {
+    color: var(--aika-fg);
+    font-weight: var(--aika-weight-semibold);
+}
+
+/* Carousel header buttons: "Follow" (FollowButton) and "See all"
+   (.btnv6_grey_black). Steam has #212c3d, light-blue text with !important
+   (a hash rule (0,3,0)), hover — #54a5d4. */
+html body.v6 .related_items_ctn :is(.FollowButton, .btnv6_grey_black) {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    color: var(--aika-fg) !important; /* Steam: #66c0f4 !important */
+    box-shadow: var(--aika-shadow-secondary);
+}
+
+html body.v6 .related_items_ctn .FollowButton:hover,
+html body.v6 .related_items_ctn .btnv6_grey_black:not(.btn_disabled):not(:disabled):not(.btn_active):not(.active):hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg) !important; /* Steam: #fff !important */
+    box-shadow: var(--aika-shadow-secondary-hover);
+}
+
+html body.v6 .related_items_ctn :is(.FollowButton, .btnv6_grey_black) * {
+    color: inherit;
+}
+
+/* Carousel capsules ("More products", "More like this"): React,
+   a wrapper with overflow: hidden and 3 px rounding — no readable class,
+   we take it as the parent of the link with .CapsuleImageCtn. The price strip at the bottom
+   (.CapsuleBottomBar) — black in Steam. */
+html body.v6 .related_items_ctn div:has(> a .CapsuleImageCtn) {
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg);
+    box-shadow: var(--aika-shadow-card);
+    transition: box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html body.v6 .related_items_ctn div:has(> a .CapsuleImageCtn):hover {
+    box-shadow: var(--aika-shadow-card-hover);
+}
+
+html body.v6 .related_items_ctn .CapsuleBottomBar {
+    background: var(--aika-bg-elevated);
+}
+
+html body.v6 .related_items_ctn .CapsuleBottomBar .StoreSalePriceWidgetContainer {
+    border-radius: 0;
+}
+
+/* Labels on capsules ("In Library", "On Wishlist"):
+   Steam has a light-blue / light-gray plate, black caps, a black shadow.
+   The shared look is here, the color difference is in selectors.css (a hash modifier). */
+html body.v6 .CapsuleDecorators > span {
+    border-radius: var(--aika-radius-xs);
+    background-color: var(--aika-bg-high);
+    color: var(--aika-fg);
+    font-family: var(--aika-font-mono);
+    box-shadow: var(--aika-shadow-card);
+}
+
+/* Metacritic — the score color is semantic (the Metacritic scale), rounding only */
+html body.v6 #game_area_metascore .score {
+    border-radius: var(--aika-radius-md);
+}
+
+/* ==========================================================================
+   4. Search (store.steampowered.com/search/, body.v6.search_page)
+      Captured via CDP 2026-10-04 (query "souls"). Old markup,
+      readable classes, Steam's rules up to (1,0,0) on #term.
+   ========================================================================== */
+
+/* Query tags above the results ("souls ×") */
+html body.v6 .termcontainer .searchtag {
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent-soft);
+    color: var(--aika-accent-bright);
+}
+
+html body.v6 .termcontainer .searchtag .label {
+    color: inherit;
+}
+
+/* The search strip: the #term field (light blue 20 %), sorting (.dselect_container) */
+html body.v6 .searchbar {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface);
+}
+
+html body.v6 .searchbar .label {
+    color: var(--aika-fg-subtle);
+}
+
+html body.v6 #term,
+html body.v6 .search_filter_suggest {
+    border: var(--aika-hairline) solid var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-bg-raised);
+    color: var(--aika-fg);
+    text-shadow: none;
+    box-shadow: none;
+    transition: box-shadow var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 #term.blur,
+html body.v6 .search_filter_suggest.blur {
+    color: var(--aika-fg-subtle);
+    font-style: normal;
+}
+
+html body.v6 #term:focus,
+html body.v6 .search_filter_suggest:focus {
+    outline: none;
+    box-shadow: var(--aika-shadow-input-focus);
+}
+
+/* The sort dropdown: the button and the open list (.dropcontainer ul) */
+html body.v6 .dselect_container button.trigger {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    color: var(--aika-fg);
+}
+
+html body.v6 .dselect_container button.trigger:hover,
+html body.v6 .dselect_container button.activetrigger,
+html body.v6 .dselect_container button.activetrigger:hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+html body.v6 .dselect_container .dropcontainer ul {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface-translucent);
+    box-shadow: var(--aika-shadow-menu);
+}
+
+html body.v6 .dselect_container .dropcontainer ul a {
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 .dselect_container .dropcontainer a.highlighted_selection,
+html body.v6 .dselect_container .dropcontainer ul a:hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+/* "Hidden due to preferences" — Steam has light-yellow text on black 20 % */
+html body.v6 .search_results_filtered_warning > div {
+    background-color: var(--aika-warn-soft);
+    color: var(--aika-warn);
+}
+
+html body.v6 .search_results_filtered_warning > div:first-child {
+    border-radius: var(--aika-radius-md) 0 0 var(--aika-radius-md);
+}
+
+html body.v6 .search_results_filtered_warning > div:last-child {
+    border-radius: 0 var(--aika-radius-md) var(--aika-radius-md) 0;
+}
+
+html body.v6 .search_results_filtered_warning > div:only-child {
+    border-radius: var(--aika-radius-md);
+}
+
+/* A result row: Steam has black 20 %, hover — 40 % and a light-blue border */
+html body.v6 .search_result_row,
+html body.v6 .search_result_row:hover {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 .search_result_row {
+    border-color: var(--aika-transparent);
+    background: var(--aika-surface);
+}
+
+html body.v6 .search_result_row:hover {
+    border-color: var(--aika-border-hover);
+    background: var(--aika-surface-hover);
+}
+
+html body.v6 .search_result_row .search_capsule img {
+    border-radius: var(--aika-radius-xs);
+}
+
+html body.v6 .search_result_row.ds_flagged:not(.ds_wishlist) .search_name,
+html body.v6 .search_result_row :is(.vr_required, .vr_supported, .includes_games_results) {
+    color: var(--aika-fg-subtle);
+}
+
+html body.v6 .responsive_search_name_combined .search_released {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+html body.v6 .search_result_row .search_reviewscore .game_review_summary {
+    color: var(--aika-warn);
+}
+
+html body.v6 .search_result_row .search_reviewscore .game_review_summary.positive {
+    color: var(--aika-ok);
+}
+
+html body.v6 .search_result_row .search_reviewscore .game_review_summary.none {
+    color: var(--aika-fg-subtle);
+}
+
+/* The discount in a row: Steam's .search_discount_block has its own green and gray */
+html body.v6 .discount_block.search_discount_block .discount_pct {
+    background: var(--aika-ok);
+}
+
+html body.v6 .discount_block.search_discount_block .discount_prices .discount_original_price {
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 .discount_block.search_discount_block .discount_prices .discount_final_price {
+    color: var(--aika-fg);
+}
+
+/* Filters on the right (.search_collapse_block): the block heading is a white 10 %
+   strip, the checkbox items are light blue, the selected one — a light-blue gradient */
+html body.v6.search_page .rightcol .block {
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-bg);
+    box-shadow: var(--aika-shadow-card);
+}
+
+html body.v6.search_page .rightcol .block .block_header {
+    background: var(--aika-transparent);
+    color: var(--aika-fg);
+    box-shadow: inset 0 calc(-1 * var(--aika-hairline)) 0 0 var(--aika-border);
+}
+
+html body.v6.search_page .rightcol .block .block_header > div {
+    color: inherit;
+}
+
+html body.v6.search_page .rightcol .block .block_content {
+    border-color: var(--aika-transparent);
+}
+
+html body.v6 :is(.tab_filter_control, .range_display) {
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 :is(.tab_filter_control:hover, .tab_filter_control_row:not(.disabled):hover) {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+html body.v6 :is(.tab_filter_control.checked, .tab_filter_control_row:not(.disabled).checked) {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-accent-soft);
+    color: var(--aika-fg);
+}
+
+html body.v6 .tab_filter_control_row:not(.disabled).checked .tab_filter_control,
+html body.v6 .tab_filter_control_label {
+    color: inherit;
+}
+
+html body.v6 .tab_filter_control_count {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    font-style: normal;
+}
+
+html body.v6 .see_all_expander {
+    color: var(--aika-accent-bright);
+}
+
+/* --------------------------------------------------------------------------
+   The game logo above the trailer (author's idea 2026-10-04; js/store-logo.js).
+   The script puts .aika-store-logo > img into .highlight_ctn and sets
+   html.aika-has-logo. The logo is centered on the trailer/screenshot window, its
+   center is on the window's top edge: the top half overlaps the strip
+   with the title, the bottom slightly overlaps the trailer. A shadow behind it.
+   Without the script or without a logo — Steam's text title as before.
+   -------------------------------------------------------------------------- */
+
+html body.v6 .highlight_ctn:has(> .aika-store-logo) {
+    position: relative;
+}
+
+/* Steam's ".widestore #game_highlights" has backdrop-filter: blur(7px), which is
+   a separate stacking context: the logo's z-index only works inside
+   the block, and during a sale the banner (.saleEventBannerBig, z 100, higher
+   on the page) covered the top of the logo (screenshot 11, STEEP). We raise
+   the whole trailer block above the banner — they only overlap at the logo. */
+html body.v6 #game_highlights:has(.aika-store-logo) {
+    position: relative;
+    z-index: var(--aika-z-store-logo);
+}
+
+html body.v6 .highlight_ctn > .aika-store-logo {
+    position: absolute;
+    top: 0;
+    left: calc(50% - var(--aika-store-highlight-gutter) / 2);
+    /* was 30: during a sale a banner stands instead of the title strip
+       (.saleEventBannerBig, z 100) — the top of the logo went under it
+       (screenshot 11, STEEP) */
+    z-index: var(--aika-z-store-logo);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--aika-store-logo-max-width);
+    height: var(--aika-store-logo-max-height);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: aika-store-logo-in var(--aika-dur-enter) var(--aika-ease) both;
+}
+
+html body.v6 .highlight_ctn > .aika-store-logo img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: var(--aika-store-logo-shadow);
+}
+
+@keyframes aika-store-logo-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, calc(-50% + var(--aika-appear-shift)));
+    }
+}
+
+/* The text title — only for screen readers, the space goes to the logo */
+html.aika-has-logo body.v6 .apphub_AppName {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+   5. The page of a game already in the library (author's fix 2026-10-04,
+      verified on PEAK): the "PEAK is already in your Steam Library" strip
+      (.game_area_already_owned — a lime gradient, text #a3cf06),
+      the block under it (.game_area_play_stats — a gray-blue card: "Play",
+      hours, "Write a review"), the "In Library" label on purchase options
+      (.package_in_library_flag.in_own_library — lime), the fade above
+      "Read more". Readable classes, Steam's strength up to (0,3,1)/(0,6,0) on hover.
+   ========================================================================== */
+
+html body.v6 .game_area_already_owned:not(.master_sub) {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-accent-bg);
+    color: var(--aika-fg);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+}
+
+html body.v6 .game_area_already_owned .already_in_library {
+    color: var(--aika-fg);
+}
+
+/* The "In Library" label on the strip: Steam has its own black shadow and a PNG icon */
+html body.v6 .game_area_already_owned .ds_flag {
+    border-radius: var(--aika-radius-xs);
+    box-shadow: var(--aika-shadow-card);
+}
+
+html body.v6 .game_area_play_stats {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-bg);
+    color: var(--aika-fg-muted);
+    box-shadow: var(--aika-shadow-card);
+}
+
+html body.v6 .game_area_play_stats .details_block.hours_played {
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-mono);
+}
+
+/* "Play" and "Post" (.btnv6_lightblue_blue — a light-blue
+   gradient, dark blue text with !important) — Aika primary */
+html body.v6 .btnv6_lightblue_blue {
+    border-color: var(--aika-transparent);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-accent-fill);
+    color: var(--aika-on-accent) !important; /* Steam: #2B5066 !important */
+    box-shadow: var(--aika-shadow-cta);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html body.v6 .btnv6_lightblue_blue:not(.btn_disabled):not(:disabled):not(.btn_active):not(.active):hover {
+    background: var(--aika-accent-fill-hover);
+    color: var(--aika-on-accent) !important; /* Steam: #fff !important */
+    box-shadow: var(--aika-shadow-cta-hover);
+}
+
+html body.v6 .btnv6_lightblue_blue > span {
+    color: inherit;
+    text-shadow: none;
+}
+
+/* "Write a review for PEAK": the heading (#66c0f4), the hint, the avatar
+   with a status frame, the field (#222b35), visibility/language settings (black 20 %) */
+html body.v6 .game_area_play_stats #review_create h2 {
+    color: var(--aika-fg);
+}
+
+html body.v6 .game_area_play_stats #review_create p {
+    color: var(--aika-fg-subtle);
+}
+
+html body.v6 .game_area_play_stats #review_create .input_box {
+    border-color: var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-bg-raised);
+    color: var(--aika-fg);
+    transition: box-shadow var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body.v6 .game_area_play_stats #review_create .input_box:focus {
+    outline: none;
+    box-shadow: var(--aika-shadow-input-focus);
+}
+
+html body.v6 .game_area_play_stats .review_controls {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface);
+}
+
+html body.v6 .game_area_play_stats .review_controls .dselect_container {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-transparent);
+    color: var(--aika-fg);
+}
+
+html body.v6 .avatar_block :is(.avatar_block_status_online, .avatar_block_status_in-game, .avatar_block_status_offline),
+html body.v6 .avatar_block :is(.avatar_block_status_online, .avatar_block_status_in-game, .avatar_block_status_offline) img {
+    border-radius: var(--aika-radius-md);
+}
+
+html body.v6 .avatar_block .avatar_block_status_online {
+    background: var(--aika-accent-bright);
+}
+
+html body.v6 .avatar_block .avatar_block_status_in-game {
+    background: var(--aika-ok);
+}
+
+html body.v6 .avatar_block .avatar_block_status_offline {
+    background: var(--aika-fg-subtle);
+}
+
+html body.v6 .avatar_block :is(.avatar_block_status_online, .avatar_block_status_in-game, .avatar_block_status_offline) img {
+    background: var(--aika-bg-high);
+}
+
+/* "In Library" on purchase options: own — accent, family — too,
+   with a darker fill */
+html body.v6 .package_in_library_flag {
+    border-radius: var(--aika-radius-xs);
+    box-shadow: var(--aika-shadow-card);
+}
+
+html body.v6 .package_in_library_flag.in_own_library {
+    background: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+}
+
+html body.v6 .package_in_library_flag.in_family_library {
+    background: var(--aika-accent-mid);
+    color: var(--aika-fg);
+}
+
+/* The fade above "Read more" (.widestore …_fade — a light-blue PNG strip).
+   In the description — into the page background; in the right column the block sits on a card
+   (.rightcol .block — a gradient), the background color can't be guessed there — no backing,
+   a mask on the content itself does the fade. */
+html body.v6.widestore .game_page_autocollapse_fade {
+    border-radius: 0 0 var(--aika-radius-lg) var(--aika-radius-lg);
+    background: var(--aika-store-collapse-fade);
+}
+
+html body.v6.widestore .rightcol .game_page_autocollapse_fade {
+    background: var(--aika-transparent);
+}
+
+html body.v6.widestore .rightcol .game_page_autocollapse_ctn.collapsed .game_page_autocollapse {
+    -webkit-mask-image: var(--aika-store-collapse-mask);
+    mask-image: var(--aika-store-collapse-mask);
+}
+
+/* The avatar in the review form: Steam's "#review_create .avatar" (1,1,0) zeroes the rounding */
+html body.v6 #review_create .avatar_block .avatar,
+html body.v6 #review_create .avatar_block .avatar img {
+    border-radius: var(--aika-radius-md);
+}
+
+/* "Offer ends …" above the price (#7cb8e4) — warn: the offer deadline */
+html body.v6 .game_purchase_discount_countdown {
+    color: var(--aika-warn);
+    font-family: var(--aika-font-mono);
+}
+
+/* --------------------------------------------------------------------------
+   Friends who own the game (.friend_blocks_grid .friend_block_holder,
+   the right column): the avatar in a status frame (Steam — light-blue / lime /
+   gray gradients and JPG backings), rounding 0. As in components/status.css:
+   in game — ok, online — accent, offline — muted.
+   -------------------------------------------------------------------------- */
+
+html body.v6 .friend_block_holder .friend_block_avatar,
+html body.v6 .friend_block_holder .friend_block_avatar img {
+    border-radius: var(--aika-radius-md);
+}
+
+html body.v6 .friend_block_holder .friend_block_avatar {
+    background: var(--aika-fg-subtle);
+}
+
+html body.v6 .friend_block_holder.friend_status_online .friend_block_avatar {
+    background: var(--aika-accent-bright);
+}
+
+html body.v6 .friend_block_holder.friend_status_in-game .friend_block_avatar {
+    background: var(--aika-ok);
+}
+
+html body.v6 .friend_block_holder .friend_block_avatar img {
+    background: var(--aika-bg-high);
+}
+
+html body.v6 .friend_block_holder {
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 .friend_block_holder:hover {
+    background: var(--aika-surface-hover);
+}
+
+/* --------------------------------------------------------------------------
+   A bundle in the purchase block: the "Bundle" caption (#a4d7f5), the hint,
+   the bundle's base discount (.bundle_base_discount #626366), the contents preview
+   (.bundle_contents_preview — capsules without rounding, a black shadow)
+   -------------------------------------------------------------------------- */
+
+html body.v6 .bundle_label {
+    color: var(--aika-accent-bright);
+}
+
+html body.v6 .bundle_label .bundle_label_tooltip {
+    color: var(--aika-fg-subtle);
+}
+
+html body.v6 .discount_block .bundle_base_discount {
+    background: var(--aika-ok);
+    color: var(--aika-bg-deep);
+    font-family: var(--aika-font-mono);
+}
+
+/* Shared React capsules also appear outside legacy discount_block wrappers. */
+html body.v6 .StoreSalePriceWidgetContainer .StoreSaleDiscountBox {
+    background: var(--aika-ok);
+    color: var(--aika-bg-deep);
+    font-weight: var(--aika-weight-semibold);
+}
+
+html body.v6 .bundle_contents_preview {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+}
+
+html body.v6 .bundle_contents_preview a.bundle_contents_preview_item,
+html body.v6 .bundle_contents_preview.collapsed a.bundle_contents_preview_item {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+    box-shadow: var(--aika-shadow-card);
+}
+
+/* Description: paragraphs inside lists (Steam has #acb2b8 on .bb_paragraph),
+   the "expand" button (🔎) on images — both in the description and in other blocks */
+html body.v6 .game_area_description .bb_ul .bb_paragraph {
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 .bb_img_icons .bb_img_expand {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface-translucent);
+    color: var(--aika-fg);
+}
+
+/* The game cover above the quick summary on the right (#gameHeaderImageCtn
+   img.game_header_image_full) — no rounding in Steam (author's fix) */
+html body.v6 #gameHeaderImageCtn img.game_header_image_full {
+    border-radius: var(--aika-radius-lg);
+    box-shadow: var(--aika-shadow-card);
+}
+
+/* --------------------------------------------------------------------------
+   A cart with items (2026-10-04): the "Cart N" button in the store menu
+   (a[href*="/cart"], Steam: #1a9fff when the cart isn't empty) —
+   accent; "Follow" (FollowButton, #54a5d4) everywhere — Aika secondary
+   -------------------------------------------------------------------------- */
+
+html body.v6 [data-featuretarget="store-menu-v7"] a[href*="/cart"] {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+    box-shadow: var(--aika-shadow-cta);
+}
+
+html body.v6 [data-featuretarget="store-menu-v7"] a[href*="/cart"]:hover {
+    background: var(--aika-accent-fill-hover);
+    color: var(--aika-on-accent);
+}
+
+html body.v6 .FollowButton {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    color: var(--aika-fg);
+    box-shadow: var(--aika-shadow-secondary);
+}
+
+html body.v6 .FollowButton:hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+    box-shadow: var(--aika-shadow-secondary-hover);
+}
+
+html body.v6 .FollowButton .FollowBtnText {
+    color: inherit;
+}
+
+/* ==========================================================================
+   Game page — warnings by the purchase block (screenshot 16, Spec Ops:
+   The Line): "Russian language not supported", "Notice: … is no longer
+   available", "… CIS". Steam: .notice_box_content — a #a25024 border,
+   radius 3, a bold start #f47b20, text #acb2b8 (0,1,0)…(0,1,1).
+   We make it the theme's warning card (warn). Verified 2026-10-07.
+   ========================================================================== */
+
+html body.v6 .notice_box_content {
+    padding: var(--aika-space-3) var(--aika-space-4);
+    border: var(--aika-hairline) solid var(--aika-warn-border);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-warn-soft);
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 .notice_box_content b {
+    color: var(--aika-warn);
+    font-weight: var(--aika-weight-semibold);
+}
+
+html body.v6 .notice_box_content a {
+    color: var(--aika-accent-bright);
+}
+
+html body.v6 .notice_box_content a:hover {
+    color: var(--aika-fg);
+}
+
+/* ==========================================================================
+   Game page — Early Access (screenshot 15, SUPER PEOPLE; verified on
+   Enshrouded). .early_access_header: a #4e81ae border, the .heading header —
+   a light-blue glow #57a4d0 and text #b8e0fd, "Note" #f9be3e,
+   the "Leaving Early Access" strip (#27475d → #4e81ae), "Message from
+   the developers" #61686d, "Read more" — #67c1f5 on a gradient into #1b2838.
+   .early_access_banner — "Report bugs…": a gray gradient,
+   a light-blue bug (PNG), a button with a black 2 px border. Steam up to (0,2,1).
+   ========================================================================== */
+
+html body.v6 div.early_access_header {
+    overflow: hidden;
+    border: var(--aika-hairline) solid var(--aika-border-accent);
+    border-radius: var(--aika-radius-xl);
+    background: var(--aika-bg-elevated);
+    box-shadow: var(--aika-highlight-top);
+}
+
+html body.v6 div.early_access_header .heading {
+    border-radius: 0;
+    background: radial-gradient(ellipse at 60% 100%, var(--aika-accent-soft), var(--aika-transparent) 70%), var(--aika-accent-tint);
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 div.early_access_header .heading h2 {
+    color: var(--aika-fg);
+}
+
+html body.v6 div.early_access_header .heading p {
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 div.early_access_header .heading p.subtitle {
+    color: var(--aika-fg);
+}
+
+/* "Note:" — a warm warning */
+html body.v6 div.early_access_header .heading p > span {
+    color: var(--aika-warn);
+}
+
+html body.v6 div.early_access_header .heading a {
+    color: var(--aika-accent-bright);
+}
+
+html body.v6 div.early_access_header .leaving_early_access {
+    border-bottom: var(--aika-hairline) solid var(--aika-border-accent);
+    background: linear-gradient(to right, var(--aika-accent-soft), var(--aika-accent-tint));
+    color: var(--aika-warn);
+}
+
+html body.v6 div.early_access_header .devnotes .devs_say {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+    text-transform: none;
+}
+
+html body.v6 div.early_access_header .devnotes > div {
+    color: var(--aika-fg-muted);
+}
+
+html body.v6 div.early_access_header .devnotes h3 {
+    color: var(--aika-fg);
+}
+
+/* "Read more" over the clipped text: the gradient fades into the block background */
+html body.v6 div.early_access_header .devnotes .morebutton {
+    background: linear-gradient(to right, var(--aika-transparent), var(--aika-bg-elevated) 15%);
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-mono);
+    text-transform: none;
+}
+
+html body.v6 div.early_access_header .devnotes .morebutton:hover {
+    color: var(--aika-fg);
+}
+
+/* "Report bugs…" — a card, the bug in accent tone, a secondary button */
+html body.v6 div.early_access_banner {
+    overflow: hidden;
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-bg);
+    box-shadow: var(--aika-highlight-top);
+}
+
+html body.v6 div.early_access_banner > .img {
+    filter: var(--aika-tint-accent);
+}
+
+html body.v6 div.early_access_banner > p {
+    color: var(--aika-fg);
+}
+
+html body.v6 div.early_access_banner > a.btn_border_2px {
+    border: none;
+    box-shadow: var(--aika-shadow-secondary);
+}
+
+html body.v6 div.early_access_banner > a.btn_border_2px > span {
+    border: none;
+}
+
+/* --------------------------------------------------------------------------
+   Game notices above the purchase block (React, [data-featuretarget^=
+   "game-notice-"]; screenshot 23 — "VR supported", Phasmophobia):
+   Steam: a #ffc82c icon tile + a blue-gray gradient strip (#2c3c49 → …),
+   2 px corners. An Aika card: the icon on an accent tint in the accent,
+   the text on the card surface. Structure only — the classes inside are hashes:
+     > div > div            — the notice
+       > div:first-child    — the icon tile (svg in currentColor)
+       > div:last-child     — the text
+   -------------------------------------------------------------------------- */
+
+html body.v6 [data-featuretarget^="game-notice-"] > div > div {
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+}
+
+html body.v6 [data-featuretarget^="game-notice-"] > div > div > div:first-child {
+    border-radius: 0;
+    background: var(--aika-accent-soft);
+    color: var(--aika-accent-bright);
+}
+
+html body.v6 [data-featuretarget^="game-notice-"] > div > div > div:first-child svg {
+    color: var(--aika-accent-bright);
+}
+
+html body.v6 [data-featuretarget^="game-notice-"] > div > div > div:last-child {
+    border-radius: 0;
+    background: var(--aika-card-accent-bg);
+    color: var(--aika-fg-muted);
+}

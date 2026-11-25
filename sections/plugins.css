@@ -1,0 +1,576 @@
+/* ==========================================================================
+   sections/plugins.css — popular Millennium plugins in the Aika look
+   (backlog 5, 2026-10-20). Imported by main.css (client windows) and
+   webkit.css (store pages). Each plugin injects its own <style> after ours,
+   so selectors carry an html prefix (and the plugin's id) to win.
+
+   How Long To Beat (hltb-for-millennium, captured 2026-10-20):
+     library game page — #hltb-for-millennium (absolute in .TopCapsule, its
+       corner set inline by the plugin) > .hltb-info > ul > li
+       (.hltb-gametime + .hltb-label | button.hltb-details-btn);
+       the plugin paints a square rgba(14,20,27,.85) plate, white text, caps;
+     store game page — #hltb-store-data in the right column:
+       .hltb-store-title, .hltb-store-rows > .hltb-store-row > span,
+       a.hltb-store-link, .hltb-store-loading — Steam's gray-blue and #67c1f5.
+   Recent Chats, Size on Disk, Player Count — see their sections below.
+   Extendium (captured 2026-10-20):
+     the toolbar — .extensions-bar-container > .extensions-bar >
+       button.extension-button (.update-dot), inside Steam's address bar
+       (kept visible for it, sections/store.css part 1);
+     the extension manager — .extension-card > .extension-main
+       (.icon, .content > .name-and-version (.compatibility-pill,
+       .update-pill, .warn-pill), .description).
+   ========================================================================== */
+
+/* --- How Long To Beat: the library game page --------------------------------- */
+
+html #hltb-for-millennium {
+    margin: var(--aika-space-3);
+}
+
+html #hltb-for-millennium .hltb-info {
+    padding: var(--aika-space-2) var(--aika-space-1);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-player-material);
+    backdrop-filter: var(--aika-player-blur);
+    box-shadow:
+        inset 0 0 0 var(--aika-hairline) var(--aika-border-hover),
+        var(--aika-shadow-menu);
+}
+
+html #hltb-for-millennium .hltb-info ul {
+    padding: 0 var(--aika-space-2);
+}
+
+html #hltb-for-millennium .hltb-info ul li {
+    padding: 0 var(--aika-space-3);
+}
+
+html #hltb-for-millennium .hltb-gametime {
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-body);
+    font-weight: var(--aika-weight-semibold);
+    color: var(--aika-fg);
+}
+
+html #hltb-for-millennium .hltb-label {
+    margin-top: var(--aika-space-1);
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-label);
+    text-transform: none;
+    color: var(--aika-fg-muted);
+    opacity: 1;
+}
+
+html #hltb-for-millennium .hltb-details-btn {
+    padding: var(--aika-space-1) var(--aika-space-3);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-surface);
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-meta);
+    letter-spacing: normal;
+    text-transform: none;
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html #hltb-for-millennium .hltb-details-btn:hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+/* --- How Long To Beat: the store game page --------------------------------- */
+
+html #hltb-store-data {
+    padding: var(--aika-space-3) var(--aika-space-4);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-bg-elevated);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+}
+
+html #hltb-store-data .hltb-store-title {
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    font-weight: var(--aika-weight-regular);
+    letter-spacing: var(--aika-tracking-label);
+    text-transform: none;
+    color: var(--aika-fg-subtle);
+}
+
+html #hltb-store-data :is(.hltb-store-row, .hltb-store-loading) {
+    font-family: var(--aika-font-ui);
+    color: var(--aika-fg-muted);
+}
+
+html #hltb-store-data .hltb-store-row span {
+    font-family: var(--aika-font-mono);
+    font-weight: var(--aika-weight-semibold);
+    color: var(--aika-fg);
+}
+
+html #hltb-store-data .hltb-store-link {
+    color: var(--aika-accent-bright);
+    transition: color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html #hltb-store-data .hltb-store-link:hover {
+    color: var(--aika-fg);
+}
+
+/* --- Extendium: the toolbar ------------------------------------------------- */
+
+/* The toolbar's button is shown in the page address capsule instead
+   (js/url-capsule.js + js/extendium-bridge.js, author 2026-10-20: "in the
+   address, next to reload"). The real toolbar stays here, invisible and
+   click-through, placed right under the capsule's button — Extendium opens
+   its menu next to the button it was pressed on. Steam's address bar around
+   it takes no room (sections/store.css, part 1). Pinned extensions aren't
+   mirrored — only the main button. */
+/* The page starts right under the top bar — the anchor (an anchor has to come
+   before the positioned element in the document; .Browser comes after the
+   address bar) */
+html .TopBar .TitleBarControls { anchor-name: --aika-account-controls; }
+html.aika-autoclaim .TopBar .TitleBarControls { padding-inline-start: 38px; }
+html .BrowserWrapper .autoclaim-toolbar-container {
+    position: fixed;
+    position-anchor: --aika-account-controls;
+    left: calc(anchor(left) + 2px);
+    top: anchor(center);
+    translate: 0 -50%;
+    z-index: 100;
+    margin: 0;
+    pointer-events: auto;
+}
+html .autoclaim-toolbar-button {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+    background: var(--aika-surface);
+    border-color: var(--aika-border);
+}
+html .autoclaim-toolbar-button:hover {
+    color: var(--aika-fg);
+    background: var(--aika-surface-hover);
+    border-color: var(--aika-border-accent);
+}
+html .autoclaim-toolbar-badge { background: var(--aika-ok); }
+
+/* SIH on store game pages. Keep its links, badge progress and price-history
+   actions intact; theme only the visible material and type. */
+html body.v6.app :is(.sih-info, .sih_badge_progress_block, .sih-price-history) {
+    box-sizing: border-box;
+    padding: var(--aika-space-3);
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-bg-elevated);
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-ui);
+}
+html body.v6.app .sih-info :is(.sih-info__subtitle, .sih-info__date) { color: var(--aika-fg-muted); }
+html body.v6.app .sih-info a:hover { color: var(--aika-accent-bright); }
+html body.v6.app .sih_video_links a {
+    display: inline-flex;
+    padding: var(--aika-space-2) var(--aika-space-3);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    color: var(--aika-fg);
+}
+html body.v6.app .sih_badge_progress_block :is(.badge_current, .badge_info) {
+    background: var(--aika-transparent);
+    color: var(--aika-fg-muted);
+}
+html body.v6.app .sih_badge_progress_block .badge_empty_name { color: var(--aika-fg-muted); }
+html body.v6.app .sih_badge_progress_block .badge_info_title { color: var(--aika-fg); font-weight: var(--aika-weight-semibold); }
+html body.v6.app .sih_badge_progress_block .game_area_details_specs {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+}
+html body.v6.app .sih_badge_progress_block .game_area_details_specs .name { color: var(--aika-fg); }
+html body.v6.app .sih_badge_progress_block .game_area_details_specs:hover { background: var(--aika-surface-hover); }
+html body.v6.app .sih-price-history__price.lower { color: var(--aika-ok); }
+html body.v6.app .sih_game_banner,
+html body.v6.app .sih_game_banner img { border-radius: var(--aika-radius-md); }
+html body.v6.app .sih-steam-refill-banner { border-radius: var(--aika-radius-lg); overflow: hidden; }
+
+html .OuterFrame > .TopBar {
+    anchor-name: --aika-top-bar;
+}
+
+html .BrowserWrapper .extensions-bar-container {
+    position: fixed;
+    top: calc(anchor(--aika-top-bar bottom, var(--aika-extendium-fallback-top)) + var(--aika-storebar-top) + (var(--aika-storebar-height) - var(--aika-url-capsule-height)) / 2);
+    left: calc( var(--aika-url-capsule-left) + (var(--aika-url-capsule-height) - var(--aika-url-reload)) / 2 + var(--aika-url-reload) + var(--aika-space-1));
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+html .extensions-bar-container .extensions-bar {
+    padding: var(--aika-hairline);
+    border: none;
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-storebar-material);
+    box-shadow:
+        inset 0 0 0 var(--aika-hairline) var(--aika-border-hover),
+        var(--aika-shadow-menu);
+    transition: box-shadow var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .extensions-bar-container .extension-button {
+    width: var(--aika-extendium-button);
+    height: var(--aika-extendium-button);
+    padding: var(--aika-extendium-button-pad);
+}
+
+html .extensions-bar-container .extensions-bar:hover {
+    border: none;
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-hover);
+}
+
+html .extensions-bar-container .extension-button {
+    color: var(--aika-fg-muted);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .extensions-bar-container .extension-button:hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+/* The puzzle icon is drawn gray inline (color: gray) — take ours */
+html .extensions-bar-container .extension-button svg {
+    color: inherit !important;
+}
+
+html .extensions-bar-container .extension-button .update-dot {
+    background: var(--aika-ok);
+    border-color: var(--aika-ok-mid);
+}
+
+/* --- Extendium: the extensions menu ----------------------------------------- */
+/* A menu window ("useBrowserViewContextMenu", popup.css) built from Steam's
+   dialog parts (captured 2026-10-20): .contextMenu > .DialogHeader
+   "Extensions" + .Field.Panel rows (an extension: icon + name, pin / settings
+   DialogButtons; "Manage extensions"). Steam paints the rows #23262e with
+   2 px corners and the buttons #3d4450. Scoped by the header — Steam's own
+   menus have none. */
+/* The Card Nav motion of our menus (components/menu.css: the box unfolds, the
+   parts rise one after another) — Extendium's box has no .ContextMenuPosition,
+   so it gets the same animations here, on .ready, waiting folded until
+   js/menu-motion.js marks the window shown (html.aika-menu-open) */
+html body .contextMenu.ready:has(.DialogHeader) {
+    animation: aika-menu-unfold var(--aika-cardnav-dur) var(--aika-ease-fold);
+}
+
+html body .contextMenu.ready:has(.DialogHeader) :is(.DialogHeader, .Field.Panel) {
+    animation: aika-menu-item-in var(--aika-cardnav-item-dur) var(--aika-ease-fold) backwards;
+    animation-delay: calc(var(--aika-cardnav-item-delay) + var(--aika-menu-i, 0) * var(--aika-menu-item-stagger));
+}
+
+html body .contextMenu:has(.DialogHeader) .DialogHeader ~ .Field.Panel { --aika-menu-i: 1; }
+html body .contextMenu:has(.DialogHeader) .DialogHeader ~ div .Field.Panel { --aika-menu-i: 2; }
+
+html.aika-menu-js:not(.aika-menu-open) body .contextMenu.ready:has(.DialogHeader) {
+    clip-path: inset(0 0 100% 0 round var(--aika-radius-lg));
+    animation: none;
+}
+
+html.aika-menu-js:not(.aika-menu-open) body .contextMenu.ready:has(.DialogHeader) :is(.DialogHeader, .Field.Panel) {
+    opacity: 0;
+    animation: none;
+}
+
+html .contextMenu:has(.DialogHeader) .DialogHeader {
+    padding-inline: var(--aika-space-2);
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-h3);
+    font-weight: var(--aika-weight-semibold);
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--aika-fg);
+}
+
+html .contextMenu:has(.DialogHeader) .Field.Panel {
+    margin-top: var(--aika-space-1);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .contextMenu:has(.DialogHeader) .Field.Panel:hover {
+    background: var(--aika-surface-hover);
+}
+
+html .contextMenu:has(.DialogHeader) .Field.Panel .FieldLabel {
+    color: var(--aika-fg);
+}
+
+html .contextMenu:has(.DialogHeader) .Field.Panel .FieldIcon img {
+    border-radius: var(--aika-radius-xs);
+}
+
+html .contextMenu:has(.DialogHeader) .Field.Panel button.DialogButton {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-transparent);
+    color: var(--aika-fg-muted);
+    box-shadow: none;
+}
+
+html .contextMenu:has(.DialogHeader) .Field.Panel button.DialogButton:hover {
+    background: var(--aika-surface-active);
+    color: var(--aika-fg);
+}
+
+/* --- Extendium: the extension manager --------------------------------------- */
+
+html .extension-card {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-bg-elevated);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+}
+
+html .extension-main .content .name-and-version {
+    color: var(--aika-fg);
+}
+
+html .extension-main .content .description {
+    color: var(--aika-fg-muted);
+}
+
+html .extension-main .content .name-and-version :is(.compatibility-pill, .update-pill, .warn-pill) {
+    border-radius: var(--aika-radius-full);
+    box-shadow: none;
+    text-shadow: none;
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+}
+
+html .extension-main .content .name-and-version .update-pill {
+    border-color: var(--aika-ok-mid);
+    background: var(--aika-ok-dim);
+    color: var(--aika-ok);
+}
+
+html .extension-main .content .name-and-version .warn-pill {
+    border-color: var(--aika-warn);
+    background: var(--aika-transparent);
+    color: var(--aika-warn);
+}
+
+html .extension-main .icon .update-badge {
+    border-color: var(--aika-ok-mid);
+    background: var(--aika-ok-dim);
+}
+
+html .extension-main .icon .update-badge svg {
+    color: var(--aika-ok);
+}
+
+/* --- Recent Chats: the "Chats" tab of the friends list ----------------------- */
+/* (captured 2026-10-20) #recent-chats-panel-host > .rcp-panel: .rcp-toolbar
+   (.rcp-search-form > .rcp-search-container > input.rcp-search.friendSearchInput
+   + .rcp-search-clear, button.rcp-refresh), .rcp-error-banner, .rcp-list >
+   .rcp-list-content > .rcp-row-wrapper > .rcp-row.friend.<status> (.rcp-avatar-holder
+   > img.rcp-avatar | .rcp-avatar-fallback, .rcp-copy.labelHolder > .rcp-name +
+   .rcp-snippet, .rcp-meta > .rcp-time + .rcp-unread), .rcp-empty. The name has
+   no .playerName, so Steam's persona blue stays — the status colors are set here
+   the way sections/friends.css sets them. */
+html.friendsui-container .rcp-panel .rcp-toolbar {
+    gap: var(--aika-space-2);
+    padding: var(--aika-space-2);
+    background: var(--aika-transparent);
+    box-shadow: none;
+}
+
+html.friendsui-container .rcp-toolbar .rcp-search.friendSearchInput {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-bg-raised);
+    color: var(--aika-fg);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-strong);
+    transition: box-shadow var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html.friendsui-container .rcp-toolbar .rcp-search.friendSearchInput:focus {
+    box-shadow: var(--aika-shadow-input-focus);
+}
+
+html.friendsui-container .rcp-toolbar .rcp-search::placeholder {
+    color: var(--aika-fg-subtle);
+}
+
+html.friendsui-container .rcp-toolbar .rcp-refresh {
+    padding: 0 var(--aika-space-2);
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-ui);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html.friendsui-container .rcp-toolbar .rcp-refresh:is(:hover, :focus-visible) {
+    background-color: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+html.friendsui-container .rcp-error-banner {
+    margin: 0 var(--aika-space-2) var(--aika-space-2);
+    border: none;
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-live-soft);
+    color: var(--aika-live);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-live-soft);
+}
+
+/* Not the friends list's flat rows (author 2026-10-27: "different from the
+   list"): every conversation a card, the last message in a bubble growing out
+   of the name; unread ones lit in the accent with a strip on the left. The
+   plugin marks only conversations with unread messages .unreadFriend. */
+html.friendsui-container .rcp-list-content {
+    padding-block: var(--aika-space-1);
+}
+
+html.friendsui-container .friendGroup .rcp-row {
+    position: relative;
+    margin: 0 var(--aika-space-3) var(--aika-space-2);
+    padding: var(--aika-space-2) var(--aika-space-3);
+    border: none;
+    border-radius: var(--aika-radius-lg);
+    background-color: var(--aika-surface);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+    overflow: hidden;
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html.friendsui-container .friendGroup .rcp-row:hover {
+    background-color: var(--aika-surface-hover);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-hover);
+}
+
+html.friendsui-container .friendGroup .unreadFriend > .rcp-row {
+    background-color: var(--aika-accent-tint);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-accent-glow);
+}
+
+html.friendsui-container .friendGroup .unreadFriend > .rcp-row:hover {
+    background-color: var(--aika-accent-soft);
+}
+
+html.friendsui-container .friendGroup .unreadFriend > .rcp-row::before {
+    content: "";
+    position: absolute;
+    inset: var(--aika-space-2) auto var(--aika-space-2) 0;
+    width: 3px;
+    border-radius: 0 var(--aika-radius-full) var(--aika-radius-full) 0;
+    background: var(--aika-accent);
+    box-shadow: 0 0 10px var(--aika-accent-glow);
+}
+
+html.friendsui-container .rcp-row:focus-visible {
+    outline: none;
+    box-shadow: var(--aika-shadow-input-focus);
+}
+
+html.friendsui-container :is(.rcp-avatar, .rcp-avatar-fallback) {
+    border-color: var(--aika-border);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+}
+
+html.friendsui-container .rcp-copy.labelHolder .rcp-name {
+    font-family: var(--aika-font-friends);
+    font-weight: var(--aika-weight-semibold);
+}
+
+/* the last message: a bubble with its corner toward the name */
+html.friendsui-container .rcp-copy.labelHolder .rcp-snippet.status {
+    justify-self: start;
+    max-width: 100%;
+    margin-top: 3px;
+    padding: 3px var(--aika-space-2);
+    border-radius: 3px var(--aika-radius-md) var(--aika-radius-md) var(--aika-radius-md);
+    background: var(--aika-surface-hover);
+    box-sizing: border-box;
+}
+
+html.friendsui-container .unreadFriend .rcp-copy.labelHolder .rcp-snippet.status {
+    background: var(--aika-accent-soft);
+    color: var(--aika-fg);
+}
+
+/* the time over the count, both on the right */
+html.friendsui-container .rcp-meta {
+    align-self: stretch;
+    justify-content: space-between;
+}
+
+html.friendsui-container .rcp-unread.FriendMessageCount {
+    margin: 0;
+}
+
+html.friendsui-container .rcp-copy.labelHolder.online .rcp-name {
+    color: var(--aika-accent-bright);
+}
+
+html.friendsui-container .rcp-copy.labelHolder.ingame .rcp-name {
+    color: var(--aika-ok);
+}
+
+html.friendsui-container .rcp-copy.labelHolder.offline .rcp-name {
+    color: var(--aika-fg-subtle);
+}
+
+html.friendsui-container .rcp-copy.labelHolder .rcp-snippet.status {
+    color: var(--aika-fg-muted);
+}
+
+html.friendsui-container .rcp-time {
+    font-size: var(--aika-text-label);
+}
+
+html.friendsui-container :is(.rcp-time, .rcp-empty) {
+    font-family: var(--aika-font-mono);
+    color: var(--aika-fg-subtle);
+}
+
+html.friendsui-container .rcp-list-content:hover::-webkit-scrollbar-thumb {
+    background-color: var(--aika-border-strong);
+}
+
+/* --- Easy Restart: its items in the Steam menu ------------------------------ */
+/* (captured 2026-10-20) "Restart" / "Reload" are Steam's own .contextMenuItem
+   (data-restart-steam-root-item="restart|reload"), so components/menu.css
+   already draws them; the separator after them is a plain div painted inline
+   (height .5px, rgba(19,19,19,.85)) — drawn and animated like hr.Separator.
+   Its modal is built from Steam's dialog parts — the theme's dialogs. */
+html .contextMenu .contextMenuContents > [data-restart-steam-root-item="separator"] {
+    height: var(--aika-hairline) !important;
+    margin: var(--aika-space-1) var(--aika-space-2);
+    background: var(--aika-border) !important;
+}
+
+html body .contextMenu.ready .contextMenuContents > [data-restart-steam-root-item="separator"] {
+    animation: aika-menu-item-in var(--aika-cardnav-item-dur) var(--aika-ease-fold) backwards;
+    animation-delay: calc(var(--aika-cardnav-item-delay) + var(--aika-menu-i, 0) * var(--aika-menu-item-stagger));
+}
+
+html.aika-menu-js:not(.aika-menu-open) body .contextMenu.ready .contextMenuContents > [data-restart-steam-root-item="separator"] {
+    opacity: 0;
+    animation: none;
+}
+
+/* --- Size on Disk, Player Count ---------------------------------------------- */
+/* Size on Disk (captured 2026-10-20) draws its play-bar stat and its page in
+   game properties from Steam's own GameStat / PlayBarLabel / DialogBody —
+   the theme's look already. Player Count colors the online number inline by
+   tier (blue < 1k, bronze, gray, gold, red > 50k) — meaning, not decoration;
+   left as is. */

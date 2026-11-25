@@ -1,0 +1,34 @@
+/* ==========================================================================
+   webkit.css — entry point for web pages inside Steam
+   (the store at store.steampowered.com, the community at steamcommunity.com).
+   Attached via the Steam-WebKit field in skin.json.
+
+   These are separate documents that main.css never reaches — so the
+   foundation is imported here again.
+   ========================================================================== */
+
+@import url("./root-colors.css");
+@import url("./colors.css");
+@import url("./tokens.css");
+@import url("./base.css");
+@import url("./web-fonts.css");
+@import url("./background.css");
+
+@import url("./components/button.css");
+@import url("./components/input.css");
+@import url("./components/web-modal.css");
+@import url("./components/url-capsule.css");
+
+@import url("./sections/store.css");
+@import url("./sections/store-home.css");
+@import url("./sections/store-explore.css");
+@import url("./sections/store-search.css");
+@import url("./sections/store-wishlist.css");
+@import url("./sections/store-checkout.css");
+@import url("./sections/store-cinematic.css");
+@import url("./sections/community.css");
+@import url("./sections/community-profile.css");
+@import url("./sections/community-inventory.css");
+@import url("./sections/content.css");
+@import url("./sections/plugins.css");
+@import url("./selectors.css");

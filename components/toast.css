@@ -1,0 +1,213 @@
+/* ==========================================================================
+   components/toast.css — the client notification toast: liquid glass
+   (DESIGN.md §11, 2026-10-06 — the only place with glass in the theme).
+
+   Card layers, bottom to top:
+     .DesktopToastPopup          — the card (transparent, rounded);
+       .aika-toast-scene         — the layer from js/toast-glass.js: tint, spots
+                                   and .aika-toast-mark — the "Aika" wordmark (blackletter /
+                                   "Japanese brush", Conditions "Notification
+                                   wordmark") instead of Steam's logo pattern;
+                                   hyalite bends it near the edges (filter: --hyalite);
+     .DesktopToastTemplate       — Steam's content, the glare and the glass rim.
+
+   Spacing: the card sits --aika-toast-gap below the window top — that's the gap between
+   notifications (Steam's windows stack flush); the stack's offsets from the
+   screen edge are set by js/toast-motion.js (tokens --aika-toast-inset-*).
+
+   The glass doesn't refract or blur the desktop behind the window: a notification
+   window is a separate OS window, the page can't see it. Why not
+   backdrop-filter — js/toast-glass.js.
+
+   Steam (captured 2026-10-06 via NotificationStore.TestFriendMessage /
+   TestFriendIngame in SharedJSContext and tools/watch-window.js):
+     body.DesktopToastContainer (283×70) > div > .DesktopToastPopup —
+       the card (a gray-blue radial gradient);
+       .DesktopToastBackground svg — Steam's logo pattern;
+       .DesktopToastTemplate — the content:
+         .StandardLogoDimensions (avatar/cover 44×44),
+         .AvatarStatus.online|.ingame|.offline — a 3×44 status strip,
+         .Content > .Header (.Icon + .Title | .IngameTitle — the friend's name)
+                  > .Body (.GroupMessageUserName — the name,
+                           .GroupMessageBody — the message text,
+                           .FriendInGameAppColor — the game title),
+         .StandardNotificationDescription / .StandardNotificationSubText —
+           "Download complete" and other system ones.
+   ========================================================================== */
+
+html:has(> body.DesktopToastContainer),
+html body.DesktopToastContainer {
+    background: var(--aika-transparent);
+}
+
+/* --------------------------------------------------------------------------
+   The card and the scene under the glass.
+   The scene is the .aika-toast-scene layer from js/toast-glass.js (hyalite bends it);
+   without JS the same tint, spots and wordmark are drawn on the card itself.
+   -------------------------------------------------------------------------- */
+
+html .DesktopToastContainer .DesktopToastPopup {
+    position: relative;
+    height: calc(100vh - var(--aika-toast-gap));
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: var(--aika-radius-lg);
+    color: var(--aika-fg-muted);
+    background: var(--aika-transparent);
+}
+
+/* Enter and leave. CSS animations don't run in a notification window (Chromium
+   considers it hidden), so js/toast-motion.js computes the frames in a
+   SharedJSContext loop and sets variables on <html>; the
+   .aika-toast-motion class is present only while the script works. Curves and amplitudes —
+   tokens --aika-ease, --aika-ease-leave, --aika-toast-enter-*, -leave-*. */
+html.aika-toast-motion .DesktopToastContainer .DesktopToastPopup {
+    opacity: var(--aika-toast-alpha, 1);
+    transform:
+        translate(var(--aika-toast-dx, 0px), var(--aika-toast-dy, 0px))
+        scale(var(--aika-toast-scale, 1));
+    filter: blur(var(--aika-toast-blur, 0px));
+}
+
+html .DesktopToastContainer .DesktopToastPopup:not(:has(> .aika-toast-scene)),
+html .DesktopToastContainer .aika-toast-scene {
+    background:
+        radial-gradient(70% 140% at 0% 0%, var(--aika-toast-light-1), var(--aika-transparent) 70%),
+        radial-gradient(60% 130% at 100% 100%, var(--aika-toast-light-3), var(--aika-transparent) 70%),
+        var(--aika-toast-tint);
+}
+
+html .DesktopToastContainer .aika-toast-scene {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg);
+    filter: var(--hyalite, none);
+    pointer-events: none;
+}
+
+/* The "Aika" wordmark replaces Steam's logo pattern; Steam's hover highlight
+   (::before, light blue) is removed too */
+html .DesktopToastContainer .DesktopToastPopup .DesktopToastBackground,
+html .DesktopToastContainer .DesktopToastPopup::before {
+    display: none;
+}
+
+html .DesktopToastContainer .aika-toast-mark {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+html .DesktopToastContainer .DesktopToastPopup:not(:has(> .aika-toast-scene))::after,
+html .DesktopToastContainer .aika-toast-mark::after {
+    content: var(--aika-toast-mark-text, "Aika");
+    display: var(--aika-toast-mark-display, block);
+    position: absolute;
+    right: var(--aika-toast-mark-right);
+    bottom: var(--aika-toast-mark-bottom);
+    z-index: 0;
+    font-family: var(--aika-toast-mark-font);
+    font-size: var(--aika-toast-mark-size);
+    font-weight: 400;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--aika-transparent);
+    background: linear-gradient(120deg, var(--aika-toast-mark-from), var(--aika-toast-mark-to));
+    -webkit-background-clip: text;
+    background-clip: text;
+    transform: rotate(var(--aika-toast-mark-tilt));
+    pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Glass: Steam's content above the scene, a glare on top and a thin rim
+   (in self mode hyalite doesn't draw a rim — it's here)
+   -------------------------------------------------------------------------- */
+
+html .DesktopToastContainer .DesktopToastPopup .DesktopToastTemplate {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    height: 100%;
+    padding-block: var(--aika-toast-pad-y);
+    border-radius: var(--aika-radius-lg);
+    background: linear-gradient(to bottom, var(--aika-toast-sheen), var(--aika-transparent) 45%);
+    box-shadow:
+        inset 0 var(--aika-hairline) 0 0 var(--aika-toast-rim-top),
+        inset 0 calc(-1 * var(--aika-hairline)) 0 0 var(--aika-toast-rim-bottom),
+        inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+}
+
+/* --------------------------------------------------------------------------
+   Content — above the glass, with a shadow: readable over any desktop
+   -------------------------------------------------------------------------- */
+
+html .DesktopToastContainer .DesktopToastTemplate :is(.Content, .AppLogo, .StandardLogoDimensions) {
+    position: relative;
+}
+
+html .DesktopToastContainer .DesktopToastTemplate .Content {
+    text-shadow: var(--aika-toast-text-shadow-size) var(--aika-toast-text-shadow);
+}
+
+html .DesktopToastContainer .DesktopToastTemplate :is(.AppLogo, .StandardLogoDimensions),
+html .DesktopToastContainer .DesktopToastTemplate .AppLogo :is(.Container, img) {
+    overflow: hidden;
+    border-radius: var(--aika-radius-md);
+}
+
+/* The status strip next to the avatar — a pill in theme colors */
+html .DesktopToastContainer .DesktopToastTemplate .AvatarStatus {
+    margin-left: var(--aika-space-1);
+    border-radius: var(--aika-radius-full);
+    background-color: var(--aika-fg-subtle);
+    box-shadow: none;
+}
+
+html .DesktopToastContainer .DesktopToastTemplate .AvatarStatus.online {
+    background-color: var(--aika-accent-bright);
+}
+
+html .DesktopToastContainer .DesktopToastTemplate .AvatarStatus.ingame {
+    background-color: var(--aika-ok);
+}
+
+html .DesktopToastContainer .DesktopToastTemplate .Header .Icon {
+    color: var(--aika-accent-bright);
+}
+
+html .DesktopToastContainer .DesktopToastTemplate .Header .Icon svg :is(path, circle, rect) {
+    fill: currentColor;
+}
+
+html .DesktopToastContainer .DesktopToastTemplate .Header .Title {
+    color: var(--aika-fg-muted);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+    text-transform: uppercase;
+}
+
+/* The friend's name: in a message and in "now playing" */
+html .DesktopToastContainer .DesktopToastTemplate :is(.GroupMessageUserName, .IngameTitle),
+html .DesktopToastContainer .DesktopToastTemplate .StandardNotificationDescription {
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+    font-weight: var(--aika-weight-medium);
+}
+
+html .DesktopToastContainer .DesktopToastTemplate .GroupMessageBody,
+html .DesktopToastContainer .DesktopToastTemplate .StandardNotificationSubText {
+    color: var(--aika-fg-muted);
+}
+
+html .DesktopToastContainer .DesktopToastTemplate .GroupMessageBody .GroupMessageIcon {
+    color: var(--aika-accent-bright);
+}
+
+/* What they're playing — like in the friends list (sections/friends.css) */
+html .DesktopToastContainer .DesktopToastTemplate .FriendInGameAppColor {
+    color: var(--aika-ok);
+    font-weight: var(--aika-weight-medium);
+}

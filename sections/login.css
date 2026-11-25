@@ -1,0 +1,381 @@
+/* ==========================================================================
+   sections/login.css — the "Sign in to Steam" window while it signs in
+   (the 700×440 window before the main one opens: the spinner, "Signing in…",
+   a progress bar, the avatar and the account name).
+
+   Steam (captured via CDP 2026-10-12, every class readable):
+     .Login.AnimatedBackground                — the window, a panning cover grid
+       .LoginStatusContainer.Panel            — the full-window status layer
+         .StatusThrobber.Container            — column, centered
+           .SpinnerLoaderContainer
+             img.Small                        — /images/steam_spinner.png, an APNG:
+                                                the logo and the blue arc in one picture
+             .LoadingStatus
+               .LoginStatus                   — "Signing in…" (Steam's text)
+               .Progress > .ProgressBar > .Percent   — hidden until Steam shows it
+               .UserContainer > .Avatar > img, .PersonaName
+   The account chooser and the sign-in form (the same window, "Change account"
+   or no saved account) — see the end of the file.
+
+   The look (ideas: Magic UI "Ripple" + "Border Beam", reactbits "Shiny Text"):
+   the cover grid sinks under a near-black veil with a breathing accent haze;
+   Steam's APNG is hidden (its arc can't be recolored) and in its place a white
+   Steam mark sits inside a ring: a faint track, an accent comet circling it,
+   a soft ripple leaving it every few seconds. "Signing in…" is set
+   in the interface font with a thin blinking caret; the account is a pill, the avatar has an
+   accent ring, the name a light sweep. No entrance animations (see below).
+   Reduced motion: the comet still turns (it is the loading sign), the rest stands.
+   ========================================================================== */
+
+@keyframes aika-login-spin {
+    to { transform: translateX(-50%) rotate(1turn); }
+}
+
+@keyframes aika-login-ripple {
+    from { transform: translateX(-50%) scale(1); opacity: var(--aika-login-ripple-opacity); }
+    to   { transform: translateX(-50%) scale(var(--aika-login-ripple-scale)); opacity: 0; }
+}
+
+@keyframes aika-login-breathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.75; }
+    50%      { transform: translate(-50%, -50%) scale(1.12); opacity: 1; }
+}
+
+
+@keyframes aika-login-caret {
+    50% { opacity: 0; }
+}
+
+@keyframes aika-login-shine {
+    0%        { background-position: 100% 0; }
+    55%, 100% { background-position: 0 0; }
+}
+
+/* The veil over Steam's cover grid (the whole window, the title strip too) +
+   the haze behind the mark */
+html :is(.Login.AnimatedBackground, .LoginStaticBackground > .Login) {
+    position: relative;
+    isolation: isolate;
+}
+
+html :is(.Login.AnimatedBackground, .LoginStaticBackground > .Login)::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: var(--aika-login-veil);
+    pointer-events: none;
+}
+
+/* Steam's cover grid in the preset's hue (author 2026-10-27): a "color" blend
+   keeps the covers' light and dark, takes the accent's hue. The grid is a
+   sibling of .Login (.LoginAnimatedBackground, captured 2026-10-27) */
+html .LoginAnimatedBackground::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: var(--aika-login-grid-tint);
+    mix-blend-mode: color;
+    pointer-events: none;
+}
+
+html .Login .LoginStatusContainer {
+    position: relative;
+    isolation: isolate;
+}
+
+html .Login .LoginStatusContainer::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: var(--aika-login-haze-top);
+    left: 50%;
+    width: var(--aika-login-haze-size);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--aika-login-haze);
+    filter: blur(var(--aika-login-haze-blur));
+    pointer-events: none;
+    animation: aika-login-breathe var(--aika-dur-ambient-short) var(--aika-ease-ambient) infinite;
+}
+
+/* The mark: Steam's APNG keeps its box (the layout stays Steam's) but is hidden */
+html .Login .SpinnerLoaderContainer {
+    position: relative;
+}
+
+/* No entrance animations here: Millennium attaches this CSS a couple of frames
+   after the window first paints at startup (it is still loading the theme, and
+   no theme code can run earlier), so anything rising in from nothing read as
+   "Steam first, then ours" (author 2026-10-12). Our look replaces Steam's at once;
+   only the comet, the ripple, the haze and the shine move. */
+html .Login .SpinnerLoaderContainer > img.Small {
+    opacity: 0;
+}
+
+/* The ripple below is drawn by .LoadingStatus but measured from the container */
+html .Login .SpinnerLoaderContainer > .LoadingStatus {
+    position: static;
+}
+
+/* The ring: a faint track + the accent comet (a conic gradient cut to a ring) */
+html .Login .SpinnerLoaderContainer::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: var(--aika-login-mark-box);
+    height: var(--aika-login-mark-box);
+    border-radius: 50%;
+    background:
+        conic-gradient(from 0deg, var(--aika-transparent) 0deg, var(--aika-login-comet-tail) 200deg, var(--aika-accent-bright) 340deg, var(--aika-ink) 356deg, var(--aika-transparent) 360deg),
+        var(--aika-login-track);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--aika-login-ring-width) - 0.5px), #000 calc(100% - var(--aika-login-ring-width)));
+    mask: radial-gradient(farthest-side, transparent calc(100% - var(--aika-login-ring-width) - 0.5px), #000 calc(100% - var(--aika-login-ring-width)));
+    filter: drop-shadow(0 0 6px var(--aika-accent-glow));
+    transform: translateX(-50%);
+    animation: aika-login-spin var(--aika-login-spin) linear infinite;
+    pointer-events: none;
+}
+
+/* The Steam mark in the middle */
+html .Login .SpinnerLoaderContainer::after {
+    content: "";
+    position: absolute;
+    top: calc((var(--aika-login-mark-box) - var(--aika-login-mark-size)) / 2);
+    left: 50%;
+    width: var(--aika-login-mark-size);
+    height: var(--aika-login-mark-size);
+    background-color: var(--aika-fg);
+    -webkit-mask: var(--aika-icon-steam) center / contain no-repeat;
+    mask: var(--aika-icon-steam) center / contain no-repeat;
+    filter: drop-shadow(0 0 12px var(--aika-accent-glow));
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+/* The ripple — a ring leaving the mark (on .LoadingStatus: the container's
+   pseudo-elements are taken; positioned against the container) */
+html .Login .SpinnerLoaderContainer > .LoadingStatus::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: var(--aika-login-mark-box);
+    height: var(--aika-login-mark-box);
+    box-sizing: border-box;
+    border: 1px solid var(--aika-accent-ring);
+    border-radius: 50%;
+    opacity: 0;
+    animation: aika-login-ripple var(--aika-login-ripple-dur) var(--aika-ease) infinite;
+    pointer-events: none;
+}
+
+/* "Signing in…" — the interface font (the author: mono with label tracking read
+   like a typewriter on a whole sentence), a thin accent caret after it */
+html .Login .LoadingStatus > .LoginStatus {
+    margin-top: var(--aika-login-status-gap);
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-body);
+    font-weight: var(--aika-weight-medium);
+    letter-spacing: normal;
+    color: var(--aika-fg-muted);
+}
+
+html .Login .LoadingStatus > .LoginStatus::after {
+    content: "";
+    display: inline-block;
+    width: var(--aika-login-caret-width);
+    height: 1.1em;
+    margin-left: 0.3em;
+    vertical-align: -0.2em;
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent-bright);
+    animation: aika-login-caret var(--aika-login-caret) var(--aika-ease-term) infinite;
+}
+
+/* The progress bar (Steam shows it with its own opacity transition) */
+html .Login .LoadingStatus > .Progress > .ProgressBar {
+    height: var(--aika-progress-height);
+    overflow: hidden;
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-surface);
+}
+
+html .Login .LoadingStatus > .Progress .Percent {
+    height: 100%;
+    border-radius: inherit;
+    background: var(--aika-progress-fill);
+    box-shadow: 0 0 8px var(--aika-accent-glow);
+}
+
+/* The account: a pill */
+html .Login .LoadingStatus > .UserContainer {
+    gap: var(--aika-space-2);
+    padding: var(--aika-space-1) var(--aika-space-4) var(--aika-space-1) var(--aika-space-1);
+    border: 1px solid var(--aika-border);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-surface-translucent);
+}
+
+html .Login .UserContainer > .Avatar {
+    display: flex;
+    height: auto;
+}
+
+html .Login .UserContainer > .Avatar > img {
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--aika-accent), 0 0 12px var(--aika-accent-glow);
+}
+
+html .Login .UserContainer > .PersonaName {
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-body);
+    font-weight: var(--aika-weight-semibold);
+    letter-spacing: var(--aika-tracking-h2);
+    color: var(--aika-fg);
+    background: linear-gradient(
+        var(--aika-price-shine-angle),
+        var(--aika-fg) 42%,
+        var(--aika-ink) 50%,
+        var(--aika-fg) 58%
+    ) 100% 0 / var(--aika-price-shine-size) 100% no-repeat;
+    background-clip: text;
+    -webkit-text-fill-color: var(--aika-transparent);
+    animation: aika-login-shine var(--aika-price-shine-dur) var(--aika-ease-ambient) infinite;
+}
+
+/* --------------------------------------------------------------------------
+   The account chooser and the sign-in form (captured via CDP 2026-10-28,
+   readable classes; the grid, veil and preset backdrop stay behind them):
+     .Login.DesktopUI > .UserChooser > .Content
+       .LogoContainer, .AvatarContainer > .WhosPlaying ("Who's playing?")
+       .CachedUsers > .UserList > div > .User(.Existing | .New) > .Icon, .Name.Persona, .Name.Account
+       .Toggle.Field ("Ask which account…" — the toggle is components/input.css)
+     .Login > .EmbeddedRoot (the "Add account" form)
+       .LogoContainer > .BackArrowContainer
+       form.LoginForm > .TextField > label.FieldLabel(.Highlight) + input.TextInput,
+         .CheckboxField > .Checkbox + .CheckboxFieldLabel, button.SubmitButton, .FormError
+       .QRSection > label.FieldLabel + .QR, .EmbeddedRootFooter > .TextLink, .AccountCreation
+   Fields and the button are components/input.css and button.css. Steam's
+   tile rules are four hash classes deep (0,4,0)-(0,4,1) — beaten by the
+   readable chain below.
+   -------------------------------------------------------------------------- */
+
+html .Login .UserChooser .WhosPlaying {
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-h1);
+    font-weight: var(--aika-weight-semibold);
+    letter-spacing: var(--aika-tracking-h1);
+    color: var(--aika-fg);
+}
+
+html .Login .CachedUsers .UserList .User .Icon {
+    overflow: hidden;
+    border: 1px solid var(--aika-border-strong);
+    border-radius: var(--aika-radius-lg);
+    background-color: var(--aika-bg-raised);
+    box-shadow: var(--aika-shadow-card-hover);
+}
+
+/* Hover / keyboard focus: Steam's white border and lift → an accent ring */
+html .Login .CachedUsers .UserList .User:is(:hover, :focus-within) .Icon {
+    border: 1px solid var(--aika-accent);
+    box-shadow: 0 0 0 1px var(--aika-accent), 0 0 16px var(--aika-accent-glow);
+}
+
+/* "Add account": the plus in a dashed circle */
+html .Login .CachedUsers .UserList .User.New .Icon {
+    border: 1px dashed var(--aika-border-strong);
+    border-radius: 50%;
+    background: none;
+    box-shadow: none;
+    color: var(--aika-fg-muted);
+}
+
+html .Login .CachedUsers .UserList .User.New:is(:hover, :focus-within) .Icon {
+    border: 1px dashed var(--aika-accent);
+    color: var(--aika-accent-bright);
+}
+
+html .Login .CachedUsers .UserList .User .Name.Persona {
+    font-family: var(--aika-font-ui);
+    font-weight: var(--aika-weight-semibold);
+    color: var(--aika-fg);
+}
+
+html .Login .CachedUsers .UserList .User .Name.Account {
+    font-family: var(--aika-font-mono);
+    color: var(--aika-fg-subtle);
+}
+
+html .Login .UserChooser .Toggle .FieldLabel {
+    font-family: var(--aika-font-ui);
+    color: var(--aika-fg-muted);
+}
+
+/* The form: Steam's dark panel gradient goes — the veil is behind it */
+html .Login .EmbeddedRoot {
+    background: none;
+}
+
+html .Login .LoginForm .FieldLabel,
+html .Login .QRSection .FieldLabel {
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-label);
+    font-weight: var(--aika-weight-medium);
+    color: var(--aika-fg-muted);
+}
+
+html .Login :is(.LoginForm, .QRSection) .FieldLabel.Highlight {
+    color: var(--aika-accent-bright);
+}
+
+html .Login .LoginForm input.TextInput {
+    padding-inline: var(--aika-space-3);
+}
+
+html .Login .LoginForm .Checkbox {
+    border: 1px solid var(--aika-border-strong);
+    border-radius: var(--aika-radius-xs);
+    background-color: var(--aika-bg-raised);
+}
+
+html .Login .LoginForm .CheckboxFieldLabel {
+    color: var(--aika-fg-muted);
+}
+
+html .Login .LoginForm .FormError {
+    color: var(--aika-live);
+}
+
+html .Login .QRSection .QR {
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg);
+}
+
+html .Login .EmbeddedRoot :is(.TextLink, .AccountCreationPrompt) {
+    font-family: var(--aika-font-ui);
+    color: var(--aika-fg-subtle);
+}
+
+html .Login .EmbeddedRoot .TextLink:hover {
+    color: var(--aika-accent-bright);
+}
+
+html .Login .EmbeddedRoot .BackArrowContainer {
+    color: var(--aika-fg-muted);
+}
+
+html .Login .EmbeddedRoot .BackArrowContainer:hover {
+    color: var(--aika-fg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html .Login .LoginStatusContainer::before,
+    html .Login .SpinnerLoaderContainer > .LoadingStatus::before,
+    html .Login .UserContainer > .PersonaName,
+    html .Login .LoadingStatus > .LoginStatus::after {
+        animation: none;
+    }
+}

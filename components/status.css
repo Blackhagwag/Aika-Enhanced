@@ -1,0 +1,433 @@
+/* ==========================================================================
+   components/status.css — statuses, labels, badges, meta (DESIGN.md §4, Status & Labels).
+
+   We don't replace or add to Steam's texts (no "//", ">", paths):
+   the author asked to keep the labels as in Steam, we only change the style.
+
+   Own classes:
+     .aika-status[--ok|--live|--warn]  — a dot + a word
+     .aika-status--pulse               — a "live" dot pulses slowly
+     .aika-label                       — a mono label above a heading
+     .aika-badge                       — a pill with an accent border
+     .aika-meta                        — a meta line, mono, tabular-nums
+
+   Steam (captured via CDP 2026-10-04), the "Play" bar on the game page:
+     .GameStat .PlayBarLabel        — the caption ("Last played") → label
+     .GameStat .PlayBarDetailLabel  — the value ("6.86 GB")      → meta
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Label and meta share mono typography.
+   We don't change the case of Steam's captions (Steam uses uppercase).
+   -------------------------------------------------------------------------- */
+
+.aika-label,
+.aika-status,
+html .GameStat .PlayBarLabel {
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    font-weight: var(--aika-weight-medium);
+    letter-spacing: var(--aika-tracking-label);
+    color: var(--aika-fg-subtle);
+}
+
+.aika-label,
+.aika-status {
+    text-transform: lowercase;
+}
+
+.aika-meta,
+html .GameStat .PlayBarDetailLabel {
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-meta);
+    font-variant-numeric: tabular-nums;
+    color: var(--aika-fg-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Status: a dot + a word (the state isn't conveyed by color alone — DESIGN.md §9)
+   -------------------------------------------------------------------------- */
+
+.aika-status {
+    --aika-status-color: var(--aika-fg-subtle);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--aika-space-2);
+    color: var(--aika-fg-muted);
+}
+
+.aika-status::before {
+    content: "";
+    width: var(--aika-dot);
+    height: var(--aika-dot);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-status-color);
+}
+
+.aika-status--ok   { --aika-status-color: var(--aika-ok); }
+.aika-status--live { --aika-status-color: var(--aika-live); }
+.aika-status--warn { --aika-status-color: var(--aika-warn); }
+
+/* Pulse: opacity only; with --aika-motion: 0 the dot doesn't fade */
+@keyframes aika-pulse {
+    50% {
+        opacity: calc(1 - (1 - var(--aika-pulse-dim)) * var(--aika-motion));
+    }
+}
+
+.aika-status--pulse::before {
+    animation: aika-pulse var(--aika-dur-pulse) var(--aika-ease-ambient) infinite;
+}
+
+/* --------------------------------------------------------------------------
+   Badge
+   -------------------------------------------------------------------------- */
+
+.aika-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--aika-space-1) var(--aika-space-2);
+    border: var(--aika-hairline) solid var(--aika-border-accent);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent-soft);
+    color: var(--aika-fg);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    font-weight: var(--aika-weight-medium);
+}
+
+/* --------------------------------------------------------------------------
+   Player avatars and statuses (game page, feed, friends).
+   Steam: .avatarHolder img.avatar — a rgb(56,60,67) border and a shadow;
+   the player name: .LabelHolder.ingame / .online / .offline .playerName,
+   in the feed — .ActorName.ingame .playerName.
+   The color meaning is kept: in game — ok, online — accent, offline — muted.
+   -------------------------------------------------------------------------- */
+
+html .avatarHolder img.avatar {
+    border-color: var(--aika-border-hover);
+    border-radius: var(--aika-radius-md);
+    box-shadow: none;
+}
+
+html :is(.LabelHolder, .ActorName).ingame .playerName {
+    color: var(--aika-ok);
+}
+
+html :is(.LabelHolder, .ActorName).online .playerName {
+    color: var(--aika-accent-bright);
+}
+
+html :is(.LabelHolder, .ActorName).offline .playerName {
+    color: var(--aika-fg-subtle);
+}
+
+html .LabelHolder :is(.richPresenceLabel .PlaytimeStatus, .playerNicknameBracket) {
+    color: var(--aika-fg-subtle);
+}
+
+/* The "in game …" / "last online …" line under the name: Steam has
+   "color: gray !important" there — we answer in kind, only here */
+html .LabelHolder .richPresenceLabel .PlaytimeStatus {
+    color: var(--aika-fg-subtle) !important;
+}
+
+/* Play time is mono, like the "Play" bar stats (author's request
+   2026-10-04): "31.3 hrs past 2 weeks" for friends, "You played 884.1 hrs"
+   in the review block, the screenshot time in the feed. Steam's text is unchanged. */
+html .LabelHolder .richPresenceLabel .PlaytimeStatus,
+html .AppDetailsSectionContainer .PlayedForTime,
+html .ActivityPublishedScreenshot .ActiveScreenshot .TimeStamp {
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-meta);
+}
+
+html .AppDetailsSectionContainer .PlayedForTime,
+html .ActivityPublishedScreenshot .ActiveScreenshot .TimeStamp {
+    color: var(--aika-fg-subtle);
+}
+
+/* Icons next to a friend's name (phone, Steam Deck, VR) and the away "Zzz":
+   Steam colors them with the "online" light blue via a (0,3,1) rule */
+html .LabelHolder.online .statusAndName .PersonaStatusIcon svg path,
+html .LabelHolder.online .statusAndName .SnoozeContainer .SnoozeZ {
+    fill: var(--aika-accent-bright);
+    color: var(--aika-accent-bright);
+}
+
+html .LabelHolder.ingame .statusAndName .PersonaStatusIcon svg path,
+html .LabelHolder.ingame .statusAndName .SnoozeContainer .SnoozeZ {
+    fill: var(--aika-ok);
+    color: var(--aika-ok);
+}
+
+/* "in game …" / "last online" under an offline friend's nickname: gray #6e6e6e (0,2,0) */
+html .LabelHolder.offline .richPresenceContainer .richPresenceLabel {
+    color: var(--aika-fg-subtle);
+}
+
+/* The status strip right/below the avatar (.avatarHolder .avatarStatus):
+   Steam has a light-blue / lime "online" / "in game" gradient (0,2,0).
+   Same meaning: online — accent, in game — ok. */
+html .avatarHolder.online .avatarStatus {
+    background: var(--aika-accent-bright);
+}
+
+html .avatarHolder.ingame .avatarStatus {
+    background: var(--aika-ok);
+}
+
+/* --------------------------------------------------------------------------
+   The mini profile on hovering a friend (.miniProfileHoverInner.miniProfile —
+   friends list, chat, library). Steam's hash classes are duplicated by
+   readable ones: .miniProfileContent, .miniProfilePlayer.in-game/.online/.offline,
+   .personaName(.hasNickname) > .personaNameLabel, .miniProfileGameContainer
+   (.miniProfileBackdropBlur) > .gameContent.persona > .gameState/.richPresence,
+   .featuredTitle/.featuredSubTitle. Steam's strength goes up to (0,6,0) (the "in game" name
+   with :not()), so the chains are long. The user's profile background and the
+   level ring colors (.friendPlayerLevel.lvl_N — Steam's level scale) are untouched.
+   Verified: 2026-10-04, the chat window, hovering a friend's tab.
+   -------------------------------------------------------------------------- */
+
+html .miniProfileHoverInner.miniProfile {
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg);
+    box-shadow: var(--aika-shadow-menu);
+}
+
+html .miniProfile .miniProfileContent .miniProfilePlayer .avatarHolder {
+    border-radius: var(--aika-radius-md);
+    box-shadow: var(--aika-shadow-cover);
+}
+
+html .miniProfile .miniProfileContent .miniProfilePlayer.in-game .personaName .personaNameLabel {
+    color: var(--aika-ok);
+}
+
+html .miniProfile .miniProfileContent .miniProfilePlayer.online .personaName .personaNameLabel {
+    color: var(--aika-accent-bright);
+}
+
+html .miniProfile .miniProfileContent .miniProfilePlayer.offline .personaName .personaNameLabel {
+    color: var(--aika-fg-muted);
+}
+
+/* The second line — the real name under the alias */
+html .miniProfile .miniProfileContent .persona .personaName.hasNickname,
+html .miniProfile .miniProfileContent .persona .personaName.hasNickname .personaNameLabel,
+html .miniProfile .miniProfileContent .personaName .playerNicknameBracket {
+    color: var(--aika-fg-subtle);
+}
+
+/* Strips over the profile background (game, showcase): Steam has a dark gray
+   translucent gradient with blur — Aika's dark "material" */
+html .miniProfile .miniProfileContent .miniProfileBackdropBlur {
+    background: var(--aika-surface-translucent);
+}
+
+html .miniProfile .miniProfileGameContainer .gameContent.persona {
+    color: var(--aika-ok);
+}
+
+html .miniProfile .miniProfileGameContainer .gameContent.persona :is(.gameState, .richPresence) {
+    color: var(--aika-ok-mid);
+}
+
+html .miniProfile .miniProfileBottom .miniProfileFeaturedContainer .featuredLabels .featuredTitle {
+    color: var(--aika-fg);
+}
+
+html .miniProfile .miniProfileBottom .miniProfileFeaturedContainer .featuredLabels .featuredSubTitle {
+    color: var(--aika-fg-subtle);
+}
+
+/* The line under an "online" name (.LabelHolder.online .richPresenceLabel):
+   Steam has a muted light blue #4c91ac (0,2,0) — a muted accent
+   (the settings window, the account header; in the friends window — sections/friends.css) */
+html .LabelHolder.online .richPresenceContainer .richPresenceLabel {
+    color: var(--aika-accent-mid);
+}
+
+/* A player name with the status right on the container (.PlayerName.online — "Family"
+   in settings; the .FakeFriend > .online preview — "Friends & Chat") */
+html :is(.PlayerName, .FakeFriend > .noContextMenu).online .statusAndName .playerName {
+    color: var(--aika-accent-bright);
+}
+
+html :is(.PlayerName, .FakeFriend > .noContextMenu).ingame .statusAndName .playerName {
+    color: var(--aika-ok);
+}
+
+html :is(.PlayerName, .FakeFriend > .noContextMenu).offline .statusAndName .playerName {
+    color: var(--aika-fg-subtle);
+}
+
+html :is(.PlayerName, .FakeFriend > .noContextMenu) .playerNicknameBracket {
+    color: var(--aika-fg-subtle);
+}
+
+html :is(.PlayerName, .FakeFriend > .noContextMenu).online .richPresenceContainer .richPresenceLabel {
+    color: var(--aika-accent-mid);
+}
+
+html :is(.PlayerName, .FakeFriend > .noContextMenu).ingame .richPresenceContainer .richPresenceLabel {
+    color: var(--aika-ok);
+}
+
+html :is(.PlayerName, .FakeFriend > .noContextMenu).offline .richPresenceContainer .richPresenceLabel {
+    color: var(--aika-fg-subtle);
+}
+
+/* --------------------------------------------------------------------------
+   Friend status icons — our own, in the status color (author's request 2026-10-04):
+   "away / busy" (.SnoozeContainer — Steam has three jumping letters
+   .SnoozeZ) — a moon with a "z"; "on mobile" (.PersonaStatusIcon.MobilePhoneIcon —
+   Steam's svg) — an outline phone. The icons are masks from tokens.css, the color is
+   currentColor: in game — ok, online — accent. Steam puts the status class (.online /
+   .ingame) right on these elements. Other icons
+   (Steam Deck, VR…) are Steam's svg in the status color.
+   -------------------------------------------------------------------------- */
+
+html :is(.SnoozeContainer, .PersonaStatusIcon).online {
+    color: var(--aika-accent-bright);
+}
+
+html :is(.SnoozeContainer, .PersonaStatusIcon).ingame {
+    color: var(--aika-ok);
+}
+
+html :is(.SnoozeContainer, .PersonaStatusIcon).offline {
+    color: var(--aika-fg-subtle);
+}
+
+html .SnoozeContainer > .SnoozeZ,
+html .PersonaStatusIcon.MobilePhoneIcon > svg {
+    display: none;
+}
+
+html .SnoozeContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+html :is(.SnoozeContainer, .PersonaStatusIcon.MobilePhoneIcon)::before {
+    content: "";
+    display: block;
+    flex: none;
+    width: var(--aika-status-icon-size);
+    height: var(--aika-status-icon-size);
+    background-color: currentColor;
+    -webkit-mask: var(--aika-icon-snooze) center / contain no-repeat;
+    mask: var(--aika-icon-snooze) center / contain no-repeat;
+}
+
+html .PersonaStatusIcon.MobilePhoneIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+html .PersonaStatusIcon.MobilePhoneIcon::before {
+    -webkit-mask-image: var(--aika-icon-mobile);
+    mask-image: var(--aika-icon-mobile);
+}
+
+/* The moon on the avatar — in a dark circle so it reads over the picture */
+html .avatarHolder .SnoozeContainer {
+    box-sizing: content-box;
+    width: var(--aika-status-icon-size);
+    min-width: var(--aika-status-icon-size);
+    height: var(--aika-status-icon-size);
+    min-height: var(--aika-status-icon-size);
+    padding: 0;
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-bg-deep);
+    box-shadow: 0 0 0 var(--aika-hairline) var(--aika-border-strong);
+}
+
+html .avatarHolder .SnoozeContainer::before {
+    width: 75%;
+    height: 75%;
+}
+
+html .PersonaStatusIcon:is(.online, .ingame, .offline) svg path {
+    fill: currentColor;
+}
+
+/* The "now playing" line of a friend in game (.LabelHolder.ingame .richPresenceLabel,
+   Steam: #91c257 and dark green for "away", (0,3,0)) — Aika ok */
+html .LabelHolder.ingame .richPresenceContainer .richPresenceLabel,
+html .LabelHolder.ingame .richPresenceContainer .richPresenceLabel a {
+    color: var(--aika-ok);
+}
+
+html .LabelHolder.ingame.awayOrSnooze .richPresenceContainer .richPresenceLabel {
+    color: var(--aika-ok-mid);
+}
+
+/* The "friend is playing now" icon (.FriendIsPlaying svg, lime 70 %) */
+html .FriendIsPlaying svg :is(path, circle) {
+    fill: var(--aika-ok);
+}
+
+/* The status strip on friend thumbnails (.avatarHolder .avatarStatus.right / .bottom,
+   "Friends who played recently / previously" on the game page etc.): Steam has
+   a straight 2 px line flush with the avatar, it stuck out under the rounded corners
+   (author's fix 2026-10-05). We make a short rounded pill
+   with an offset — like a Fluent indicator. */
+html .avatarHolder:has(> .avatarStatus) {
+    position: relative;
+}
+
+html .avatarHolder > .avatarStatus {
+    border-radius: var(--aika-radius-full);
+}
+
+html .avatarHolder > .avatarStatus.right {
+    top: 25%;
+    right: calc(-1 * var(--aika-space-1));
+    width: var(--aika-indicator);
+    height: 50%;
+}
+
+html .avatarHolder > .avatarStatus.bottom {
+    bottom: calc(-1 * var(--aika-space-1));
+    left: 25%;
+    width: 50%;
+    height: var(--aika-indicator);
+}
+
+/* The mini profile from "Friends who play" on the library game page
+   (.HoverPosition > div > .miniProfile — without .miniProfileHoverInner,
+   so the rounding above didn't apply). At the bottom — the play time block
+   (.PlaytimeSection > .GameLogo + .PlaytimeContent > .TimePlayed):
+   Steam has a light-blue radial glow and teal digits #b5ffff, strength
+   up to (0,3,0). We make a warm accent glow from the left corner and a divider
+   line on top, digits in the main color, captions muted.
+   Verified: 2026-10-05, PEAK, hovering a friend in "Friends who play". */
+html .HoverPosition .miniProfile {
+    overflow: hidden;
+    border-radius: var(--aika-radius-lg);
+    box-shadow: var(--aika-shadow-menu);
+}
+
+/* Only the full variant — a separate strip at the bottom with the game logo (the friend
+   isn't in game). When the friend is in game, Steam draws a compact variant without
+   the logo (a hash modifier: no background or padding) to the right of the logo,
+   under the status line — there our backing with a line read as a separate
+   lilac rectangle over the line (screenshot 6, 2026-10-07). */
+html .miniProfile .PlaytimeSection:has(> .GameLogo) {
+    border-top: 1px solid var(--aika-border);
+    background: radial-gradient(circle at left top, var(--aika-accent-glow) 0%, transparent 70%),
+                var(--aika-surface-translucent);
+}
+
+html .miniProfile .PlaytimeSection .PlaytimeContent {
+    color: var(--aika-fg-subtle);
+}
+
+html .miniProfile .PlaytimeSection .PlaytimeContent .TimePlayed {
+    color: var(--aika-fg);
+    font-weight: 600;
+}

@@ -1,0 +1,231 @@
+/* ==========================================================================
+   components/button.css — buttons (DESIGN.md §4, Buttons).
+
+   Variants: primary (CTA), secondary, ghost. Each selector is a list:
+   our .aika-button--* class (for markup that JS will add) +
+   readable classes of Steam's common buttons. These aren't hashes, Steam uses
+   them in every window, so they're here and not in selectors.css.
+
+   Steam buttons (captured via CDP 2026-10-04):
+     buttonbutton.DialogButton.Primary    — "Save", "Done"… in dialogs and the library
+     buttonbutton.DialogButton.Secondary  — secondary dialog buttons
+     div.PlayButton                 — PLAY / INSTALL on the game page
+     .Disabled                      — an inactive button (a class, not an attribute)
+
+   Shine is on ::after: Steam uses ::before on DialogButton, and ::after
+   on Secondary too (there it's «»»), so only primary has shine.
+
+   Specificity: Steam writes button.DialogButton.Primary (0,2,1), so
+   we use the button tag + an html prefix — (0,2,2), winning without !important.
+   Focus is the outline ring from base.css, it doesn't clash with shadow glows.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Shared base
+   -------------------------------------------------------------------------- */
+
+html :is(.aika-button, button.DialogButton, .PlayButton, .Login button.SubmitButton) {
+    border: none;
+    border-radius: var(--aika-radius-md);
+    font-family: var(--aika-font-ui);
+    font-weight: var(--aika-weight-medium);
+    letter-spacing: normal;
+    text-transform: none;
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease),
+        transform var(--aika-dur-base) var(--aika-ease),
+        opacity var(--aika-dur-base) var(--aika-ease);
+}
+
+/* --------------------------------------------------------------------------
+   Primary — the main action: accent, glow, shine
+   -------------------------------------------------------------------------- */
+
+html :is(.aika-button--primary, button.DialogButton.Primary, .PlayButton, .Login button.SubmitButton) {
+    position: relative;
+    overflow: hidden;
+    background: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+    box-shadow: var(--aika-shadow-cta);
+}
+
+html :is(.aika-button--primary, button.DialogButton.Primary, .PlayButton, .Login button.SubmitButton):not(.Disabled, :disabled):hover {
+    background: var(--aika-accent-fill-hover);
+    color: var(--aika-on-accent);
+    box-shadow: var(--aika-shadow-cta-hover);
+    transform: translateY(var(--aika-lift-sm));
+}
+
+html :is(.aika-button--primary, button.DialogButton.Primary, .PlayButton, .Login button.SubmitButton):not(.Disabled, :disabled):active {
+    background: var(--aika-accent-fill);
+    box-shadow: var(--aika-shadow-cta-press);
+    transform: scale(var(--aika-press-scale));
+}
+
+/* Pressed and keyboard/gamepad focus (.gpfocus) of dialog buttons: Steam
+   paints them its blue gradient (#47bfff → #1a44c2) with
+   button.DialogButton.Primary:enabled:active.gpfocus (0,5,1) — the PIN
+   dialog's "OK" turned blue when clicked (author's report 2026-10-12).
+   The class repeated once more gives (0,5,2). */
+html button.DialogButton.Primary.DialogButton:enabled:active {
+    background: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+}
+
+html button.DialogButton.Primary.DialogButton:enabled.gpfocus {
+    background: var(--aika-accent-fill-hover);
+    color: var(--aika-on-accent);
+    box-shadow: var(--aika-shadow-cta-hover), var(--aika-shadow-focus);
+}
+
+html button.DialogButton.Primary.DialogButton:enabled.gpfocus:active {
+    background: var(--aika-accent-fill);
+    box-shadow: var(--aika-shadow-cta-press), var(--aika-shadow-focus);
+}
+
+/* Shine: a stripe beyond the left edge, sweeps right on hover.
+   With --aika-motion: 0 the stripe is invisible (opacity = 0). */
+html :is(.aika-button--primary, button.DialogButton.Primary, .PlayButton, .Login button.SubmitButton)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--aika-shine-gradient);
+    transform: translateX(var(--aika-shine-from));
+    opacity: var(--aika-motion);
+    pointer-events: none;
+}
+
+html :is(.aika-button--primary, button.DialogButton.Primary, .PlayButton, .Login button.SubmitButton):not(.Disabled, :disabled):hover::after {
+    transform: translateX(var(--aika-shine-to));
+    transition: transform var(--aika-dur-enter) var(--aika-ease);
+}
+
+/* "Play / Install": Steam colors the icon green/blue with hash rules
+   (up to (0,4,1) on hover), and the label sits in an inner <span>, uppercase, weight 300.
+   Icon and label use the text-on-accent color. */
+html .PlayButtonContainer .PlayButton svg.SVGIcon_Button,
+html .PlayButtonContainer .PlayButton:hover svg.SVGIcon_Button {
+    color: var(--aika-on-accent);
+    fill: var(--aika-on-accent);
+}
+
+html .PlayButtonContainer .PlayButton * {
+    color: inherit;
+    font-weight: var(--aika-weight-semibold);
+    letter-spacing: normal;
+    text-transform: none;
+}
+
+/* --------------------------------------------------------------------------
+   Primary icon — the square ▶ button on covers in library shelves
+   ("Recent" etc.). Steam: .LibraryItemBox .LibraryItemActionButton,
+   an installed game also has .Play (a green gradient via a hash rule (0,3,0),
+   the icon — up to (0,5,0) on hover). Captured via CDP 2026-10-04.
+   -------------------------------------------------------------------------- */
+
+html .LibraryItemBox .LibraryItemActionButton,
+html .LibraryItemBox .LibraryItemActionButton.Play {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-accent-fill);
+    box-shadow: var(--aika-shadow-cta);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease),
+        transform var(--aika-dur-base) var(--aika-ease);
+}
+
+html .LibraryItemBox .LibraryItemActionButton:hover,
+html .LibraryItemBox .LibraryItemActionButton.Play:hover {
+    background: var(--aika-accent-fill-hover);
+    box-shadow: var(--aika-shadow-cta-hover);
+    transform: translateY(var(--aika-lift-sm));
+}
+
+html .LibraryItemBox .LibraryItemActionButton:active,
+html .LibraryItemBox .LibraryItemActionButton.Play:active {
+    box-shadow: var(--aika-shadow-cta-press);
+    transform: scale(var(--aika-press-scale));
+}
+
+html .LibraryItemBox .LibraryItemActionButton.Play .SVGIcon_Button.SVGIcon_Play,
+html .LibraryItemBox .LibraryItemActionButton .SVGIcon_Button {
+    fill: var(--aika-on-accent);
+}
+
+/* --------------------------------------------------------------------------
+   Secondary — a surface, border via an inset shadow
+   -------------------------------------------------------------------------- */
+
+html :is(.aika-button--secondary, button.DialogButton.Secondary) {
+    background: var(--aika-surface);
+    color: var(--aika-fg);
+    box-shadow: var(--aika-shadow-secondary);
+}
+
+html :is(.aika-button--secondary, button.DialogButton.Secondary):not(.Disabled, :disabled):hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+    box-shadow: var(--aika-shadow-secondary-hover);
+    transform: translateY(var(--aika-lift-sm));
+}
+
+html :is(.aika-button--secondary, button.DialogButton.Secondary):not(.Disabled, :disabled):active {
+    background: var(--aika-surface-active);
+    box-shadow: var(--aika-shadow-secondary);
+    transform: scale(var(--aika-press-scale));
+}
+
+/* Keyboard/gamepad focus: Steam's #3d4450 plate otherwise (see the primary above) */
+html button.DialogButton.Secondary.DialogButton:enabled.gpfocus {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+    box-shadow: var(--aika-shadow-secondary-hover), var(--aika-shadow-focus);
+}
+
+/* --------------------------------------------------------------------------
+   Ghost — no background; Steam has no direct equivalent, our own class only
+   -------------------------------------------------------------------------- */
+
+.aika-button--ghost {
+    background: var(--aika-transparent);
+    color: var(--aika-fg-muted);
+    box-shadow: none;
+}
+
+.aika-button--ghost:not(:disabled):hover {
+    background: var(--aika-surface);
+    color: var(--aika-fg);
+}
+
+.aika-button--ghost:not(:disabled):active {
+    transform: scale(var(--aika-press-scale));
+}
+
+/* The → arrow on a text button: <span class="aika-button__arrow">→</span> */
+.aika-button__arrow {
+    display: inline-block;
+    transition: transform var(--aika-dur-base) var(--aika-ease);
+}
+
+.aika-button:hover .aika-button__arrow {
+    transform: translateX(var(--aika-nudge));
+}
+
+/* --------------------------------------------------------------------------
+   Disabled — muted, no glow or hover effects
+   -------------------------------------------------------------------------- */
+
+html :is(.aika-button, button.DialogButton, .PlayButton, .Login button.SubmitButton):is(.Disabled, :disabled) {
+    opacity: var(--aika-disabled-opacity);
+    box-shadow: none;
+    cursor: default;
+}
+
+/* An inactive primary in some places (e.g. "Save" in the library
+   filters) is painted blue by Steam with a hash rule (0,3,0) — ours is (0,3,1) */
+html :is(button.DialogButton.Primary):is(.Disabled, :disabled) {
+    background: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+}

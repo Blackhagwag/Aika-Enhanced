@@ -1,0 +1,1035 @@
+/* ==========================================================================
+   tokens.css — all non-color Aika tokens (DESIGN.md §3).
+   Colors are in colors.css (Millennium requires it, see DESIGN.md §0).
+   Composite values (shadows, gradients) are assembled here from the colors.css colors.
+   ========================================================================== */
+
+:root {
+    /* ------------------------------------------------------------------
+       Typography (DESIGN.md §3.3). Fonts — @font-face in base.css.
+       ------------------------------------------------------------------ */
+    --aika-font-ui: "Inter", "Geist", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+    --aika-font-mono: "Geist Mono", "JetBrains Mono", "Cascadia Code", monospace;
+    --aika-font-display: "Fraunces", "Source Serif 4", Georgia, serif;
+    --aika-font-friends: "Onest", "Inter", sans-serif;   /* the friends list window */
+    --aika-font-heavy: "Unbounded", "Inter", sans-serif; /* heavy display headings, weight 800 */
+    --aika-font-gothic: "UnifrakturMaguntia", "Old English Text MT", serif;
+    --aika-font-brush: "Shojumaru", "Fraunces", serif;
+
+    --aika-text-display: clamp(36px, 4vw, 56px);
+    --aika-text-h1: clamp(24px, 20px + 0.4vw, 28px);
+    --aika-text-h2: clamp(18px, 16px + 0.2vw, 20px);
+    --aika-text-h3: clamp(15px, 14px + 0.1vw, 16px);
+    --aika-text-body: clamp(13px, 12px + 0.1vw, 14px);
+    --aika-text-meta: 12px;
+    --aika-text-label: 11px;
+
+    --aika-weight-regular: 400;
+    --aika-weight-medium: 500;
+    --aika-weight-semibold: 600;
+    --aika-weight-heavy: 800;    /* --aika-font-heavy headings */
+
+    --aika-tracking-display: -0.03em;
+    --aika-tracking-h1: -0.02em;
+    --aika-tracking-h2: -0.01em;
+    --aika-tracking-label: 0.08em;
+    --aika-tracking-heavy: -0.02em;
+    --aika-text-heavy-title: 22px;   /* "MILLENNIUM" in its 220 px column — the wide face fits on one line */
+
+    --aika-leading-heading: 1.15;
+    --aika-leading-body: 1.55;
+
+    /* Headings: vertical gradient text (DESIGN.md §3.3) */
+    --aika-text-gradient: linear-gradient(to bottom, var(--aika-fg), var(--aika-fg-fade));
+
+    /* ------------------------------------------------------------------
+       Radii (DESIGN.md §3.4)
+       ------------------------------------------------------------------ */
+    --aika-radius-xs: 3px;      /* checkboxes [ ] */
+    --aika-radius-md: 8px;      /* buttons, fields, menu items */
+    --aika-radius-lg: 12px;     /* cards, covers, menus, icon containers */
+    --aika-radius-xl: 16px;     /* panels, large containers */
+    --aika-radius-full: 999px;  /* badges, statuses, toggles */
+
+    /* ------------------------------------------------------------------
+       Lines
+       ------------------------------------------------------------------ */
+    --aika-hairline: 1px;       /* outlines, glares */
+    --aika-indicator: 3px;      /* the Fluent indicator of the selected item */
+    --aika-focus-gap: 2px;      /* the background-colored gap in the focus ring */
+    --aika-focus-ring: 4px;     /* the outer edge of the focus ring */
+    --aika-input-ring: 3px;     /* the glow of a focused input */
+
+    /* Block divider: a gradient line (DESIGN.md §5, "Rhythm") */
+    --aika-divider: linear-gradient(to right, var(--aika-transparent), var(--aika-border-strong), var(--aika-transparent));
+
+    /* ------------------------------------------------------------------
+       Shadows — "never just one" (DESIGN.md §3.5)
+       ------------------------------------------------------------------ */
+    --aika-shadow-card:
+        0 0 0 var(--aika-hairline) var(--aika-border),
+        0 2px 20px var(--aika-shadow-near),
+        0 0 40px var(--aika-shadow-far);
+
+    --aika-shadow-card-hover:
+        0 0 0 var(--aika-hairline) var(--aika-border-hover),
+        0 8px 40px var(--aika-shadow-deep),
+        0 0 80px var(--aika-accent-haze);
+
+    --aika-shadow-cta:
+        0 0 0 var(--aika-hairline) var(--aika-accent-ring),
+        0 4px 12px var(--aika-accent-glow),
+        inset 0 var(--aika-hairline) 0 0 var(--aika-highlight-cta);
+
+    /* CTA on hover — a stronger glow; when pressed — weaker */
+    --aika-shadow-cta-hover:
+        0 0 0 var(--aika-hairline) var(--aika-accent-ring),
+        0 6px 24px var(--aika-accent-glow),
+        inset 0 var(--aika-hairline) 0 0 var(--aika-highlight-cta);
+
+    /* "Play": a double glow (accent + pink), a brighter glare on top */
+    --aika-play-fill: linear-gradient(110deg, var(--aika-play-fill-from), var(--aika-play-fill-to) 50%, var(--aika-play-fill-from));
+    --aika-play-fill-size: 200% 100%;
+    --aika-dur-play-flow: 6s;        /* a slow shimmer of the fill */
+    --aika-shadow-play:
+        0 0 0 var(--aika-hairline) var(--aika-accent-ring),
+        0 4px 16px var(--aika-play-glow),
+        0 0 32px var(--aika-play-glow-pink),
+        inset 0 var(--aika-hairline) 0 0 var(--aika-play-highlight);
+    --aika-shadow-play-hover:
+        0 0 0 var(--aika-hairline) var(--aika-accent-ring),
+        0 6px 24px var(--aika-play-glow),
+        0 0 48px var(--aika-play-glow-pink),
+        inset 0 var(--aika-hairline) 0 0 var(--aika-play-highlight);
+
+    --aika-shadow-cta-press:
+        0 0 0 var(--aika-hairline) var(--aika-accent-ring),
+        0 2px 6px var(--aika-accent-glow),
+        inset 0 var(--aika-hairline) 0 0 var(--aika-highlight-cta);
+
+    --aika-highlight-top: inset 0 var(--aika-hairline) 0 0 var(--aika-highlight);
+
+    /* Secondary button: the border via an inset shadow instead of border (DESIGN.md §3.4) */
+    --aika-shadow-secondary:
+        inset 0 0 0 var(--aika-hairline) var(--aika-border-hover),
+        var(--aika-highlight-top);
+
+    --aika-shadow-secondary-hover:
+        inset 0 0 0 var(--aika-hairline) var(--aika-border-hover),
+        var(--aika-highlight-top),
+        0 0 20px var(--aika-accent-haze);
+
+    /* File panel: an outline + soft depth (DESIGN.md §4, File Panel) */
+    --aika-shadow-panel:
+        0 0 0 var(--aika-hairline) var(--aika-border),
+        0 2px 20px var(--aika-shadow-near),
+        0 0 40px var(--aika-shadow-far);
+
+    /* A focused input: a soft accent ring (DESIGN.md §4, Inputs) */
+    --aika-shadow-input-focus: 0 0 0 var(--aika-input-ring) var(--aika-accent-soft);
+
+    /* A cover in large grids — a lightweight card (DESIGN.md §4, Cards):
+       a border + one soft shadow, no accent glow */
+    --aika-shadow-cover:
+        0 0 0 var(--aika-hairline) var(--aika-border),
+        0 4px 16px var(--aika-shadow-near);
+
+    /* The 3D cover showcase in a collection tile (library.css) — a shadow down-left,
+       as in Steam, the color is ours */
+    --aika-shadow-case: -8px 14px 12px var(--aika-shadow-deep);
+    --aika-shadow-case-hover: -12px 18px 24px var(--aika-shadow-deep);
+
+    --aika-shadow-cover-hover:
+        0 0 0 var(--aika-hairline) var(--aika-border-hover),
+        0 12px 28px var(--aika-shadow-deep);
+
+    /* Cards: background, the accent variant, the gradient border, spotlight */
+    --aika-card-bg: linear-gradient(to bottom, var(--aika-card-top), var(--aika-card-bottom));
+    --aika-card-accent-bg: linear-gradient(to bottom, var(--aika-accent-tint), var(--aika-card-bottom));
+    --aika-card-border-gradient: linear-gradient(to bottom, var(--aika-border-accent), var(--aika-transparent));
+    /* An opaque raised surface (store capsule info blocks) */
+    --aika-raised-bg: linear-gradient(to bottom, var(--aika-bg-raised), var(--aika-bg-elevated));
+    /* Store, game page: light from the top (instead of Steam's blue #254b79),
+       a highlight under the queue bar, the "Read more" strip */
+    --aika-store-app-glow: radial-gradient(1000px 500px at 23% top, var(--aika-accent-haze), var(--aika-transparent));
+    --aika-store-queue-glow: radial-gradient(1000px 153px at 50% top, var(--aika-accent-tint), var(--aika-transparent));
+    --aika-store-readmore-bg: linear-gradient(90deg, var(--aika-transparent), var(--aika-accent-tint) 33%, var(--aika-accent-tint) 66%, var(--aika-transparent));
+    --aika-store-readmore-hover-bg: linear-gradient(90deg, var(--aika-transparent), var(--aika-accent-soft) 33%, var(--aika-accent-soft) 66%, var(--aika-transparent));
+    /* Downloads: the active download cover fades to the right, toward the graph
+       (Steam fades into blue #0056d6). Into a neutral warm background: fading
+       into a muted accent read as bluish (author's fix 2026-10-05) */
+    /* Pause / resume on the active download: a round glow that fits the 14 px
+       left under it (the CTA glow reached 30 px and got cut into a square) */
+    --aika-shadow-dl-button:
+        0 0 0 var(--aika-hairline) var(--aika-accent-ring),
+        0 0 10px var(--aika-accent-glow),
+        inset 0 var(--aika-hairline) 0 0 var(--aika-highlight-cta);
+    --aika-shadow-dl-button-hover:
+        0 0 0 var(--aika-hairline) var(--aika-accent-ring),
+        0 0 14px var(--aika-accent-glow),
+        inset 0 var(--aika-hairline) 0 0 var(--aika-highlight-cta);
+    --aika-dl-glow-room: 16px;        /* how far the glow may reach past its boxes */
+    /* The banner in the store mega menu: the image darkens left to right */
+    --aika-store-banner-shade: linear-gradient(270deg, var(--aika-scrim-none) 37%, var(--aika-bg-base) 81%);
+    /* The store video player (selectors.css): a floating control panel */
+    --aika-player-blur: blur(24px) saturate(160%);
+    --aika-player-inset: var(--aika-space-3);       /* the panel offset from the frame edges */
+    --aika-player-track-height: 4px;
+    --aika-player-track-height-hover: 7px;
+    --aika-player-button: 30px;
+    --aika-cine-volume-width: 64px;                  /* the volume slider in the trailer viewer */
+    --aika-cine-volume-thumb: 10px;
+    /* The game logo above the trailer in the store (js/store-logo.js, store.css) */
+    --aika-store-logo-max-width: 56%;
+    --aika-store-logo-max-height: 132px;
+    /* .highlight_overflow has a 16 px right margin (Steam) — the trailer window center
+       is left of the .highlight_ctn center by half of that margin */
+    --aika-store-highlight-gutter: 16px;
+    /* Three layers: a wide halo, a soft drop shadow, a dense edge (author's fix:
+       "make the shadow behind the logo bigger") */
+    --aika-store-logo-shadow:
+        drop-shadow(0 0 36px var(--aika-shadow-logo-halo))
+        drop-shadow(0 10px 28px var(--aika-shadow-logo))
+        drop-shadow(0 2px 4px var(--aika-shadow-logo));
+    /* The collapsed description fades into the page background above "Read more"
+       (Steam uses a light-blue PNG strip) */
+    --aika-store-collapse-fade: linear-gradient(to bottom, var(--aika-transparent), var(--aika-bg-deep) 85%);
+    --aika-store-collapse-mask: linear-gradient(to bottom, black 55%, transparent);
+    /* The store menu capsule (sections/store.css): as wide as Steam's menu row
+       (1216 px), a gap from the window top and sides */
+    --aika-storebar-content: 1216px;
+    --aika-storebar-top: var(--aika-space-2);
+    --aika-storebar-gutter: var(--aika-space-6);
+    /* The cinematic store page (option "Main → Store → Cinematic",
+       js/store-hero.js, sections/store-cinematic.css) */
+    --aika-cine-hero-min: 560px;              /* the hero never gets shorter */
+    --aika-cine-content: 1200px;              /* = Steam's .widestore .page_content */
+    --aika-cine-gutter: clamp(16px, 4vw, 58px);
+    --aika-cine-logo-max-width: min(520px, 46vw);
+    --aika-cine-logo-max-height: clamp(96px, 16vh, 180px);
+    /* The title text before the logo loads (or with no logo): poster-size
+       Fraunces at its display optical size; long names (js/store-hero.js,
+       .is-long) one step smaller so they stay within two-three lines */
+    --aika-cine-title-size: clamp(48px, 5.6vw, 88px);
+    --aika-cine-title-size-long: clamp(40px, 4.2vw, 64px);
+    --aika-cine-title-weight: 600;
+    --aika-cine-title-axes: "opsz" 144, "SOFT" 50;
+    --aika-cine-title-tracking: -0.025em;
+    --aika-cine-title-leading: 0.98;
+    --aika-cine-title-width: min(760px, 60vw);
+    --aika-cine-text-width: 620px;            /* the description line length */
+    /* The description warps gently (js/warp-text.js, reactbits "Warp Text" with
+       a small gain — visible, but the text doesn't crumple). Pixels. */
+    --aika-warp-ambient: 1.2px;               /* the lines breathe this much */
+    --aika-warp-scale: 90px;                  /* the noise cell — large, so whole words move together */
+    --aika-warp-lens: 4px;                    /* the bulge under the cursor */
+    --aika-warp-radius: 120px;                /* the lens radius */
+    --aika-warp-ripple: 1px;                  /* the ripple ring inside the lens */
+    --aika-warp-split: 0.4px;                 /* red / blue apart (×2 inside the lens) */
+    --aika-warp-speed: 0.55;
+    --aika-warp-pad: 24px;                    /* the canvas reaches past the text for the shadow and the bulge */
+    --aika-cine-button: 48px;                 /* "Buy", "Media", the heart */
+    --aika-cine-price-size: clamp(28px, 2.4vw, 36px);
+    --aika-cine-text-shadow: 0 1px 12px var(--aika-cine-shade-strong);
+    /* The hero price: a light stripe sweeps across it every few seconds
+       (reactbits "Shiny Text"); shadows as filters — a text-shadow would be
+       painted over background-clip: text and darken it */
+    --aika-price-shine-angle: 120deg;
+    --aika-price-shine-dur: 3.6s;                 /* one sweep + a pause */
+    --aika-price-shine-size: 260%;                /* the gradient is this wide — the stripe is ~20 % of it */
+    --aika-price-drop: drop-shadow(0 1px 12px var(--aika-cine-shade-strong));
+    --aika-price-sale-drop: drop-shadow(0 0 18px var(--aika-cine-sale-haze)) drop-shadow(0 1px 12px var(--aika-cine-shade-strong));
+    --aika-cine-fade: 1200ms;                 /* poster → trailer, trailer → trailer */
+    --aika-cine-shade:
+        linear-gradient(to top, var(--aika-cine-shade-strong) 0%, var(--aika-cine-shade-mid) 40%, var(--aika-scrim-none) 72%),
+        linear-gradient(to right, var(--aika-cine-shade-mid) 0%, var(--aika-cine-shade-soft) 45%, var(--aika-scrim-none) 70%),
+        linear-gradient(to bottom, var(--aika-cine-shade-mid) 0%, var(--aika-scrim-none) 18%);
+    /* The stage fades out at the bottom into the page background (whatever it is) */
+    --aika-cine-stage-mask: linear-gradient(to bottom, black 78%, transparent);
+    --aika-cine-seg-width: 28px;              /* a trailer segment, bottom right */
+    --aika-cine-seg-height: 3px;
+    --aika-cine-card-width: calc((100% - 2 * var(--aika-space-4)) / 3);
+    --aika-cine-card-width-narrow: calc((100% - var(--aika-space-4)) / 2);
+    --aika-cine-arrow: 44px;
+    --aika-cine-viewer-pad: clamp(16px, 4vw, 64px);
+    --aika-cine-badge-height: 28px;
+    --aika-cine-badge-inset: 3px;           /* the discount pill inside its badge */
+    --aika-cine-icon: 20px;
+    --aika-cine-icon-sm: 18px;              /* player capsule icons */
+    --aika-cine-tags-basis: 360px;          /* the tag cloud in the facts strip */
+    /* The store home page (sections/store-home.css, js/store-home.js) */
+    --aika-home-title-size: clamp(28px, 2.4vw, 36px);    /* "Featured & Recommended" — the page headline */
+    --aika-home-title-weight: 700;
+    --aika-split-shift: 0.5em;                            /* the headline letters drop in from this high… */
+    --aika-split-blur: 8px;                               /* …out of this blur */
+    --aika-split-dur: 900ms;
+    --aika-split-stagger: 35ms;                           /* the next letter starts this much later */
+    --aika-shelves-fallback-delay: 6s; /* no script: Steam's screenshot wall shows after this (sections/content.css) */
+    --aika-cine-wait-limit: 6s;        /* no script: the Cinematic game page shows after this (options/store-cinematic.css) */
+    --aika-split-fallback-delay: 6s;  /* no script: the plain title shows after this */
+    --aika-split-descender: 0.12em;
+    --aika-home-mark-width: 3px;                          /* the Fluent mark before section titles */
+    --aika-home-mark-height: 0.9em;
+    --aika-home-mark-glow: 0 0 12px var(--aika-accent-glow);
+
+    /* The discovery queue page (sections/store-explore.css) */
+    --aika-explore-measure: 72ch;      /* the intro paragraph width */
+    --aika-explore-chevron: 18px;      /* the chevron in the start capsule */
+    --aika-explore-nudge: 4px;         /* …it moves forward on hover */
+
+    /* The legacy web dialog (components/web-modal.css) */
+    --aika-web-modal-blur: blur(6px);
+    --aika-web-modal-close: 12px;      /* the cross glyph inside its 16 px box */
+
+    /* The search page (sections/store-search.css, js/store-search.js) */
+    --aika-aurora-band: 70vh;                 /* the aurora layer at the top of the window */
+    --aika-aurora-stops: --aika-accent, --aika-light-2, --aika-accent-bright;   /* theme colors, left → right */
+    --aika-aurora-speed: 0.6;                 /* reactbits defaults otherwise: amplitude 1, blend 0.5 */
+    --aika-aurora-height: 0.32;
+    --aika-aurora-layers: 2;
+    --aika-aurora-brightness: 0.7;
+    --aika-aurora-opacity: 0.5;
+    --aika-aurora-resolution: 0.5;            /* × device pixels — soft anyway, half the work */
+    --aika-search-title-size: clamp(40px, 3.4vw, 56px);   /* "All products": larger and bold (author) */
+    --aika-search-title-weight: 800;
+    --aika-search-header-pad: 34px;
+    --aika-search-field-height: 40px;         /* the query capsule */
+    --aika-search-field-width: 520px;
+    --aika-search-icon: 16px;           /* under the title, to the search bar */
+    --aika-tracking-fold: -0.04em;            /* Fold Text */
+    --aika-leading-fold: 1;
+    --aika-fold-angle: -92deg;                /* each letter swings down from its top hinge */
+    --aika-fold-perspective: 700px;
+    --aika-fold-dur: 650ms;
+    --aika-fold-stagger: 45ms;
+    --aika-ease-fold: cubic-bezier(0.215, 0.61, 0.355, 1);   /* power3.out */
+    --aika-fold-crease-from: 0.55;            /* the crease shadow at the start */
+    --aika-search-thumb: 14px;                /* the review thumb glyph */
+    --aika-icon-thumb: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10v11H3V10h4zm2 11h8.4a2 2 0 0 0 2-1.6l1.3-6.8A2 2 0 0 0 18.7 10H14l.8-4.2a1.8 1.8 0 0 0-3.3-1.3L9 9.5V21z'/%3E%3C/svg%3E");
+    --aika-icon-minus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round'%3E%3Cpath d='M2.5 6h7'/%3E%3C/svg%3E");
+    --aika-check-size: 18px;                  /* motion "Base checkbox": a box with a drawn tick */
+    --aika-check-radius: 5px;
+    --aika-check-inset: 2px;
+    --aika-check-stroke: 3;
+    --aika-check-hover: 1.05;
+    --aika-check-press: 0.95;
+    --aika-check-in: 300ms;                   /* the tick draws in… */
+    --aika-check-out: 100ms;                  /* …and is erased faster */
+    --aika-range-track: 3px;                  /* motion "Number slider" */
+    --aika-range-thumb: 20px;
+    --aika-range-ring: 2px;
+    --aika-range-thumb-border: 3px;          /* a light rim around the accent thumb */
+    --aika-range-ring-hover: 4px;
+    --aika-badge-room: 34px;                  /* room above the track for the price badge */
+    --aika-badge-gap: 14px;
+    --aika-roll-dur: 200ms;
+    --aika-cur-gap: 0.18em;
+
+    /* The wishlist (sections/store-wishlist.css, js/store-wishlist.js) */
+    --aika-veil-color: --aika-accent;         /* the Dark Veil tint — a theme variable */
+    --aika-veil-speed: 0.5;                   /* reactbits defaults otherwise */
+    --aika-veil-glow: 0.4;
+    --aika-veil-grain: 0.03;
+    --aika-veil-quality: 0.5;
+    --aika-veil-resolution: 0.75;             /* × device pixels for the composite */
+    --aika-veil-opacity: 0.85;
+    --aika-wl-title-size: clamp(28px, 2.4vw, 36px);   /* = the store home headline */
+    --aika-wl-title-weight: 700;
+    --aika-wl-rise: 40px;                     /* Split Text: each letter rises this much */
+    --aika-wl-dur: 1.25s;
+    --aika-wl-stagger: 50ms;
+
+    /* Friends Activity (sections/community.css, js/community-activity.js) */
+    --aika-activity-title-size: clamp(32px, 2.8vw, 44px);   /* larger and bold (author) */
+    --aika-activity-title-weight: 800;
+    --aika-activity-title-gap: var(--aika-space-2);   /* above and below the title */
+
+    /* Privacy blur in the header account menu (components/window.css) */
+    --aika-checkout-field: 36px;
+    --aika-card-ratio: 300 / 188;      /* the checkout card: as wide as its column (the art is drawn for 300 × 188) */
+    --aika-card-perspective: 1000px;
+    --aika-card-flip: 600ms;      /* checkout fields and dropdowns (sections/store-checkout.css) */
+    --aika-privacy-blur: 3px;         /* visibly blurred, not wiped out, on small text */
+    --aika-header-menu-gap: 10px;     /* the account / notifications menus below the header */
+    --aika-domino-lie: 90;                    /* deg — the letters start lying on their side */
+    --aika-domino-stiffness: 160;             /* the spring standing them up… */
+    --aika-domino-damping: 0.32;              /* …lightly damped: they rock before settling */
+    --aika-domino-shade: 0.6;                 /* tilted letters are dimmed */
+    --aika-domino-delay: 200;                 /* ms */
+    --aika-domino-stagger: 30;                /* ms between letters */
+    --aika-speed-dur: 2200;                   /* ms — the counter run */
+    --aika-speed-blur: 14;                    /* px max blur at 96 px type (scaled to the size) */
+    --aika-speed-strength: 1;
+    --aika-speed-slant: 12;                   /* deg of slant at full speed */
+    --aika-speed-size: 18px;                  /* the numbers in "7 of 24 online" */                   /* the currency sign kept apart from the figures */
+    --aika-home-dot-glow: 0 0 10px var(--aika-accent-glow);
+    --aika-home-arrow: 40px;                              /* round carousel arrows */
+    --aika-home-arrow-icon: 18px;
+    --aika-home-dot-width: 14px;                          /* carousel dots: a pill… */
+    --aika-home-dot-width-active: 28px;                   /* …the current one stretches */
+    --aika-home-dot-height: 4px;
+    --aika-home-rim-size: 220px;                          /* the border glow around the cursor */
+    --aika-home-zoom: 1.04;                               /* a cover under the cursor */
+    --aika-home-pop-shift: 72px;                          /* the scroll pop-up: from this far below… */
+    --aika-home-pop-scale: 0.9;                           /* …and this small */
+    --aika-home-pop-stagger: 8%;                          /* the next neighbor in a row starts this much later */
+    --aika-home-page-shift: 3%;                           /* the next capsule slides in from the side */
+    --aika-home-depth: perspective(1600px);
+    --aika-home-side-turn: 14deg;                         /* side capsules of the main carousel, turned away */
+    --aika-home-side-scale: 0.94;
+    --aika-home-grid-step: 24px;                          /* the calendar dot grid */
+    --aika-home-grid-dot: 1.2px;
+    --aika-home-grid-lit: 260px;                          /* the dots light up within this radius */
+    --aika-home-today-spin: 6s;                           /* the "Today" border light, one turn */
+    --aika-home-shine-dur: 900ms;                         /* the glare over a cover / a badge */
+    --aika-home-shine-every: 5s;                          /* the "New" badge shine period */
+    --aika-home-takeover-width: 1200px;                   /* the ad banner card — Steam's content column */
+    --aika-home-takeover-ratio: 4 / 1;                    /* 1200 × 300 instead of a 1920 × 450 strip */
+    --aika-home-takeover-gap: var(--aika-space-7);        /* below the store menu */
+    --aika-home-takeover-gutter: var(--aika-space-4);     /* the card never touches the window edges */
+    --aika-home-takeover-shift: 32px;                     /* the card rises from this far below… */
+    --aika-home-takeover-settle: 1.14;                    /* …while the art settles from this zoom */
+    --aika-home-takeover-dur: 1600ms;
+    --aika-home-takeover-exit-scale: 0.94;                /* scrolled away: the card shrinks… */
+    --aika-home-takeover-exit-opacity: 0.3;               /* …and dims */
+    /* Border Glow on the ad banners (reactbits idea): a mesh-colored rim and
+       a glow, both lit in a cone toward the cursor, brighter near the edge */
+    --aika-banner-ring: 2px;                              /* the colored rim */
+    --aika-banner-glow-pad: 40px;                         /* room for the glow outside the card */
+    --aika-banner-cone: 25;                               /* % of the circle lit on each side of the cursor */
+    --aika-banner-ring-from: 0.35;                        /* edge proximity where the rim starts to show… */
+    --aika-banner-glow-from: 0.15;                        /* …and the glow (0 — center, 1 — edge) */
+    --aika-banner-glow-shadow:
+        drop-shadow(0 0 3px var(--aika-banner-glow))
+        drop-shadow(0 0 12px var(--aika-banner-glow))
+        drop-shadow(0 0 36px var(--aika-banner-glow-soft));
+    --aika-banner-mesh:
+        radial-gradient(at 80% 55%, var(--aika-accent) 0, var(--aika-transparent) 50%),
+        radial-gradient(at 69% 34%, var(--aika-light-2) 0, var(--aika-transparent) 50%),
+        radial-gradient(at 8% 6%, var(--aika-light-1) 0, var(--aika-transparent) 50%),
+        radial-gradient(at 41% 38%, var(--aika-light-3) 0, var(--aika-transparent) 50%),
+        radial-gradient(at 86% 85%, var(--aika-accent-bright) 0, var(--aika-transparent) 50%),
+        radial-gradient(at 82% 18%, var(--aika-light-1) 0, var(--aika-transparent) 50%),
+        radial-gradient(at 51% 4%, var(--aika-light-2) 0, var(--aika-transparent) 50%),
+        linear-gradient(var(--aika-accent) 0 100%);
+    --aika-banner-sweep-dur: 3.6s;                        /* on opening the light runs once around the rim */
+    --aika-banner-sweep-delay: 350ms;
+    /* The queue banner: the text side solid, the cover wall shows through on the right */
+    --aika-home-queue-shade: linear-gradient(77deg, var(--aika-bg-raised) 0%, var(--aika-bg-elevated) 40%, var(--aika-transparent) 70%);
+    /* "Specials & events" page turn — Code Slots motion (selectors.css): each
+       tile flashes an accent fill from its center, then its cover rises in */
+    --aika-slot-cascade: 70ms;                            /* the next tile lands this much later */
+    --aika-slot-wash: 700ms;                              /* the accent fill: grows, holds, fades under the cover */
+    --aika-slot-wash-from: 0.2;
+    --aika-slot-rise: 18px;                               /* the cover rises this far into its slot */
+    --aika-slot-in: 600ms;
+    --aika-slot-in-delay: 120ms;                          /* after the fill has started */
+    --aika-home-glare: linear-gradient(115deg, var(--aika-transparent) 35%, var(--aika-glare) 50%, var(--aika-transparent) 65%);
+    --aika-icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.5 5.5l6.5 6.5-6.5 6.5'/%3E%3C/svg%3E");
+    /* The collapsed review text fades into the background color under the card */
+    --aika-store-review-fade: linear-gradient(to bottom, var(--aika-transparent), var(--aika-bg-elevated));
+    /* Spotlight: JS sets the point (--aika-spot-x/y on the element), without JS —
+       top center. The gradient itself is assembled in card.css, not here: var()
+       in a :root token would be computed once and wouldn't see the element's values. */
+    --aika-spot-x: 50%;
+    --aika-spot-y: 0%;
+    /* The cursor glow radius — the "Glow radius" slider in the theme
+       settings ("Advanced", Millennium sets --aika-setting-spot-size);
+       small by default (author's fix 2026-10-05: "barely visible") */
+    --aika-spot-size: var(--aika-setting-spot-size, 160px);
+
+    /* Shine: a slanted light stripe that sweeps over a CTA on hover */
+    --aika-shine-gradient: linear-gradient(
+        105deg,
+        var(--aika-shine-edge) 30%,
+        var(--aika-shine) 50%,
+        var(--aika-shine-edge) 70%
+    );
+
+    /* Focus ring: a background-colored gap + accent (DESIGN.md §4, Interactive States) */
+    --aika-shadow-focus:
+        0 0 0 var(--aika-focus-gap) var(--aika-bg-base),
+        0 0 0 var(--aika-focus-ring) var(--aika-accent-ring);
+
+    /* ------------------------------------------------------------------
+       Motion (DESIGN.md §3.6, §8)
+       ------------------------------------------------------------------ */
+    --aika-ease: cubic-bezier(0.16, 1, 0.3, 1);   /* expo-out, no overshoot */
+    --aika-ease-hover: ease-out;
+    --aika-ease-term: steps(2, end);              /* blinking cursor, status pulse */
+    --aika-ease-ambient: ease-in-out;             /* background spots */
+    --aika-dur-fast: 150ms;
+    --aika-dur-base: 250ms;
+    --aika-dur-enter: 500ms;
+    --aika-dur-ambient: 10s;
+    /* Different periods for the spots so the motion doesn't look synchronized (9–12 s) */
+    --aika-dur-ambient-alt: 12s;
+    --aika-dur-ambient-short: 9s;
+    /* Expanding Steam blocks ("About this game" on the game page) — Steam's timing,
+       so our properties move together with its height */
+    --aika-dur-expand: 300ms;
+    --aika-ease-expand: ease-in-out;
+    --aika-delay-expand-overflow: 1.25s;
+
+    /* 1 — decorative motion on, 0 — off */
+    --aika-motion: 1;
+
+    --aika-lift-sm: -1px;        /* button hover */
+    --aika-lift-md: -4px;        /* card hover (≤ 6 px, DESIGN.md §7.3) */
+    --aika-nudge: 2px;           /* the → arrow shift on hover */
+    --aika-press-scale: 0.98;
+    --aika-hold-scale: 0.96;     /* a held library cover ("Cover press"; "Off" sets 1) */
+    --aika-hold-ripple-dur: calc(var(--aika-dur-enter) * 2);     /* one ring of "Ripple" (1 s, the next one follows) */
+    --aika-hold-ripple-size: 170px;     /* how far a ring runs (a shelf cover is ~230 × 170) */
+    --aika-hold-ripple-width: 14px;     /* the ring thickness (soft inner edge) */
+    --aika-hold-charge-dur: calc(var(--aika-dur-enter) * 1.6);   /* "Charge": the line runs round the cover in 0.8 s */
+    --aika-hold-charge-width: 3px;
+    /* "Play" keeps its hover rise and press in "Performance: Low" (author
+       2026-10-16) — own tokens, since Low zeroes the shared ones */
+    --aika-play-lift: -1px;
+    --aika-play-press: 0.98;
+    --aika-play-move: 250ms;
+    --aika-appear-scale: 0.97;   /* the starting menu scale */
+    --aika-appear-shift: 12px;   /* fade up when blocks appear */
+    --aika-menu-shift: 4px;      /* menu appearance */
+    --aika-stagger: 60ms;        /* the delay between neighboring blocks (40–80 ms) */
+
+    --aika-disabled-opacity: 0.4;
+    --aika-icon-dim: 0.6;        /* muted image icons (Steam PNGs) */
+
+    /* Shine stripe: start and end of the shift (as a fraction of the button width) */
+    --aika-shine-from: -100%;
+    --aika-shine-to: 100%;
+
+    /* ------------------------------------------------------------------
+       Spacing: a 4 px step (DESIGN.md §3.7)
+       ------------------------------------------------------------------ */
+    --aika-space-1: 4px;
+    --aika-space-2: 8px;
+    --aika-space-3: 12px;
+    --aika-space-4: 16px;
+    --aika-space-5: 20px;
+    --aika-space-6: 24px;
+    --aika-space-7: 32px;
+    --aika-space-8: 40px;
+    --aika-space-9: 48px;
+    --aika-space-10: 64px;
+
+    --aika-panel-header: 34px;   /* file panel header height (32–36) */
+
+    /* Navigation (DESIGN.md §4, Navigation) */
+    --aika-nav-inset: 6px;           /* list row offset from the panel edges */
+    --aika-nav-pad: 6px;             /* the row's inner left padding */
+    --aika-indicator-inset: 25%;     /* selection indicator: top and bottom inset */
+    /* Menus (DESIGN.md §4, Menus): the shadow of popup layers */
+    --aika-shadow-menu:
+        inset 0 0 0 var(--aika-hairline) var(--aika-border-hover),
+        var(--aika-highlight-top),
+        0 8px 32px var(--aika-shadow-deep);
+
+    /* The floating library icons instead of the bottom bar (sections/library.css) */
+    --aika-dock-size: 44px;
+    --aika-dock-icon: 18px;
+    --aika-dock-inset: var(--aika-space-4);   /* from the window edges */
+    /* The friends list window (sections/friends-list.css) */
+    --aika-fl-card-top: 34px;   /* the window buttons sit above the card */
+    --aika-fl-banner: 64px;
+    --aika-fl-avatar: 60px;
+    --aika-fl-nick-size: 30px;
+    --aika-fl-row-name: 15px;   /* a friend's name in the list */
+    --aika-fl-menu-btn: 22px;
+    --aika-fl-header-text-drop: 6px;   /* the status letters down to the avatar bottom */
+    --aika-fl-avatar-overhang: 2px;
+    --aika-fl-avatar-ring: 4px;
+    --aika-fl-nick-flow: 8s;   /* the name gradient, while hovered; Low: 0s */
+    --aika-fl-art-h: 76px;
+    --aika-lobby-tile: 56px;   /* a friend in a lobby capsule: the face and the name */
+    --aika-lobby-face: 36px;
+    --aika-lobby-gap: 4px;
+    --aika-lobby-pad: 8px;
+    --aika-lobby-line: 18px;   /* the activity line */
+    /* the capsule: padding, the activity, the face (4 + 36 + 2 + name 14), padding */
+    --aika-lobby-h: calc(var(--aika-lobby-pad) + var(--aika-lobby-line) + 4px + var(--aika-lobby-face) + 2px + 14px + var(--aika-lobby-pad));
+    --aika-fl-art-title: 26px;   /* the game's name on the art */
+    --aika-fl-title-shadow: 0 1px 2px rgb(0 0 0 / 0.85), 0 2px 14px rgb(0 0 0 / 0.75);   /* text over game art */   /* the game art strip of a "now playing" card */
+    --aika-fl-avatar-radius: 30%;   /* squircles: Steam frames are square */
+    /* Status badge shapes (sections/friends-list.css): online, in game, away, offline */
+    --aika-icon-status-dot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='5'/%3E%3C/svg%3E");
+    --aika-icon-status-game: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath fill-rule='evenodd' d='M5 0a5 5 0 1 1 0 10A5 5 0 0 1 5 0zM4 3v4l3.2-2z'/%3E%3C/svg%3E");
+    --aika-icon-status-away: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M10 5A5 5 0 1 1 5 0a3.8 3.8 0 0 0 5 5z'/%3E%3C/svg%3E");
+    --aika-icon-status-off: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath fill-rule='evenodd' d='M5 0a5 5 0 1 1 0 10A5 5 0 0 1 5 0zm0 2.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8z'/%3E%3C/svg%3E");
+
+    --aika-dock-clearance: calc(var(--aika-dock-size) + 2 * var(--aika-dock-inset));   /* scroll room under the icons */
+    --aika-dock-rise: 16px;                   /* they float up into place when the window opens */
+    --aika-dock-hover-scale: 1.08;            /* an icon grows a little under the cursor */
+    /* The downloads button while something downloads / verifies: a compact capsule */
+    --aika-dock-progress-width: 300px;
+    --aika-dock-progress-height: 36px;        /* lower than the round buttons */
+    --aika-dock-progress-pad: 12px;           /* both sides: the game icon and the percentage stay inside */
+    --aika-dock-progress-icon: 16px;
+    --aika-dock-progress-bar: 3px;
+
+    /* Millennium's library manager sidebar (sections/millennium.css): 350 px in
+       Millennium — the theme editor's dropdowns cut their values */
+    --aika-millennium-sidebar-width: 420px;
+
+    /* The "+" floating action button (motion.dev FAB idea): the "+" turns into
+       "×", the Add a Game menu stacks above it as round icons with label pills
+       that pop out one after another, nearest first, on a gentle spring */
+    --aika-ease-spring: linear(0, 0.058, 0.193, 0.358, 0.523, 0.67, 0.791, 0.884, 0.951, 0.995, 1.021, 1.034, 1.038, 1.037, 1.032, 1.025, 1.019, 1.013, 1.008, 1.005, 1.002, 1, 0.999, 0.999, 1); /* ζ 0.72, 3.8 % overshoot */
+    --aika-fab-dur: 600ms;                    /* the spring above settles in this time */
+    --aika-fab-gap: var(--aika-space-3);      /* between the "+" and the nearest item */
+    --aika-fab-row-gap: var(--aika-space-2);  /* between the items */
+    --aika-fab-label-gap: var(--aika-space-2);/* between an icon and its label */
+    --aika-fab-pad: var(--aika-space-2);      /* room in the menu window for the pop and the shadows */
+    --aika-fab-label-height: 30px;
+    --aika-fab-pop: 28px;                     /* an item pops out from this far below… */
+    --aika-fab-pop-scale: 0.6;                /* …and this small */
+    --aika-fab-label-shift: 10px;             /* the label slides out from the icon */
+    --aika-fab-stagger: 55ms;
+    --aika-fab-turn: 135deg;                  /* "+" → "×": a three-eighths turn */
+    --aika-fab-fallback: 900ms;               /* no menu script — the items show anyway */
+    --aika-icon-plus-thin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M12 4.5v15M4.5 12h15'/%3E%3C/svg%3E");
+
+    /* Library covers (the "Library covers" setting): 3D tilt (js/cover-tilt.js,
+       options/covers-tilt.css) and Zoom (options/covers-zoom.css) */
+    --aika-tilt-max: 12;                  /* degrees at the cover edge */
+    --aika-tilt-lift: 1.04;               /* the cover grows a little while inspected */
+    --aika-tilt-ease: 90;                 /* ms — how fast it catches up with the cursor (no spring) */
+    --aika-tilt-perspective: 900px;
+    --aika-tilt-shadow-shift: -0.8px;     /* per degree: the shadow falls away from the raised edge */
+    --aika-tilt-shadow-y: 12px;
+    --aika-tilt-shadow-blur: 28px;
+    --aika-tilt-light-size: 60%;          /* the glare spot radius */
+    --aika-covers-zoom: 1.06;
+
+    /* The game page hero (game-page.css) */
+    --aika-hero-fade: linear-gradient(to bottom, var(--aika-transparent) 35%, var(--aika-bg-base) 100%);
+    --aika-hero-scroll-range: 320px;   /* how much scrolling fades the banner */
+    --aika-hero-scroll-opacity: 0.55;  /* down to what brightness */
+    --aika-hero-inset: 10px;           /* hero and "Play" margins — like the Steam blocks below (10 px) */
+    --aika-hero-glow: 0 0 24px var(--aika-accent-haze);  /* the glow around the hero block */
+    --aika-hero-edge-fade: 32px;       /* the side fade of the banner reflection (2 × radius-xl) */
+    /* The blurred cover under a "Major update": stretched past the card edges
+       so blur doesn't leave a light ring along the outline */
+    --aika-blur-cover-scale: 1.4;
+    --aika-blur-cover-opacity: 0.35;
+    --aika-blur-cover-filter: blur(32px) brightness(0.5) saturate(1.2);
+    /* The same but without the cover color (a warm neutral): where the cover is
+       Steam's brand blue and reads as a foreign color */
+    --aika-blur-cover-neutral: blur(32px) grayscale(1) sepia(0.2) brightness(0.5);
+    /* Recoloring an image to the accent hue (sepia gives ~38°, +205° ≈ 243° —
+       the --aika-accent hue). For Steam's brand-blue images
+       (the "Steam News" header) */
+    /* A caption over an image without a backing (the genre label in store search) */
+    --aika-genre-label-shadow: 0 1px 2px var(--aika-shadow-deep), 0 0 8px var(--aika-shadow-deep);
+    /* Steam images recolored to the accent (forum icons, the gift card fan…):
+       sepia lands near 40°, the turn — the preset's (--aika-tint-hue, colors.css) */
+    --aika-tint-accent: grayscale(1) sepia(1) saturate(2.4) hue-rotate(var(--aika-tint-hue)) brightness(0.95);
+    --aika-gift-tilt: -4deg;    /* the gift card fan on hover (store home) */
+
+    /* Top tab icons (nav.css). Our own simple 24×24 SVGs, 1.75 stroke;
+       used as mask-image, so the color inside doesn't matter — the shape
+       is painted with the tab's currentColor. */
+    --aika-tab-icon-size: 26px;
+    /* The tab bar height (.SuperNavBar, 32 px in Steam — 26 px icons
+       with padding didn't fit; author's fix 2026-10-05) */
+    --aika-supernav-height: 46px;
+    /* The counterweight to the right of the tabs (components/nav.css), so they sit
+       exactly in the window center: the "back / forward" arrows (32 + 24 px) plus the left
+       padding of the .SuperNavBar strip (Steam's 11 px) */
+    --aika-supernav-arrows-width: 55px;   /* = the bar padding + the ← → buttons with their gaps (11 + 20 + 2 + 20 + 2) */
+    --aika-history-icon: 12px;            /* ← → in the top bar: the arrow, as tall as the menu letters… */
+    --aika-history-pad: 4px;              /* …in a 20 px round button */
+    --aika-history-gap: 2px;
+    --aika-history-stroke: 1.5px;
+    --aika-history-disabled: 0.45;
+    /* The Extendium toolbar floating at the right end of the tab row (sections/plugins.css) */
+    --aika-extendium-button: 24px;
+    --aika-extendium-button-pad: 5px;
+    --aika-extendium-fallback-top: 81px;   /* no page to anchor to — its usual top */
+    --aika-icon-store: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z'/%3E%3Cpath d='M9 8V6.5a3 3 0 0 1 6 0V8'/%3E%3C/svg%3E");
+    --aika-icon-library: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linejoin='round'%3E%3Crect x='3.5' y='3.5' width='7' height='7' rx='2'/%3E%3Crect x='13.5' y='3.5' width='7' height='7' rx='2'/%3E%3Crect x='3.5' y='13.5' width='7' height='7' rx='2'/%3E%3Crect x='13.5' y='13.5' width='7' height='7' rx='2'/%3E%3C/svg%3E");
+    --aika-icon-community: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round'%3E%3Ccircle cx='9' cy='8.5' r='3.25'/%3E%3Cpath d='M3 19.5c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5'/%3E%3Ccircle cx='17' cy='9.5' r='2.5'/%3E%3Cpath d='M16.5 14.2c2.6.3 4.5 2.3 4.5 5.3'/%3E%3C/svg%3E");
+    --aika-icon-profile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4.5 20.5c0-4 3.4-6.5 7.5-6.5s7.5 2.5 7.5 6.5'/%3E%3C/svg%3E");
+    --aika-icon-console: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4.5' width='18' height='15' rx='3'/%3E%3Cpath d='M7.5 9.5l3 2.5-3 2.5'/%3E%3Cpath d='M12.5 15h4'/%3E%3C/svg%3E");
+    /* The header wordmark (components/window.css): "Aika" in Fraunces; the
+       "Header wordmark" setting swaps these (options/wordmark-*.css) */
+    --aika-wordmark-text: "Aika";
+    --aika-wordmark-font: var(--aika-font-display);
+    --aika-wordmark-size: var(--aika-text-h3);
+    --aika-wordmark-weight: var(--aika-weight-semibold);
+    --aika-wordmark-tracking: var(--aika-tracking-h2);
+    --aika-wordmark-leading: normal;
+    --aika-wordmark-pad: 0px;
+    --aika-menu-icon: 16px;
+    --aika-header-tight-tab-pad: 4px;     /* a tab in a tight compact header: 4 + 10 + icon + 10 + 4 */
+    --aika-header-tight-tab-inner: 10px;
+    --aika-menu-icon-box: 28px;   /* the hover area, like the ← → arrows */
+    /* The View / Friends / Games / Help menus as icons in a tight compact header
+       (components/window.css, author 2026-10-20) */
+    --aika-icon-menu-view: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4.5' width='18' height='15' rx='3'/%3E%3Cpath d='M9 4.5v15'/%3E%3C/svg%3E");
+    --aika-icon-menu-friends: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 6.5a2.5 2.5 0 0 1 2.5-2.5h10a2.5 2.5 0 0 1 2.5 2.5v7a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 3.5V16H7a2.5 2.5 0 0 1-2.5-2.5z'/%3E%3Cpath d='M9 9.5h6M9 12.5h3.5'/%3E%3C/svg%3E");
+    --aika-icon-menu-games: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7.5 7h9a4.5 4.5 0 0 1 4.4 5.5l-.8 3.6a2.4 2.4 0 0 1-4 1.2L14 15.5h-4l-2.1 1.8a2.4 2.4 0 0 1-4-1.2l-.8-3.6A4.5 4.5 0 0 1 7.5 7z'/%3E%3Cpath d='M8 10v3M6.5 11.5h3'/%3E%3Cpath d='M15.5 10.5h.01M17 12.5h.01'/%3E%3C/svg%3E");
+    --aika-icon-menu-help: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='M9.6 9.6a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.1-2.4 3.5'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E");
+    /* Friend status icons (components/status.css), stroke 2 — readable
+       at 12–16 px: "away / busy" — a moon with a "z" (instead of Steam's three
+       Z letters), "on mobile" — an outline phone */
+    --aika-icon-snooze: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4.5a7 7 0 0 0 7.5 9.5A8 8 0 1 1 12 4.5z'/%3E%3Cpath d='M16 2.5h4l-4 4.5h4'/%3E%3C/svg%3E");
+    --aika-icon-mobile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='6.5' y='2.5' width='11' height='19' rx='3'/%3E%3Cpath d='M10.5 18h3'/%3E%3C/svg%3E");
+    --aika-status-icon-size: 12px;
+    /* The settings section menu (sections/settings.css): the icon container and the icon */
+    --aika-settings-icon-box: 28px;
+    --aika-settings-icon: 16px;
+    /* "Content" → per-game screenshot shelves (sections/content.css):
+       game icon, round arrows, strip height, the "more" card */
+    --aika-shelf-icon: 32px;
+    --aika-shelf-arrow: 32px;
+    --aika-shot-height: 180px;
+    --aika-shot-more-width: 112px;
+
+    /* Windows 11-style window buttons (components/window.css): thin
+       10×10 glyphs, stroke 1; as mask-image — the color comes from currentColor */
+    --aika-window-icon-size: 10px;
+    --aika-window-button-width: 46px;   /* window button width, as in Windows 11 */
+    --aika-window-button-height: 32px;  /* the Steam window header height */
+    --aika-icon-win-minimize: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='black' stroke-width='1'%3E%3Cpath d='M0 5.5h10'/%3E%3C/svg%3E");
+    --aika-icon-win-maximize: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='black' stroke-width='1'%3E%3Crect x='.5' y='.5' width='9' height='9' rx='1.75'/%3E%3C/svg%3E");
+    --aika-icon-win-restore: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='black' stroke-width='1'%3E%3Crect x='.5' y='2.5' width='7' height='7' rx='1.5'/%3E%3Cpath d='M2.5 2.5V2A1.5 1.5 0 0 1 4 .5h4A1.5 1.5 0 0 1 9.5 2v4A1.5 1.5 0 0 1 8 7.5h-.5'/%3E%3C/svg%3E");
+    --aika-icon-win-close: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none' stroke='black' stroke-width='1' stroke-linecap='round'%3E%3Cpath d='M.75.75l8.5 8.5M9.25.75l-8.5 8.5'/%3E%3C/svg%3E");
+    /* The dropdown arrow ▾ (community.css) */
+    /* The magnifier (discussion search instead of Steam's blue GIF button) and the award
+       (instead of the blue award_icon_blue.svg) — masks, the color is set by background */
+    --aika-icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M16 16l4.5 4.5'/%3E%3C/svg%3E");
+    --aika-icon-award: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='9' r='5.5'/%3E%3Cpath d='M8.5 13.5L7 21l5-2.5 5 2.5-1.5-7.5'/%3E%3C/svg%3E");
+    /* Store: the report flag (SF Symbols-like: a pole and a waving flag) and an arrow → */
+    --aika-icon-flag: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 21V4.5'/%3E%3Cpath d='M5.5 4.8c2.4-1.6 4.8-1.6 7.2 0s4.8 1.6 7.2 0v8.6c-2.4 1.6-4.8 1.6-7.2 0s-4.8-1.6-7.2 0'/%3E%3C/svg%3E");
+    /* The "Add a Game" menu items (components/menu.css) — a plus in a rounded square, a key */
+    --aika-icon-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='3.5' width='17' height='17' rx='4.5'/%3E%3Cpath d='M12 8.5v7M8.5 12h7'/%3E%3C/svg%3E");
+    --aika-icon-key: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='8' cy='15' r='4'/%3E%3Cpath d='M10.8 12.2L19 4M15.5 7.5l2.5 2.5M17.5 5.5l2 2'/%3E%3C/svg%3E");
+    /* The header wordmark (components/window.css): "Aika" in Fraunces; the
+       "Header wordmark" setting swaps these (options/wordmark-*.css) */
+    --aika-wordmark-text: "Aika";
+    --aika-wordmark-font: var(--aika-font-display);
+    --aika-wordmark-size: var(--aika-text-h3);
+    --aika-wordmark-weight: var(--aika-weight-semibold);
+    --aika-wordmark-tracking: var(--aika-tracking-h2);
+    --aika-wordmark-leading: normal;
+    --aika-wordmark-pad: 0px;
+    --aika-menu-icon: 16px;
+    --aika-header-tight-tab-pad: 4px;     /* a tab in a tight compact header: 4 + 10 + icon + 10 + 4 */
+    --aika-header-tight-tab-inner: 10px;
+    --aika-menu-icon-hover: 1.12;
+    --aika-menu-item-rise: 10px;
+    --aika-menu-item-stagger: 22ms;
+    /* Card Nav (reactbits idea): a menu unfolds down from its top edge (a clip,
+       Steam sizes menu windows from the box, so no height or scale), then its
+       items / cards rise one after another. power3.out, as in the original */
+    --aika-cardnav-dur: 400ms;                 /* the unfold */
+    --aika-cardnav-item-dur: 360ms;            /* a menu item rising */
+    --aika-cardnav-item-delay: 60ms;           /* the first item starts while the box unfolds */
+    --aika-cardnav-card-rise: 36px;            /* store menu cards rise from this far below… */
+    --aika-cardnav-card-dur: 420ms;
+    --aika-cardnav-card-delay: 120ms;          /* …starting while the capsule unfolds… */
+    --aika-cardnav-card-stagger: 80ms;         /* …one after another */
+    --aika-cardnav-notice-rise: 16px;          /* notification cards (a small window) */
+    --aika-cardnav-notice-stagger: 50ms;
+    --aika-cardnav-link-icon: 11px;            /* the ↗ before a store menu link */
+    --aika-dialog-rise: 14px;                  /* the Family View PIN dialog: its parts rise this far… */
+    --aika-dialog-delay: 90ms;                 /* …starting while the card unfolds… */
+    --aika-dialog-stagger: 60ms;               /* …one after another */
+    --aika-dialog-cell-stagger: 45ms;          /* the four PIN cells pop in one by one */
+    --aika-dialog-cell-scale: 0.6;
+    --aika-dialog-settle: 800ms;               /* the whole opening (scrolling is off meanwhile) */
+    --aika-storebar-height: 46px;              /* the closed store menu capsule */
+
+    /* "Compact header" (options/header-compact.css): one line for the menus,
+       tabs, account buttons and the address capsule */
+    --aika-header-compact-height: 40px;
+    --aika-header-compact-tab-icon: 20px;
+    /* The address capsule over store / community pages (components/url-capsule.css):
+       small, centered on the line of the store menu capsule */
+    --aika-url-capsule-height: 26px;
+    --aika-url-capsule-shadow: 0 2px 10px var(--aika-shadow-deep);   /* small and soft — the capsule is small */
+    --aika-url-capsule-width: 340px;            /* at most */
+    --aika-url-capsule-min: 160px;              /* narrower than this (the store menu is close) — hidden */
+    --aika-url-capsule-left: var(--aika-space-3);
+    --aika-url-reload: 20px;                    /* the round reload button inside */
+    --aika-url-icon: 11px;
+    --aika-url-text: 10px;                      /* two steps under --aika-text-meta */
+    --aika-icon-arrow-up-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17L17 7M8 7h9v9'/%3E%3C/svg%3E");
+    --aika-icon-arrow-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E");
+    /* A padlock (SF Symbols-like) — the Family View web page */
+    --aika-icon-lock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='10.5' width='14' height='10' rx='2.5'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 0 1 8 0v3'/%3E%3Ccircle cx='12' cy='15.5' r='1' fill='black'/%3E%3C/svg%3E");
+    --aika-icon-reload: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19.5 12a7.5 7.5 0 1 1-2.2-5.3'/%3E%3Cpath d='M19.5 4.5v4h-4'/%3E%3C/svg%3E");
+    --aika-icon-puzzle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linejoin='round'%3E%3Cpath d='M9 4.5a2 2 0 0 1 4 0V6h4a1 1 0 0 1 1 1v4h-1.5a2 2 0 0 0 0 4H18v4a1 1 0 0 1-1 1h-4v-1.5a2 2 0 0 0-4 0V20H5a1 1 0 0 1-1-1v-4h1.5a2 2 0 0 0 0-4H4V7a1 1 0 0 1 1-1h4z'/%3E%3C/svg%3E");
+    --aika-family-lock: 40px;
+    --aika-discussions-search-width: 420px;  /* the search on the discussions home */
+    --aika-icon-inline: 16px;
+    --aika-icon-report: 17px;   /* the report flag, a touch larger than inline icons */
+    --aika-store-btn-height: 30px;  /* Steam's .btn_medium > span line height */   /* an icon in a line of text (award, magnifier) */
+    --aika-icon-chevron-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+    --aika-chevron-size: 12px;
+
+    /* Progress (DESIGN.md §4, Progress) */
+    --aika-progress-height: 4px;
+    --aika-progress-fill: linear-gradient(to right, var(--aika-accent), var(--aika-accent-bright));
+    /* Achievement bars fill in on opening a game page (js/achievement-progress.js):
+       an overdamped spring, no overshoot — animate-ui Progress values */
+    --aika-achv-stiffness: 100;
+    --aika-achv-damping: 30;
+    --aika-achv-delay: 160;           /* ms after the bar comes on screen */
+
+    /* The "Sign in to Steam" window while signing in (sections/login.css) */
+    --aika-icon-steam: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='3 3 30 30'%3E%3Cpath d='M17.974 3C10.0808 3 3.61438 9.07573 3 16.7967L11.0534 20.121C11.7357 19.6551 12.56 19.383 13.447 19.383C13.5265 19.383 13.6056 19.3849 13.684 19.3892L17.2658 14.2073C17.2658 14.1826 17.2652 14.1585 17.2652 14.1342C17.2652 11.0149 19.807 8.47686 22.9319 8.47686C26.0568 8.47686 28.5987 11.0149 28.5987 14.1342C28.5987 17.2532 26.0568 19.7915 22.9319 19.7915C22.8887 19.7915 22.8463 19.7903 22.8035 19.7889L17.6954 23.4276C17.6981 23.4944 17.7004 23.5615 17.7004 23.6287C17.7004 25.9704 15.7923 27.8749 13.447 27.8749C11.3885 27.8749 9.66695 26.4079 9.27686 24.4652L3.51756 22.0881C5.30075 28.3844 11.0953 33 17.974 33C26.2726 33 33 26.2842 33 18.0001C32.9999 9.71534 26.2725 3 17.974 3Z'/%3E%3Cpath d='M12.4163 25.7599L10.5704 24.9989C10.8977 25.6791 11.4633 26.2478 12.2149 26.5608C13.8388 27.2363 15.7116 26.4665 16.3884 24.8446C16.7162 24.0596 16.7186 23.193 16.3933 22.4064C16.0691 21.6196 15.457 21.0054 14.6698 20.6778C13.889 20.3538 13.0526 20.3656 12.317 20.6422L14.2241 21.4296C15.4222 21.928 15.9884 23.3013 15.4894 24.497C14.9906 25.6931 13.6143 26.2586 12.4163 25.7599Z'/%3E%3Cpath d='M26.7079 14.1338C26.7079 12.0555 25.0142 10.3645 22.9321 10.3645C20.8502 10.3645 19.1559 12.0554 19.1559 14.1338C19.1559 16.2122 20.8501 17.9027 22.9321 17.9027C25.0141 17.9027 26.7079 16.2122 26.7079 14.1338ZM20.1018 14.1273C20.1018 12.5634 21.372 11.296 22.9384 11.296C24.505 11.296 25.7749 12.5634 25.7749 14.1273C25.7749 15.6912 24.5051 16.9586 22.9384 16.9586C21.372 16.9585 20.1018 15.6912 20.1018 14.1273Z'/%3E%3C/svg%3E");   /* the Steam mark (from the client SVG .RootMenuButton .Logo) */
+    --aika-login-mark-box: 100px;     /* = Steam's img.Small box */
+    --aika-login-mark-size: 44px;
+    --aika-login-ring-width: 2px;
+    --aika-login-spin: 1.1s;
+    --aika-login-ripple-dur: 2.8s;
+    --aika-login-ripple-scale: 1.9;
+    --aika-login-ripple-opacity: 0.7;
+    --aika-login-haze-size: 360px;
+    --aika-login-haze-top: 150px;     /* the haze centre — on the mark */
+    --aika-login-haze-blur: 40px;
+    --aika-login-status-gap: 18px;
+    --aika-login-caret: 1.05s;
+    --aika-login-caret-width: 2px;
+
+    /* Preloader presets (options/preloader-*.css, sections/login-presets.css) */
+    --aika-pl-font-onest: var(--aika-font-friends);   /* Horizon, Aurora */
+    --aika-pl-font-wide: var(--aika-font-heavy);      /* Orbits, Glitter warp — at light weights */
+    --aika-pl-text-lg: 15px;
+    --aika-pl-weight-light: 300;
+    --aika-pl-rain-opacity: 0.5;
+    --aika-pl-ticks: 1s;               /* Terminal: one turn of the 12 ticks */
+    --aika-pl-logo-size: 24px;         /* Terminal: the "Aika" logo — four mono letters fit inside the ticks */
+    --aika-pl-ticks-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20100%20100'%3E%3Crect%20x%3D'48'%20y%3D'1'%20width%3D'4'%20height%3D'11'%20rx%3D'1.5'%20transform%3D'rotate(0%2050%2050)'%2F%3E%3Crect%20x%3D'48'%20y%3D'1'%20width%3D'4'%20height%3D'11'%20rx%3D'1.5'%20transform%3D'rotate(30%2050%2050)'%2F%3E%3Crect%20x%3D'48'%20y%3D'1'%20width%3D'4'%20height%3D'11'%20rx%3D'1.5'%20transform%3D'rotate(60%2050%2050)'%2F%3E%3Crect%20x%3D'48'%20y%3D'1'%20width%3D'4'%20height%3D'11'%20rx%3D'1.5'%20transform%3D'rotate(90%2050%2050)'%2F%3E%3Crect%20x%3D'48'%20y%3D'1'%20width%3D'4'%20height%3D'11'%20rx%3D'1.5'%20transform%3D'rotate(120%2050%2050)'%2F%3E%3Crect%20x%3D'48'%20y%3D'1'%20width%3D'4'%20height%3D'11'%20rx%3D'1.5'%20transform%3D'rotate(150%2050%2050)'%2F%3E%3Crect%20x%3D'48'%20y%3D'1'%20width%3D'4'%20height%3D'11'%20rx%3D'1.5'%20transform%3D'rotate(180%2050%2050)'%2F%3E%3Crect%20x%3D'48'%20y%3D'1'%20width%3D'4'%20height%3D'11'%20rx%3D'1.5'%20transform%3D'rotate(210%2050%2050)'%2F%3E%3Crect%20x%3D'48'%20y%3D'1'%20width%3D'4'%20height%3D'11'%20rx%3D'1.5'%20transform%3D'rotate(240%2050%2050)'%2F%3E%3Crect%20x%3D'48'%20y%3D'1'%20width%3D'4'%20height%3D'11'%20rx%3D'1.5'%20transform%3D'rotate(270%2050%2050)'%2F%3E%3Crect%20x%3D'48'%20y%3D'1'%20width%3D'4'%20height%3D'11'%20rx%3D'1.5'%20transform%3D'rotate(300%2050%2050)'%2F%3E%3Crect%20x%3D'48'%20y%3D'1'%20width%3D'4'%20height%3D'11'%20rx%3D'1.5'%20transform%3D'rotate(330%2050%2050)'%2F%3E%3C%2Fsvg%3E");   /* Terminal: the 12 ticks (one image: two composited masks drew a dark disc over the rain) */
+    --aika-pl-logo-pitch: 2px;         /* Terminal: the dot grid the logo is seen through */
+    --aika-pl-status-size: 16px;
+    --aika-pl-status-pitch: 2px;
+    --aika-pl-bloom-dur: 7s;              /* Horizon: the glow over the rim breathing */
+    --aika-pl-scan: 2s;                /* Horizon: the sweep over the mark */
+    --aika-pl-orbit-1: 1.4s;           /* Orbits: the three dots round the mark */
+    --aika-pl-orbit-2: 2.1s;
+    --aika-pl-orbit-3: 3.2s;
+    --aika-pl-aurora: 9s;              /* Aurora: a sheet's sway */
+    --aika-pl-rays: 7s;                /* Aurora: the striations drifting sideways */
+    --aika-pl-hue: 16s;                /* Aurora: the palette travelling along the sheet */
+    --aika-pl-aurora-opacity: 0.36;
+    --aika-pl-line: 1.5s;              /* Aurora: the running segment under the mark */
+    --aika-pl-beam: 5s;                /* Frame: one lap round the window */
+    --aika-pl-beat: 1.3s;              /* Frame: one lub-dub of the dot matrix */
+    --aika-pl-warp: 4.5s;              /* Glitter warp: a star layer flying past */
+    --aika-pl-morph: 3.2s;             /* Glitter warp: the squircle breathing */
+
+    /* The main window loading curtain (js/boot-reveal.js, sections/boot.css):
+       motion.dev "Loading line reveal" values */
+    --aika-boot-line: 2px;            /* half the slit width */
+    --aika-boot-stiffness: 500;       /* the slit following the progress */
+    --aika-boot-damping: 40;
+    --aika-boot-open: 0.5;            /* s, the opening spring (visual duration, no bounce) */
+    --aika-boot-fade: 500ms;          /* the beam layer fading as it opens */
+    --aika-boot-min: 1200;            /* ms, shown at least this long */
+    --aika-boot-limit: 12000;         /* ms, opens anyway after this */
+
+    /* The curtain between pages (js/page-curtain.js, components/curtain.css) */
+    --aika-curtain-in: 250;           /* ms, fading in over the old page */
+    --aika-curtain-out: 350;          /* ms, fading out over the new one */
+    --aika-curtain-quiet: 90;         /* ms without DOM changes = the new page has rendered */
+    --aika-curtain-wait: 500;         /* ms, fades out anyway after this */
+    /* The line above dialogs inside a window (.ModalPosition_TopBar; Steam has
+       a blue gradient #00ccff → #3366ff): the accent fading toward the edges */
+    --aika-modal-topbar-opacity: 0.6;
+    --aika-download-icon-dim: brightness(0.7);   /* the game icon under the download ring (0.4 in Steam) */
+    --aika-submenu-gap: 6px;          /* the visible menu → submenu gap (js/menu-gap.js) */
+    --aika-modal-topbar: linear-gradient(to right, var(--aika-transparent), var(--aika-accent-bright) 50%, var(--aika-transparent));
+    --aika-dur-shimmer: 2.8s;        /* the shimmer over the fill */
+    /* A loading ring instead of Steam's PNG logo (.SteamLogoThrobber) */
+    --aika-throbber-size: 40px;
+    --aika-throbber-width: 3px;
+    --aika-dur-spin: 0.9s;
+
+    /* The news window (.PartnerEvent.InLibraryView): an accent glow + depth */
+    --aika-shadow-event:
+        var(--aika-highlight-top),
+        0 0 40px var(--aika-accent-haze),
+        0 8px 40px var(--aika-shadow-deep);
+    --aika-badge-pad-y: 2px;         /* the vertical padding of a pill badge */
+
+    /* The sticky header backing ("News Hub"): dense behind the text,
+       transparent at the edges — no hard strip on the lit background */
+    --aika-sticky-fade: linear-gradient(to bottom,
+        var(--aika-transparent),
+        var(--aika-scrim) 30%,
+        var(--aika-scrim) 70%,
+        var(--aika-transparent));
+    /* The pinned game banner ("News Hub"): dense at the top,
+       transparent toward the bottom; the mask is for the blurred cover in it */
+    --aika-banner-fade: linear-gradient(to bottom,
+        var(--aika-bg-elevated) 55%,
+        var(--aika-transparent));
+    --aika-banner-mask: linear-gradient(to bottom, var(--aika-bg-deep) 55%, var(--aika-transparent)); /* only the alpha matters to a mask */
+
+    /* Statuses (DESIGN.md §4, Status & Labels) */
+    --aika-dot: 6px;                 /* the status dot ● */
+    --aika-dur-pulse: 2.4s;          /* the pulse of a "live" dot */
+    --aika-pulse-dim: 0.35;          /* the minimum dot brightness in the pulse */
+
+    /* ------------------------------------------------------------------
+       Background (DESIGN.md §3.2)
+       ------------------------------------------------------------------ */
+
+    /* Layer 1 — base: radial light from the top */
+    --aika-bg-gradient: radial-gradient(
+        ellipse at top,
+        var(--aika-bg-glow) 0%,
+        var(--aika-bg-base) 50%,
+        var(--aika-bg-deep) 100%
+    );
+
+    /* Layer 2 — noise against banding. The opacity is shared
+       with the grid — --aika-grid-opacity (one layer, see background.css) */
+    --aika-noise-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+    /* Layer 3 — light spots: size as a fraction of the window, position, brightness, blur */
+    --aika-light-shape: 50%;
+    --aika-light-aspect: 1.6;          /* an ellipse: wider than tall */
+
+    --aika-light-1-size: 70vw;         /* top center */
+    --aika-light-1-x: 15vw;
+    --aika-light-1-y: -30vw;
+    --aika-light-1-opacity: 0.25;
+    --aika-light-1-blur: 140px;
+
+    --aika-light-2-size: 50vw;         /* left */
+    --aika-light-2-x: -20vw;
+    --aika-light-2-y: 25vh;
+    --aika-light-2-opacity: 0.12;
+    --aika-light-2-blur: 120px;
+
+    --aika-light-3-size: 45vw;         /* bottom right, pulsing */
+    --aika-light-3-x: 65vw;
+    --aika-light-3-y: 60vh;
+    --aika-light-3-opacity: 0.10;
+    --aika-light-3-blur: 110px;
+
+    /* Drift amplitude (multiplied by --aika-motion) */
+    --aika-light-drift: -20px;
+    --aika-light-rotate: 1deg;
+    --aika-light-pulse: 1.08;          /* the scale at the peak of the warm spot's pulse */
+    /* "Performance: Low" — the spots as gradients (--aika-perf-spots, colors.css).
+       Matched to the blurred spots by pixel samples of the main window (2026-10-16):
+       full opacity up to "hold", half at "half", gone at the edge of an ellipse
+       "spread" times the spot size */
+    --aika-perf-spot-spread: 1.5;
+    --aika-perf-spot-hold: 35%;
+    --aika-perf-spot-half: 70%;
+
+    /* Layer 4 — the grid (and noise), fading toward the edges */
+    --aika-grid-size: 56px;
+    --aika-grid-opacity: 0.02;
+    --aika-grid-mask: radial-gradient(ellipse at center, var(--aika-grid-line) 0%, var(--aika-transparent) 75%);
+
+    /* Background layers in the root stacking context: spots → grid/noise → interface */
+    --aika-z-lights: -2;
+    --aika-z-texture: -1;
+    /* "Play" under the banner — above the sliding "About this game" block (z 36 in Steam) */
+    --aika-z-playbar: 37;
+    --aika-z-dock: 20;                /* the floating library icons (add game, downloads, friends) */
+    /* The game logo in the store: above the sale banner (z 100 in Steam,
+       the event block 101), but below tooltips (1526), modals (1500)
+       and menus (10000) */
+    --aika-z-store-logo: 110;
+    --aika-z-url-capsule: 1000;       /* the address over store / community pages */
+
+    /* "Heart Pulse" in the address capsule while a page loads
+       (components/url-capsule.css): a dot grid cut to a circle, two rings
+       running out from the center a cycle (lub-dub) */
+    --aika-loader-step: 4px;          /* the dot grid pitch (5 dots across the 20 px circle) */
+    --aika-loader-dot: 0.85px;        /* a dot's radius */
+    --aika-loader-ring: 3px;          /* the half width of a lit ring */
+    --aika-loader-reach: 13px;        /* a ring runs out this far (past the circle — gone) */
+    --aika-loader-period: 1.2s;       /* one lub-dub */
+    --aika-loader-fallback: 8s;       /* no script came: the placeholder goes after this */
+    /* The cinematic page media viewer: above Steam's menus (10000) — it is
+       a full-window modal */
+    --aika-z-cine-viewer: 10050;
+    --aika-z-curtain: 2147482000;     /* the page curtain, under the boot curtain */
+    --aika-z-boot: 2147483000;        /* the loading curtain over the whole main window (js/boot-reveal.js) */
+
+    /* ------------------------------------------------------------------
+       Scrollbars
+       ------------------------------------------------------------------ */
+    --aika-scrollbar-size: 10px;
+    --aika-scrollbar-inset: 3px;   /* a transparent border: the thumb is thinner than the track */
+
+    /* ------------------------------------------------------------------
+       Notification toasts (components/toast.css). The wordmark font —
+       Conditions "Notification wordmark" (options/toast-mark-*.css).
+       ------------------------------------------------------------------ */
+    --aika-toast-mark-font: var(--aika-font-gothic);
+    --aika-toast-mark-size: 54px;
+    --aika-toast-mark-right: 10px;
+    --aika-toast-mark-bottom: 0px;
+    --aika-toast-mark-tilt: -6deg;
+    --aika-toast-text-shadow-size: 0 1px 2px;
+    /* Notification window placement. Steam stacks the windows flush
+       (step = window height, 70 px), so the gap between them is a transparent
+       strip at the bottom of each window, the card sits --aika-toast-gap below the window top.
+       The offsets from the work area edge (above the taskbar and on the side) are
+       real Steam offsets: js/toast-glass.js reads these two tokens
+       and passes them to SetNotificationPosition. The bottom offset adds up
+       with the gap: above the taskbar — inset-y + gap. */
+    --aika-toast-gap: 8px;
+    --aika-toast-inset-x: 16px;
+    --aika-toast-inset-y: 8px;
+    --aika-toast-pad-y: 6px;    /* the card's vertical padding (10 px in Steam) */
+    /* The card's enter and leave are computed by js/toast-motion.js (the window
+       meanwhile follows a spring). Enter — --aika-dur-enter along --aika-ease.
+       Amplitudes are multiplied by --aika-motion: with "reduce motion"
+       only opacity remains. */
+    --aika-toast-enter-shift: 10px;
+    --aika-toast-enter-scale: 0.94;
+    --aika-toast-enter-blur: 6px;
+    --aika-toast-leave-shift: 28px;
+    --aika-toast-leave-scale: 0.97;
+    --aika-toast-leave-blur: 4px;
+    /* Leave — an acceleration (expo-in), it finishes before Steam
+       hides the window (300 ms after the leave starts) */
+    --aika-toast-dur-leave: 280ms;
+    --aika-ease-leave: cubic-bezier(0.7, 0, 0.84, 0);
+
+    /* ------------------------------------------------------------------
+       The PIN field (Family View, kiosk mode; sections/settings.css):
+       four underlined cells, the dots land exactly in the cells.
+       The Geist Mono glyph width is 0.6em (verified 2026-10-06), so
+       the cell step = glyph + letter-spacing.
+       ------------------------------------------------------------------ */
+    --aika-pin-digits: 4;
+    --aika-pin-pitch: 44px;           /* the cell step */
+    --aika-pin-font-size: 28px;
+    --aika-pin-glyph: 0.6em;          /* the Geist Mono glyph width */
+    --aika-pin-height: 60px;
+    --aika-pin-line-inset: 8px;       /* underline margins inside the cell */
+    --aika-pin-line-bottom: 12px;     /* the underline offset from the field bottom */
+    --aika-pin-line-width: 2px;
+    /* Animated cells over the field (js/pin-slots.js, "Code Slots" idea) */
+    --aika-pin-cell: 48px;            /* a cell's width */
+    --aika-pin-fallback-delay: 4s;    /* no script: the plain field shows after this (components/input.css) */
+    --aika-pin-gap: 12px;             /* between cells — clearly four separate cells */
+    --aika-pin-shadow-filled:
+        inset 0 0 0 var(--aika-hairline) var(--aika-accent-ring),
+        inset 0 var(--aika-hairline) 0 0 var(--aika-highlight-cta),
+        0 2px 6px var(--aika-accent-haze);
+    --aika-pin-dot: 12px;             /* the masked digit */
+    --aika-pin-rise: 8px;             /* the dot rises this much into its cell */
+    --aika-pin-drop: 14px;            /* …and drops this much on the way out */
+    --aika-pin-fill-from: 0.2;        /* the accent fill grows from this scale */
+    --aika-pin-caret-width: 2px;
+    --aika-pin-caret-height: 40%;
+    --aika-pin-blink: 1s;
+    --aika-pin-caret-glow: 0 0 8px var(--aika-accent-glow);
+    --aika-pin-shake: 4px;            /* a wrong PIN: the row shudders this far */
+}
+

@@ -1,0 +1,1859 @@
+/* ==========================================================================
+   community.css — community web pages (steamcommunity.com).
+   Imported via webkit.css (the Steam-WebKit field in skin.json).
+
+   1. "Friend Activity" (/id/…/home/, profile menu → "Activity").
+      The site's classes are readable, captured via CDP 2026-10-04:
+        #blotter_page                         — the whole page
+          .friend_activity_header             — the h1 heading + search
+          #friendactivity_right_column .box   — right column blocks
+          #blotter_content                    — the feed:
+            .blotter_status_entry             — the "post a status" field
+            .blotter_day > .blotter_day_header_date — the day's date
+            .blotter_block                    — an event (a card):
+              .blotter_author_block           — the "who did what" strip
+              .blotter_gamepurchase_content   — game logos
+              .blotter_comment_thread         — comments
+              .blotter_daily_rollup           — the day's collapsed events
+      Steam's rules are (0,1,0)…(1,1,0); ours are all under #blotter_page —
+      stronger, without !important (except button colors: Steam uses !important there).
+      We don't change the site's texts — only the style (DESIGN.md §11).
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Page heading
+   -------------------------------------------------------------------------- */
+
+/* "Friends Activity": larger and bold (author 2026-10-13) — the store headline
+   type instead of the serif; the letters stand up like dominoes with the script
+   (js/community-activity.js) */
+html #blotter_page .friend_activity_header h1 {
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-activity-title-size);
+    font-weight: var(--aika-activity-title-weight);
+    letter-spacing: var(--aika-tracking-h1);
+    line-height: var(--aika-leading-heading);
+}
+
+/* The links on the right ("Activity feed settings | My activity", a floated span)
+   shared the line with the larger title and pushed "Friends" onto a second line:
+   the title clears the float — the links stay a small row at the top right, the
+   title one line under them, with a little air above and below (author 2026-10-13) */
+html #blotter_page .friend_activity_header h1 {
+    clear: both;
+    margin: var(--aika-activity-title-gap) 0;
+    white-space: nowrap;
+}
+
+@keyframes aika-activity-fallback {
+    to { opacity: 1; }
+}
+
+/* Not shown as plain text before the script splits it (it comes at full load) */
+@media (prefers-reduced-motion: no-preference) {
+    html #blotter_page .friend_activity_header h1:not(.aika-domino, .aika-domino-skip),
+    html #blotter_page .friends_link_block .profile_link_block_text_friends:not(.aika-speed, .aika-speed-skip) {
+        opacity: 0;
+        animation: aika-activity-fallback var(--aika-dur-base) var(--aika-ease) var(--aika-split-fallback-delay) forwards;
+    }
+}
+
+/* Steam styles every span in the header (".friend_activity_header span": 10 px,
+   margin 17 px right / 4 px top — meant for its links) — our letter spans undo it */
+html #blotter_page .friend_activity_header h1 :is(.aika-domino-word, .aika-domino-char) {
+    margin: 0;
+    font-size: inherit;
+}
+
+html #blotter_page .friend_activity_header h1 .aika-domino-word {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+html #blotter_page .friend_activity_header h1 .aika-domino-char {
+    display: inline-block;
+    transform-origin: 100% 100%;   /* the bottom-right corner — dominoes falling to the right */
+}
+
+html #blotter_page .blotter_page_title a {
+    color: var(--aika-fg-muted);
+}
+
+html #blotter_page .blotter_page_title a:hover {
+    color: var(--aika-accent-bright);
+}
+
+/* --------------------------------------------------------------------------
+   Links: friend names, game titles
+   -------------------------------------------------------------------------- */
+
+html #blotter_page :is(#blotter_content, #friendactivity_right_column) a {
+    color: var(--aika-fg);
+    transition: color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html #blotter_page :is(#blotter_content, #friendactivity_right_column) a:hover {
+    color: var(--aika-accent-bright);
+}
+
+/* The nickname the user set themselves — "(Name)" after the friend's name */
+html #blotter_page .nickname_block,
+html #blotter_page .nickname_block .nickname_name {
+    color: var(--aika-fg-subtle);
+}
+
+/* --------------------------------------------------------------------------
+   Avatars. Steam: .playerAvatar.online/.in-game/.offline — a status gradient
+   border, the img has its own gradient. Color meaning as in components/status.css:
+   in game — ok, online — accent, offline — muted.
+   The profile item frame (.profile_avatar_frame) is left alone.
+   -------------------------------------------------------------------------- */
+
+html :is(#blotter_page, .profile_small_header_avatar) .playerAvatar {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-fg-subtle);
+}
+
+html :is(#blotter_page, .profile_small_header_avatar) .playerAvatar.online {
+    background: var(--aika-accent-bright);
+}
+
+html :is(#blotter_page, .profile_small_header_avatar) .playerAvatar.in-game {
+    background: var(--aika-ok);
+}
+
+/* Only the avatar itself: the profile item frame image (.profile_avatar_frame img)
+   has a transparent middle — our background filled it and covered the avatar beneath */
+html :is(#blotter_page, .profile_small_header_avatar) .playerAvatar img:not(.profile_avatar_frame img) {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+}
+
+/* The profile item frame — as in Steam: no background or rounding.
+   Steam paints it with the status gradient (.playerAvatar.online img, (0,2,1)) */
+html :is(#blotter_page, .profile_small_header_avatar) .playerAvatar .profile_avatar_frame img {
+    border-radius: 0;
+    background: var(--aika-transparent);
+}
+
+/* With a frame the avatar status backing isn't needed — the status shows from the item
+   frame, and a colored square would peek out from under it */
+html :is(#blotter_page, .profile_small_header_avatar) .playerAvatar:has(.profile_avatar_frame img) {
+    background: var(--aika-transparent);
+}
+
+/* Small avatars in collapsed events */
+html #blotter_page .blotter_playerAvatarSmall {
+    border-radius: var(--aika-radius-xs);
+    background-color: var(--aika-fg-subtle);
+}
+
+html #blotter_page .blotter_playerAvatarSmall.online {
+    background-color: var(--aika-accent-bright);
+}
+
+html #blotter_page .blotter_playerAvatarSmall.in-game {
+    background-color: var(--aika-ok);
+}
+
+html #blotter_page .blotter_playerAvatarSmall img {
+    border-radius: var(--aika-radius-xs);
+}
+
+/* --------------------------------------------------------------------------
+   The right column: "Friends List", "Add Friends", the profile menu,
+   groups, events — cards
+   -------------------------------------------------------------------------- */
+
+html #blotter_page #friendactivity_right_column :is(.box, .friends_add_block, .blotter_eventsblock) {
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-bg-elevated);
+    box-shadow: var(--aika-highlight-top);
+}
+
+html #blotter_page #friendactivity_right_column .friends_link_block {
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        border-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html #blotter_page #friendactivity_right_column a:hover .friends_link_block {
+    border-color: var(--aika-border-hover);
+    background: var(--aika-bg-raised);
+}
+
+html #blotter_page .friends_link_block .profile_button_text {
+    color: var(--aika-fg);
+}
+
+html #blotter_page .friends_link_block .profile_link_block_text_friends {
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-meta);
+}
+
+/* The counted numbers (Speeding Text, js/community-activity.js): larger than the
+   words, slanted and blurred while they run */
+html #blotter_page .friends_link_block .profile_link_block_text_friends .aika-speed-num {
+    display: inline-block;
+    min-width: 1ch;
+    font-size: var(--aika-speed-size);
+    font-weight: var(--aika-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    color: var(--aika-fg);
+    transform: skewX(var(--aika-speed-skew, 0deg));
+    will-change: filter, transform;
+}
+
+.aika-speed-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+/* Block captions: "Add Friends", "Scheduled Events" */
+html #blotter_page :is(.profile_add_friends_title, .blotter_eventsblock_title) {
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+html #blotter_page .blotter_eventsblock .eventSubLinks {
+    color: var(--aika-fg-subtle);
+}
+
+/* The user name in the profile menu: Steam's .persona.online — light blue */
+html #blotter_page .friendName.persona {
+    color: var(--aika-fg-subtle);
+}
+
+html #blotter_page .friendName.persona.online {
+    color: var(--aika-accent-bright);
+}
+
+html #blotter_page .friendName.persona.in-game {
+    color: var(--aika-ok);
+}
+
+/* --------------------------------------------------------------------------
+   Fields: the header search, "Add Friends", "post a status", comments.
+   Like components/input.css: raised background, border-strong border, accent focus.
+   -------------------------------------------------------------------------- */
+
+html #blotter_page :is(#headerSearch, .profileFriendSearchBox, .commentthread_entry_quotebox) {
+    border: var(--aika-hairline) solid var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-bg-raised);
+    transition:
+        border-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html #blotter_page :is(#headerSearch, .profileFriendSearchBox, .commentthread_entry_quotebox):hover {
+    border-color: var(--aika-border-hover);
+}
+
+html #blotter_page :is(#headerSearch, .profileFriendSearchBox, .commentthread_entry_quotebox):focus-within {
+    border-color: var(--aika-accent);
+    box-shadow: var(--aika-shadow-input-focus);
+}
+
+/* The input/textarea themselves are transparent, the wrapper gives the border */
+html #blotter_page :is(#headerSearch, .profileFriendSearchBox, .commentthread_entry_quotebox) :is(input, textarea) {
+    border: none;
+    background: var(--aika-transparent);
+    box-shadow: none;
+    color: var(--aika-fg);
+    outline: none;
+}
+
+html #blotter_page :is(input, textarea)::placeholder {
+    color: var(--aika-fg-subtle);
+}
+
+/* --------------------------------------------------------------------------
+   Site buttons. Steam's text color is !important, so ours is too.
+     .btn_grey_grey              — "👍" under an event  → secondary
+     .btn_grey_white_innerfade   — "Post" a status → secondary
+     .btn_green_white_innerfade  — "Post" a comment → primary
+   Steam puts the gradient both on the <a> and on the inner <span>.
+   -------------------------------------------------------------------------- */
+
+html #blotter_page :is(.btn_grey_grey, .btn_grey_white_innerfade, .btn_green_white_innerfade, .btn_grey_black) {
+    border-radius: var(--aika-radius-md);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease),
+        transform var(--aika-dur-base) var(--aika-ease);
+}
+
+html #blotter_page :is(.btn_grey_grey, .btn_grey_white_innerfade, .btn_green_white_innerfade, .btn_grey_black) > span {
+    border-radius: inherit;
+    background: var(--aika-transparent);
+}
+
+html #blotter_page :is(.btn_grey_grey, .btn_grey_white_innerfade, .btn_grey_black) {
+    background: var(--aika-surface);
+    box-shadow: var(--aika-shadow-secondary);
+    color: var(--aika-fg) !important;
+}
+
+html #blotter_page :is(.btn_grey_grey, .btn_grey_white_innerfade, .btn_grey_black):hover {
+    background: var(--aika-surface-hover);
+    box-shadow: var(--aika-shadow-secondary-hover);
+    transform: translateY(var(--aika-lift-sm));
+}
+
+html #blotter_page .btn_green_white_innerfade {
+    background: var(--aika-accent-fill);
+    box-shadow: var(--aika-shadow-cta);
+    color: var(--aika-on-accent) !important;
+}
+
+html #blotter_page .btn_green_white_innerfade:hover {
+    background: var(--aika-accent-fill-hover);
+    box-shadow: var(--aika-shadow-cta-hover);
+    transform: translateY(var(--aika-lift-sm));
+}
+
+html #blotter_page :is(.btn_grey_grey, .btn_grey_white_innerfade, .btn_green_white_innerfade, .btn_grey_black):active {
+    transform: scale(var(--aika-press-scale));
+}
+
+/* --------------------------------------------------------------------------
+   The "post a status" field at the top of the feed
+   -------------------------------------------------------------------------- */
+
+html #blotter_page .blotter_status_entry .commentthread_entry {
+    padding: var(--aika-space-3);
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface);
+}
+
+/* --------------------------------------------------------------------------
+   The day's date: a mono label + a line
+   -------------------------------------------------------------------------- */
+
+html #blotter_page .blotter_day_header_date {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+html #blotter_page .blotter_day_header_divider {
+    border: none;
+    background: var(--aika-divider);
+}
+
+/* --------------------------------------------------------------------------
+   An event is a card. Steam: .blotter_block — a light-blue 0.2 fill,
+   the author strip and comments — their own dark backgrounds with blue lines.
+   -------------------------------------------------------------------------- */
+
+html #blotter_page .blotter_block {
+    overflow: hidden;
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-bg);
+    box-shadow: var(--aika-highlight-top);
+}
+
+/* The "who did what" strip — like a panel header */
+html #blotter_page .blotter_author_block {
+    border-bottom: var(--aika-hairline) solid var(--aika-border);
+    background: var(--aika-bg-raised);
+    color: var(--aika-fg-muted);
+}
+
+/* The day's collapsed events — the card gives the background */
+html #blotter_page .blotter_daily_rollup {
+    background: var(--aika-transparent);
+    color: var(--aika-fg-muted);
+}
+
+html #blotter_page .blotter_daily_rollup_line + .blotter_daily_rollup_line {
+    border-top: var(--aika-hairline) solid var(--aika-border);
+}
+
+/* Purchased game logos and "+N" */
+html #blotter_page .blotter_gamepurchase_logo img {
+    border-radius: var(--aika-radius-md);
+}
+
+html #blotter_page .blotter_gamepurchase_content .plus_block {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+    color: var(--aika-fg-muted);
+}
+
+html #blotter_page .blotter_gamepurchase_text,
+html #blotter_page .blotter_voters_names {
+    color: var(--aika-fg-muted);
+}
+
+/* Comments under an event */
+html #blotter_page .blotter_comment_thread {
+    border-top: var(--aika-hairline) solid var(--aika-border);
+    background: var(--aika-transparent);
+}
+
+html #blotter_page .blotter_comment_thread .commentthread_entry {
+    background: var(--aika-transparent);
+}
+
+html #blotter_page .commentthread_comment_container .commentthread_comment {
+    border-radius: var(--aika-radius-md);
+}
+
+/* Announcement discussions embedded into activity feeds and game hubs use
+   forumtopic_comments, not the small activity-reply rows. Keep the same
+   material for both locations, including asynchronously loaded pages. */
+html .forumtopic_comments .commentthread_comment {
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-bg-elevated);
+    color: var(--aika-fg-muted);
+    box-shadow: var(--aika-highlight-top);
+}
+html .forumtopic_comments .commentthread_comment_text { color: var(--aika-fg-muted); }
+html .forumtopic_comments .commentthread_author_link { color: var(--aika-accent-bright); }
+html .forumtopic_comments :is(.commentthread_comment_timestamp, .commentthread_edit_info) { color: var(--aika-fg-subtle); }
+html .forumtopic_comments :is(.forum_paging, .commentthread_paging) {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    color: var(--aika-fg-muted);
+}
+html .forumtopic_comments :is(.forum_paging_pagelink, .commentthread_pagelink) { color: var(--aika-fg-muted); }
+html .forumtopic_comments :is(.forum_paging_pagelink.active, .commentthread_pagelink.active) { color: var(--aika-accent-bright); }
+
+html .shared_autocollapse_fade { background: var(--aika-content-fade); }
+html .shared_autocollapse_readmore {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-elevated);
+    color: var(--aika-accent-bright);
+}
+
+/* A full-width screenshot in a card: the margins around the image are the deep background
+   instead of black 0.5 */
+html #blotter_page .blotter_screenshot_image {
+    background: var(--aika-bg-deep);
+}
+
+/* --------------------------------------------------------------------------
+   A link card to a Workshop item / guide
+   (.dynamiclink_box inside .blotter_workshopitem). Steam: a light-blue
+   60° gradient, a light-blue name with a dotted underline.
+   -------------------------------------------------------------------------- */
+
+html #blotter_page .dynamiclink_box {
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        border-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html #blotter_page .dynamiclink_box:hover {
+    border-color: var(--aika-border-hover);
+    background: var(--aika-surface-hover);
+}
+
+html #blotter_page .dynamiclink_box .dynamiclink_preview {
+    border-radius: var(--aika-radius-md);
+}
+
+html #blotter_page .dynamiclink_box .dynamiclink_name {
+    border-bottom: none;
+    color: var(--aika-fg);
+}
+
+html #blotter_page .dynamiclink_box .dynamiclink_type {
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-meta);
+}
+
+html #blotter_page .dynamiclink_box .dynamiclink_author,
+html #blotter_page .dynamiclink_box .dynamiclink_author span {
+    color: var(--aika-fg-subtle);
+}
+
+html #blotter_page .dynamiclink_box .dynamiclink_description {
+    color: var(--aika-fg-muted);
+}
+
+/* --------------------------------------------------------------------------
+   "Link to a game" next to the status field (#blotter_appselect_app, onclick ShowMenu):
+   Steam has a PNG gradient and a PNG arrow, uppercase text in the DOM itself (not changed).
+   We make it like our dropdown (components/input.css). The game list —
+   #blotter_appselect_app_options.popup_block: a light-blue plate, PNG shadows
+   (.shadow_left… ), a blue-gray filter field.
+   -------------------------------------------------------------------------- */
+
+html #blotter_page .blotter_status_entry #blotter_appselect_app.blotter_appselect {
+    border: var(--aika-hairline) solid var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+    transition:
+        border-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html #blotter_page .blotter_status_entry #blotter_appselect_app.blotter_appselect:hover {
+    border-color: var(--aika-border-hover);
+}
+
+html #blotter_page #blotter_appselect_app #blotter_appselect_app_activeoption {
+    position: relative;
+    padding-right: calc(var(--aika-chevron-size) + var(--aika-space-3));
+    background: var(--aika-transparent);
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+html #blotter_page #blotter_appselect_app #blotter_appselect_app_activeoption::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: var(--aika-space-2);
+    width: var(--aika-chevron-size);
+    height: var(--aika-chevron-size);
+    background-color: currentColor;
+    -webkit-mask: var(--aika-icon-chevron-down) center / contain no-repeat;
+    mask: var(--aika-icon-chevron-down) center / contain no-repeat;
+    transform: translateY(-50%);
+}
+
+html #blotter_page #blotter_appselect_app:hover #blotter_appselect_app_activeoption {
+    color: var(--aika-fg);
+}
+
+/* The game list */
+html #blotter_page #blotter_appselect_app_options :is(.shadow_left, .shadow_right, .shadow_bl, .shadow_bottom, .shadow_br) {
+    display: none;
+}
+
+html #blotter_page #blotter_appselect_app_options #blotter_appselect_options {
+    overflow: hidden;
+    padding: var(--aika-space-1);
+    border: var(--aika-hairline) solid var(--aika-border-hover);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface-translucent);
+    box-shadow: var(--aika-shadow-menu);
+}
+
+html #blotter_page #blotter_appselect_options #blotter_appselect_app_filter {
+    border: var(--aika-hairline) solid var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+    box-shadow: none;
+    color: var(--aika-fg);
+}
+
+html #blotter_page #blotter_appselect_options #blotter_appselect_app_filter:focus {
+    border-color: var(--aika-accent);
+    box-shadow: var(--aika-shadow-input-focus);
+    outline: none;
+}
+
+/* Steam's magnifier GIF next to the filter */
+html #blotter_page #blotter_appselect_options #blotter_appselect_search_img {
+    display: none;
+}
+
+html #blotter_page #blotter_appselect_options #blotter_appselect_suggestions div.option {
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html #blotter_page #blotter_appselect_options #blotter_appselect_suggestions div.option:hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+/* ==========================================================================
+   Friends (steamcommunity.com/id/…/friends/), captured via CDP 2026-10-04.
+   Old markup, readable classes, Steam's strength (0,1,0)…(0,3,0).
+     .friends_header_* — the header (avatar, name); .friends_nav — the left menu
+       (h4 — sections, a.icon_item[.active] + span.count);
+     .profile_friends.title_bar — the search and "Manage" strip (#015e80),
+       .friends_search_text_box — the field; .manage_friends_panel — the selection panel;
+     .state_block — "In-Game / Online / Offline";
+     .friend_block_v2.persona.(in-game|online|offline) — a friend card:
+       .player_avatar.friend_block_link_overlay — the avatar with a status strip
+       on the right (border-right 4px), .friend_block_content — the name,
+       .friend_small_text/.friend_game_link — the game (#a3cf06),
+       .player_nickname_hint, .friend_last_online_text — gray.
+   Statuses — as everywhere in the theme: in game — ok, online — accent, offline — muted.
+   ========================================================================== */
+
+html .friends_header_avatar > a img,
+html .friends_header_avatar > img {
+    border-radius: var(--aika-radius-md);
+    box-shadow: var(--aika-shadow-cover);
+}
+
+html .friends_header_name,
+html .friends_header_name a {
+    color: var(--aika-fg);
+}
+
+/* The left menu */
+html .friends_nav h4 {
+    color: var(--aika-fg-subtle);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+html .friends_nav a {
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .friends_nav a:hover {
+    background-color: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+html .friends_nav a.active {
+    background-color: var(--aika-accent-soft);
+    color: var(--aika-fg);
+    box-shadow: inset var(--aika-indicator) 0 0 0 var(--aika-accent);
+}
+
+html .friends_nav a .count {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+html .friends_nav .hr {
+    border-bottom-color: var(--aika-border);
+}
+
+/* The menu's icons: Steam's gray 16 px sprite (on .title, background-position
+   per item) → line icons in the text's color, the accent on the active item
+   (author 2026-10-27, checked on …/friends/pending) */
+html .friends_nav a.icon_item .title {
+    position: relative;
+    background-image: none;
+}
+
+html .friends_nav a.icon_item .title::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    translate: 0 -50%;
+    background-color: currentColor;
+    -webkit-mask: var(--aika-nav-icon) center / contain no-repeat;
+}
+
+html .friends_nav a.icon_item.active .title::before {
+    background-color: var(--aika-accent-bright);
+}
+
+html .friends_nav a:is(.icon_all_friends, .icon_all_groups) { --aika-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0'/%3E%3Cpath d='M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3Cpath d='M21 21v-2a4 4 0 0 0 -3 -3.85'/%3E%3C/svg%3E"); }
+html .friends_nav a.icon_add_friends { --aika-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0'/%3E%3Cpath d='M16 19h6'/%3E%3Cpath d='M19 16v6'/%3E%3Cpath d='M6 21v-2a4 4 0 0 1 4 -4h4'/%3E%3C/svg%3E"); }
+html .friends_nav a:is(.icon_pending_friends, .icon_pending_groups) { --aika-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z'/%3E%3Cpath d='M3 7l9 6l9 -6'/%3E%3C/svg%3E"); }
+html .friends_nav a.icon_blocked_friends { --aika-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0'/%3E%3Cpath d='M5.7 5.7l12.6 12.6'/%3E%3C/svg%3E"); }
+html .friends_nav a.icon_recent_friends { --aika-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0'/%3E%3Cpath d='M12 7v5l3 3'/%3E%3C/svg%3E"); }
+html .friends_nav a.icon_all_following { --aika-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0'/%3E%3Cpath d='M6 21v-2a4 4 0 0 1 4 -4h4'/%3E%3Cpath d='M15 19l2 2l4 -4'/%3E%3C/svg%3E"); }
+html .friends_nav a.icon_games_following { --aika-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 8a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z'/%3E%3Cpath d='M6 12h4m-2 -2v4'/%3E%3Cpath d='M15 11v.01'/%3E%3Cpath d='M18 13v.01'/%3E%3C/svg%3E"); }
+html .friends_nav a.icon_find_group { --aika-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0'/%3E%3Cpath d='M21 21l-6 -6'/%3E%3C/svg%3E"); }
+html .friends_nav a.icon_create_group { --aika-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0'/%3E%3Cpath d='M9 12h6'/%3E%3Cpath d='M12 9v6'/%3E%3C/svg%3E"); }
+
+/* New requests: Steam's lime #a3cf06 square → the accent pill of the friends window */
+html .friends_nav a .em_count {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: var(--aika-radius-full);
+    background-color: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+    box-shadow: 0 0 10px var(--aika-accent-glow);
+    font-family: var(--aika-font-mono);
+    font-weight: var(--aika-weight-semibold);
+    line-height: 18px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* Steam Inventory Helper's buttons in the title strips ("Ignore Level 0",
+   "Decline all" for sent invites): its cyan #00bad9 → our accent button */
+html body.v6 .title_bar .btnv6_blue_hoverfade.sih {
+    background: var(--aika-accent-fill);
+    color: var(--aika-on-accent) !important;   /* Steam's color here is !important */
+}
+
+html body.v6 .title_bar .btnv6_blue_hoverfade.sih:hover {
+    background: var(--aika-accent-fill-hover);
+}
+
+/* The search / manage strip */
+html .profile_friends.title_bar,
+html .profile_groups.title_bar {
+    border-radius: var(--aika-radius-lg);
+    background-color: var(--aika-surface);
+}
+
+html :is(.friends_search_text_box, .groups_search_text_box) {
+    border: var(--aika-hairline) solid var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-bg-raised);
+    color: var(--aika-fg);
+}
+
+html :is(.friends_search_text_box, .groups_search_text_box)::placeholder {
+    color: var(--aika-fg-subtle);
+    font-style: normal;
+}
+
+html :is(.friends_search_text_box, .groups_search_text_box):focus {
+    outline: none;
+    box-shadow: var(--aika-shadow-input-focus);
+}
+
+html .manage_friends_panel {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-accent-bg);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+}
+
+html .manage_friends_panel .row,
+html .manage_friends_panel .row > .selection_type {
+    color: var(--aika-fg-muted);
+}
+
+html .profile_friends .state_block {
+    color: var(--aika-fg-subtle);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+/* A friend card */
+html .friend_block_v2 {
+    border-color: var(--aika-transparent);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-card-bg);
+    color: var(--aika-fg-muted);
+    box-shadow: var(--aika-shadow-card);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html .friend_block_v2:hover,
+html .friend_block_v2.in-game:hover {
+    background-color: var(--aika-surface-hover);
+    box-shadow: var(--aika-shadow-card-hover);
+}
+
+html .friend_block_v2 .player_avatar.friend_block_link_overlay {
+    border-radius: var(--aika-radius-md) 0 0 var(--aika-radius-md);
+}
+
+html .friend_block_v2 .player_avatar.friend_block_link_overlay img {
+    border-radius: var(--aika-radius-md) 0 0 var(--aika-radius-md);
+}
+
+html .friend_block_link_overlay.in-game { border-color: var(--aika-ok); }
+html .friend_block_link_overlay.online { border-color: var(--aika-accent-bright); color: var(--aika-accent-bright); }
+html .friend_block_link_overlay.offline { border-color: var(--aika-fg-subtle); }
+
+html .friend_block_v2.in-game .friend_block_content { color: var(--aika-ok); }
+html .friend_block_v2.online .friend_block_content { color: var(--aika-accent-bright); }
+html .friend_block_v2.offline .friend_block_content { color: var(--aika-fg-muted); }
+
+html .friend_block_v2 :is(.friend_small_text, .friend_game_link) {
+    color: var(--aika-ok);
+}
+
+html .friend_block_v2 :is(.player_nickname_hint, .friend_last_online_text),
+html .friend_block_v2 .player_nickname_hint .friend_last_online_text {
+    color: var(--aika-fg-subtle);
+}
+
+/* The selection mark in "Manage" mode (.indicator, #afc0ca) */
+html .friend_block_v2 .indicator {
+    background-color: var(--aika-surface-active);
+    color: var(--aika-fg);
+}
+
+html .friend_block_v2.selected .indicator {
+    background-color: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+}
+
+/* --------------------------------------------------------------------------
+   The site's mini profile on hovering a friend (.miniprofile_hover; it exists
+   both in the store and in the community). Like the client one (components/status.css):
+   avatar frame and name by status, strips over the profile background — a dark
+   material, the game — ok. The user's profile background, the item frame and the level
+   ring (.friendPlayerLevel.lvl_N) are left alone.
+   -------------------------------------------------------------------------- */
+
+html .miniprofile_hover .miniprofile_container {
+    border-radius: var(--aika-radius-lg);
+    box-shadow: var(--aika-shadow-menu);
+}
+
+html .miniprofile_playersection .playersection_avatar,
+html .miniprofile_playersection .playersection_avatar img {
+    border-radius: var(--aika-radius-md);
+}
+
+html .miniprofile_playersection .playersection_avatar.border_color_in-game { border-bottom-color: var(--aika-ok); }
+html .miniprofile_playersection .playersection_avatar.border_color_online { border-bottom-color: var(--aika-accent-bright); }
+html .miniprofile_playersection .playersection_avatar.border_color_offline { border-bottom-color: var(--aika-fg-subtle); }
+
+html .miniprofile_playersection .player_content .persona.in-game { color: var(--aika-ok); }
+html .miniprofile_playersection .player_content .persona.online { color: var(--aika-accent-bright); }
+html .miniprofile_playersection .player_content .persona.offline { color: var(--aika-fg-muted); }
+
+html .miniprofile_container .miniprofile_backdrop {
+    background: var(--aika-surface-translucent);
+}
+
+html .miniprofile_gamesection .miniprofile_game_details .miniprofile_game_name {
+    color: var(--aika-ok);
+}
+
+html .miniprofile_gamesection .miniprofile_game_details :is(.game_state, .rich_presence) {
+    color: var(--aika-ok-mid);
+}
+
+html .miniprofile_featuredcontainer .description .name {
+    color: var(--aika-fg);
+}
+
+html .miniprofile_featuredcontainer .description .xp {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+html .miniprofile_playtimesection:not(.forcurrentgame) {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-card-accent-bg);
+}
+
+html .miniprofile_playtimesection .playtimecontent {
+    color: var(--aika-fg-subtle);
+}
+
+html .miniprofile_playtimesection .playtimecontent .timeplayed {
+    color: var(--aika-fg);
+    font-family: var(--aika-font-mono);
+}
+
+/* The default mini profile background (the friend has no profile background of their own):
+   gray-blue radial — ours is warm, with accent light */
+html .miniprofile_container .miniprofile_background {
+    background: radial-gradient(ellipse farthest-corner at 20% 30%, var(--aika-accent-dim), var(--aika-bg-elevated) 70%);
+}
+
+/* The status caption under the name ("Online", "Offline") */
+html .miniprofile_playersection .player_content .friend_status_online { color: var(--aika-accent-bright); }
+html .miniprofile_playersection .player_content .friend_status_in-game { color: var(--aika-ok); }
+html .miniprofile_playersection .player_content .friend_status_offline { color: var(--aika-fg-subtle); }
+
+/* --------------------------------------------------------------------------
+   Friends menu sections (2026-10-04): empty states, "Recently Played With",
+   blocked, groups; "Followed Games" (body.flat_page — different
+   markup: the profile header .profile_small_header_*, tabs, game rows).
+   The avatar in the profile header — the shared avatar rules above.
+   -------------------------------------------------------------------------- */
+
+html .friends_container .search_results_none {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface);
+    color: var(--aika-fg-muted);
+}
+
+html .profile_friends.responsive_friendblocks {
+    border-radius: var(--aika-radius-lg);
+}
+
+html .profile_friends .noCoplayHistory {
+    border-color: var(--aika-border);
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+}
+
+/* "Blocked" (#da2525) — Aika live */
+html .friend_block_v2 .friend_small_text .blocked_text {
+    color: var(--aika-live);
+}
+
+/* Groups and invites (.group_block.invite_row — like a friend card) */
+html .group_block.invite_row {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-bg);
+    box-shadow: var(--aika-shadow-card);
+}
+
+html .group_block .groupTitle a {
+    color: var(--aika-fg);
+}
+
+/* "Public" (.pubGroup, orange #d05f29) — warn */
+html .pubGroup {
+    color: var(--aika-warn);
+}
+
+/* The profile header on subpages (.profile_small_header_*) */
+html .profile_small_header_bg .profile_small_header_texture {
+    border-radius: var(--aika-radius-lg);
+    background-color: var(--aika-surface);
+}
+
+html .profile_small_header_text .profile_small_header_arrow {
+    color: var(--aika-fg-subtle);
+}
+
+/* Section tabs (.sectionTabs .sectionTab.active — a blue line) */
+html .sectionTabs .sectionTab.active {
+    border-color: var(--aika-accent);
+}
+
+/* "Followed Games": game rows, the "On Wishlist" label, buttons */
+html .games_list_rows .gameListRow {
+    border-radius: var(--aika-radius-lg);
+    background-color: var(--aika-surface);
+}
+
+html .gameListRow .ds_flag {
+    border-radius: var(--aika-radius-xs);
+    background-color: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+}
+
+html .followed_game_actions .btnv6_blue_hoverfade {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    color: var(--aika-fg) !important; /* Steam: #67c1f5 !important */
+}
+
+html .followed_game_actions .btnv6_blue_hoverfade:not(.btn_disabled):not(:disabled):not(.btn_active):not(.active):hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg) !important; /* Steam: #fff !important */
+}
+
+/* The highlight behind the "Friends" header (.friends_header_bg — the bg_highlight.png image,
+   a light-blue glow from below) — a soft accent light (author's fix 2026-10-05) */
+html .friends_header_bg {
+    background: radial-gradient(ellipse 60% 100% at 50% 100%, var(--aika-accent-tint), var(--aika-transparent) 70%);
+}
+
+/* ==========================================================================
+   "Edit Profile" (steamcommunity…/edit/…, body.profile_edit_page)
+   — task 7 (screenshot "7_profile settings recolor"). Here are Steam's readable
+   classes: headings, captions, round toggles, "Privacy"
+   (.ProfilePrivacy*), the old showcases in the "Manage Showcases" tab
+   (.profile_customization*, .profile_showcase_*). The editor's hash classes
+   (tab menu, selection grids, previews) are in selectors.css.
+   Steam: gray-blue text #acb2b8 / #939ea7, light-blue headings #66c0f4,
+   light-blue round toggles, gray-blue showcase plates.
+   Verified 2026-10-07, all 10 tabs.
+   ========================================================================== */
+
+/* Page background: Steam's body.profile_edit_page (0,1,1) has its own gray-blue
+   gradient #262d33 → #1d1e20 over our transparent body (author's
+   fix 2026-10-07) — kill it, the theme background with light spots shows */
+html body.profile_edit_page {
+    background: var(--aika-transparent);
+}
+
+/* The base page text (#969696) and the name in the header (#ebebeb) */
+/* (also on the other profile pages with the same header — notifications etc.) */
+html body:is(.profile_edit_page, .migrated_profile_page) .responsive_page_frame {
+    color: var(--aika-fg-muted);
+}
+
+html .profile_small_header_text a.whiteLink,
+html .profile_small_header_text a.whiteLink span {
+    color: var(--aika-fg);
+}
+
+/* The "required field" asterisk (#c15755) */
+html body.profile_edit_page .DialogLabel .DialogInputRequirementLabel {
+    color: var(--aika-live);
+}
+
+html body.profile_edit_page :is(.DialogHeader, .profile_customization_header) {
+    color: var(--aika-fg);
+    font-weight: var(--aika-weight-semibold);
+    letter-spacing: var(--aika-tracking-h2);
+}
+
+html body.profile_edit_page .DialogBodyText {
+    color: var(--aika-fg-muted);
+}
+
+html body.profile_edit_page .DialogBodyText a {
+    color: var(--aika-accent-bright);
+}
+
+/* Field captions ("PROFILE NAME") — theme labels: mono, muted */
+html body.profile_edit_page .DialogLabel {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+html body.profile_edit_page .DialogLabelExplainer {
+    color: var(--aika-fg-subtle);
+}
+
+html body.profile_edit_page :is(.DialogToggle_Label, .DialogToggle_Label span) {
+    color: var(--aika-fg-muted);
+}
+
+/* Round toggles ("Full screen / Original size"): a light-blue
+   gradient #00ccff → #2d73ff with a glow → accent */
+html body.profile_edit_page .DialogRoundCheckboxField_Control {
+    background-color: var(--aika-surface-active);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-strong);
+}
+
+html body.profile_edit_page .DialogRoundCheckboxField_OuterCircle {
+    box-shadow: none;
+}
+
+html body.profile_edit_page .DialogRoundCheckboxField_InnerCircle {
+    background: var(--aika-accent);
+    box-shadow: 0 0 8px var(--aika-accent-glow);
+}
+
+/* --- "Privacy" ------------------------------------------------------------- */
+
+html body.profile_edit_page .ProfilePrivacyRoot .ProfilePrivacyHeader {
+    color: var(--aika-fg);
+    font-weight: var(--aika-weight-semibold);
+}
+
+html body.profile_edit_page .ProfilePrivacyRoot :is(.ProfilePrivacyDesc, .ProfilePrivacyDesc p, .ProfilePrivacyCheckbox_Desc) {
+    color: var(--aika-fg-muted);
+}
+
+html body.profile_edit_page .ProfilePrivacyRoot a {
+    color: var(--aika-accent-bright);
+}
+
+html body.profile_edit_page .ProfilePrivacyRoot a:hover {
+    color: var(--aika-fg);
+}
+
+/* The "Public / Friends Only" value (and read-only) */
+html body.profile_edit_page .ProfilePrivacyHeader :is(.ProfilePrivacyDropDown, .ProfilePrivacyDropDown .DialogDropDown_CurrentDisplay) {
+    color: var(--aika-accent-bright);
+    /* Steam has ".ProfilePrivacyHeader .ProfilePrivacyDropDown" — underline
+       (author's fix 2026-10-07: no underline) */
+    text-decoration: none;
+}
+
+html body.profile_edit_page .ProfilePrivacyHeader .ProfilePrivacyDropDown svg :is(polygon, path) {
+    fill: currentColor;
+}
+
+/* Divider: a blue gradient #3d4d5e → the theme line fading to the right */
+html body.profile_edit_page .ProfilePrivacyHR {
+    background: linear-gradient(to right, var(--aika-border-strong), var(--aika-transparent));
+}
+
+/* --- "Manage Showcases": the old showcase markup ---------------------------- */
+
+/* The sorting area (#3a3e47 50 %) and the showcase plate (a gray-blue gradient) */
+html body.profile_edit_page .customization_edit_area {
+    border-radius: var(--aika-radius-xl);
+    background: var(--aika-transparent);
+}
+
+html body.profile_edit_page .customization_edit_area .profile_showcase_selector {
+    overflow: hidden;
+    margin-bottom: var(--aika-space-3);
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-bg);
+    box-shadow: var(--aika-highlight-top);
+}
+
+html body.profile_edit_page .profile_customization {
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface);
+}
+
+html body.profile_edit_page .profile_customization_block {
+    border-radius: var(--aika-radius-md);
+}
+
+/* The "up/down" arrows — triangles made of #657081 borders */
+html body.profile_edit_page .profile_showcase_sort_btn.profile_showcase_sort_up {
+    border-bottom-color: var(--aika-fg-subtle);
+}
+
+html body.profile_edit_page .profile_showcase_sort_btn.profile_showcase_sort_down {
+    border-top-color: var(--aika-fg-subtle);
+}
+
+html body.profile_edit_page .profile_showcase_sort_btn:hover.profile_showcase_sort_up {
+    border-bottom-color: var(--aika-accent-bright);
+}
+
+html body.profile_edit_page .profile_showcase_sort_btn:hover.profile_showcase_sort_down {
+    border-top-color: var(--aika-accent-bright);
+}
+
+/* "Select showcase": #4e5665 bracket corners around the list */
+html body.profile_edit_page :is(.showcase_selection_pre, .showcase_selection_post) {
+    border-color: var(--aika-border-strong);
+}
+
+/* Lists, fields and buttons of the old markup (.gray_bevel — #3d4450,
+   a light-blue shadow; btnv6_white_transparent — a white border; btn_grey_black) */
+html body.profile_edit_page select.gray_bevel,
+html body.profile_edit_page .gray_bevel:is(.for_text_input, .fullwidth) {
+    border: var(--aika-hairline) solid var(--aika-border-hover);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+    box-shadow: none;
+    color: var(--aika-fg);
+}
+
+html body.profile_edit_page .gray_bevel :is(input, textarea) {
+    background: var(--aika-transparent);
+    color: var(--aika-fg);
+}
+
+html body.profile_edit_page .customization_controls_nextprev .btnv6_white_transparent > span {
+    border-color: var(--aika-border-hover);
+    border-radius: var(--aika-radius-md);
+    color: var(--aika-fg-muted);
+}
+
+html body.profile_edit_page .customization_controls_nextprev .btnv6_white_transparent:hover > span {
+    border-color: var(--aika-border-accent);
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+html body.profile_edit_page .profile_customization .btn_grey_black {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    box-shadow: var(--aika-shadow-secondary);
+}
+
+html body.profile_edit_page .profile_customization .btn_grey_black > span {
+    background: var(--aika-transparent);
+    color: var(--aika-fg);
+}
+
+/* The "Favorite Group" showcase: the name (#ebebeb / #828282), "in game"
+   green #8bc53f → ok, "online" light blue #62a7e3 → accent */
+html body.profile_edit_page .favoritegroup_showcase_group .favoritegroup_namerow {
+    color: var(--aika-fg-subtle);
+}
+
+html body.profile_edit_page .favoritegroup_showcase_group a.favoritegroup_name {
+    color: var(--aika-fg);
+}
+
+html body.profile_edit_page .favoritegroup_stats .favoritegroup_ingame .value {
+    color: var(--aika-ok);
+}
+
+html body.profile_edit_page .favoritegroup_stats .favoritegroup_online .value {
+    color: var(--aika-accent-bright);
+}
+
+html body.profile_edit_page .profile_customization .showcase_stat .label,
+html body.profile_edit_page .profile_customization .showcase_bodylabel {
+    color: var(--aika-fg-subtle);
+}
+
+/* ==========================================================================
+   Game discussions (steamcommunity…/app/…/discussions/…; screenshot 17, task 17).
+   Old markup, readable classes. Steam: .forum_topic topic rows —
+   light blue #5485b7 40 % (hover #75ccff 50 %), "PINNED" in lime
+   #aedd08, author and time #8ed1f9, replies #c6d4df; icons are PNGs (envelope,
+   lock, "replies"); pagination on #151f2c 70 %; the right column .rightbox —
+   a black gradient, dividers #1e323f, the selected forum — an arrow image
+   (light blue), "New discussion" — a blue button, "Subscribe" — light-blue
+   text. Verified 2026-10-07 on Enshrouded.
+   ========================================================================== */
+
+/* --- Topic list ------------------------------------------------------------ */
+
+html :is(.forum_topics, .discussions_game_topics) .forum_topic {
+    margin-bottom: var(--aika-space-1);
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-surface);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        border-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html :is(.forum_topics, .discussions_game_topics) .forum_topic:hover {
+    border-color: var(--aika-border-accent);
+    background-color: var(--aika-accent-tint);
+}
+
+/* Unread — slightly more prominent (Steam uses the same light blue) */
+html :is(.forum_topics, .discussions_game_topics) .forum_topic.unread {
+    background-color: var(--aika-surface-hover);
+}
+
+html :is(.forum_topics, .discussions_game_topics) .forum_topic.unread:hover {
+    background-color: var(--aika-accent-tint);
+}
+
+html .forum_topic .forum_topic_name,
+html .forum_topic.unread .forum_topic_name {
+    color: var(--aika-fg);
+}
+
+html .forum_topic .forum_topic_op {
+    color: var(--aika-accent-bright);
+}
+
+html .forum_topic .forum_topic_lastpost {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+/* On hover Steam paints the author and time #70beed
+   (".forum_topic:hover …" (0,3,0); author's fix 2026-10-07) */
+html :is(.forum_topics, .discussions_game_topics) .forum_topic:hover .forum_topic_op {
+    color: var(--aika-accent-bright);
+}
+
+html :is(.forum_topics, .discussions_game_topics) .forum_topic:hover .forum_topic_lastpost {
+    color: var(--aika-fg-muted);
+}
+
+/* Topic awards: the blue award_icon_blue.svg → our own outline icon */
+html .forum_topic .forum_topic_award_count img.reward_btn_icon {
+    width: var(--aika-icon-inline);
+    height: var(--aika-icon-inline);
+    object-position: -9999px 0;
+    background-color: var(--aika-accent-bright);
+    -webkit-mask: var(--aika-icon-award) center / contain no-repeat;
+    mask: var(--aika-icon-award) center / contain no-repeat;
+}
+
+/* The topic preview on hover (.forum_topic_tooltip): a light-blue plate
+   #417a9b with a #2d566b border → the theme tooltip (translucent) */
+html .forum_topic_tooltip {
+    border: var(--aika-hairline) solid var(--aika-border-hover);
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-surface-translucent);
+    box-shadow: var(--aika-shadow-menu);
+    color: var(--aika-fg-muted);
+}
+
+html .forum_topic_tooltip .topic_hover_text {
+    color: var(--aika-fg);
+}
+
+html .forum_topic_tooltip .topic_hover_row {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+}
+
+html .forum_topic_tooltip .topic_hover_row .topic_hover_data {
+    color: var(--aika-accent-bright);
+}
+
+/* Game hub tabs ("All / Discussions / Screenshots…"): the selected one —
+   a blue line #1a9fff (0,2,0) → accent */
+html .apphub_sectionTabs .apphub_sectionTab.active,
+html .apphub_sectionTabs .apphub_sectionTab.active:hover {
+    border-bottom-color: var(--aika-accent);
+}
+
+html .forum_topic :is(.forum_topic_reply_count, .forum_topic_award_count) {
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-mono);
+}
+
+/* "PINNED:" — accent instead of lime */
+html .forum_topic .forum_topic_label.sticky_label {
+    color: var(--aika-accent-bright);
+}
+
+/* Topic and reply icons (PNG: a light-blue envelope, a white lock, a bubble) —
+   in accent tone / muted */
+html .forum_topic .forum_topic_icon img {
+    filter: var(--aika-tint-accent);
+}
+
+html .forum_topic .forum_topic_reply_count img {
+    opacity: var(--aika-icon-dim);
+}
+
+/* --- Pagination ------------------------------------------------------------ */
+
+html .forum_area .forum_paging {
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-surface);
+    color: var(--aika-fg-subtle);
+}
+
+html .forum_paging .forum_paging_summary,
+html .forum_paging .forum_paging_summary span {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+html .forum_paging a.forum_paging_pagelink {
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-mono);
+}
+
+html .forum_paging a.forum_paging_pagelink:hover {
+    color: var(--aika-fg);
+}
+
+html .forum_paging a.forum_paging_pagelink.active {
+    color: var(--aika-accent-bright);
+}
+
+html .forum_paging a.pagebtn {
+    border-radius: var(--aika-radius-xs);
+    background-color: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+html .forum_paging a.pagebtn.disabled {
+    opacity: var(--aika-disabled-opacity);
+}
+
+html .forum_area .forum_pagesize_options,
+html .forum_area .forum_pagesize_options .commentthread_pagination_link {
+    color: var(--aika-fg-subtle);
+}
+
+html .forum_area .forum_pagesize_options a.commentthread_pagination_link {
+    color: var(--aika-fg-muted);
+}
+
+/* --- Right column ---------------------------------------------------------- */
+
+/* Discussion search: Steam's field is a background image "100% − 40px" wide,
+   with a blue GIF button flush on the right (searchbox_workshop_submit.gif).
+   Ours is a full-width field with a magnifier button inside it on the right (author's
+   fix 2026-10-07: "a fresher icon, style the search box") */
+html :is(.rightcol, .global_discussion_search_ctn, .discussions_game_searchoption) .discussionSearchTextContainer {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    border: var(--aika-hairline) solid var(--aika-border-hover);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+    transition: border-color var(--aika-dur-fast) var(--aika-ease-hover), box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+/* The blue square to the right of the field — a ::before with Steam's button image
+   (right: -40px, 40×46) — removed: our button is a magnifier inside the field
+   (screenshot "17_d search") */
+html :is(.rightcol, .global_discussion_search_ctn, .discussions_game_searchoption) .discussionSearchTextContainer::before {
+    content: none;
+}
+
+html :is(.rightcol, .global_discussion_search_ctn, .discussions_game_searchoption) .discussionSearchTextContainer:focus-within {
+    border-color: var(--aika-border-accent);
+    box-shadow: var(--aika-shadow-input-focus);
+}
+
+html .discussionSearchTextContainer input.discussionSearchText {
+    box-sizing: border-box;
+    width: calc(100% - var(--aika-space-8));
+    background: var(--aika-transparent);
+    color: var(--aika-fg);
+}
+
+html :is(.rightcol, .global_discussion_search_ctn, .discussions_game_searchoption) .discussionSearchTextContainer img.discussionSearchTextSubmitImg {
+    position: absolute;
+    top: 50%;
+    right: var(--aika-space-3);
+    width: var(--aika-icon-inline);
+    height: var(--aika-icon-inline);
+    margin: 0;
+    transform: translateY(-50%);
+    cursor: pointer;
+    object-position: -9999px 0;
+    background-color: var(--aika-fg-muted);
+    -webkit-mask: var(--aika-icon-search) center / contain no-repeat;
+    mask: var(--aika-icon-search) center / contain no-repeat;
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html :is(.rightcol, .global_discussion_search_ctn, .discussions_game_searchoption) .discussionSearchTextContainer img.discussionSearchTextSubmitImg:hover {
+    background-color: var(--aika-accent-bright);
+}
+
+html .rightcol .rightbox {
+    overflow: hidden;
+    margin-bottom: var(--aika-space-3);
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-card-bg);
+    color: var(--aika-fg-muted);
+}
+
+html .rightcol .rightbox .rule {
+    border-top: none;
+    background: var(--aika-divider);
+}
+
+html .rightcol .rightbox :is(.rightcol_minor_text, .rightbox_content_header, .rightbox_list_header > div) {
+    color: var(--aika-fg-subtle);
+}
+
+html .rightcol .rightbox :is(.rightbox_content_header, .rightbox_list_header > div) {
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+/* The forum list: the selected one — a light-blue arrow image → an accent
+   backing with a strip */
+html .rightbox .rightbox_list_option .rightbox_list_selection_background {
+    background: none;
+}
+
+/* The selected backing is wider than the text: the text stays put, and the highlight
+   extends past it by the padding (in Steam the text stuck to the backing edge) */
+html .rightbox .rightbox_list_option {
+    margin-inline: calc(-1 * var(--aika-space-2));
+    padding-inline: var(--aika-space-2);
+    border-radius: var(--aika-radius-md);
+}
+
+html .rightbox .rightbox_list_option.selected {
+    background: var(--aika-accent-soft);
+    box-shadow: inset var(--aika-indicator) 0 0 var(--aika-accent);
+}
+
+html .rightbox .rightbox_list_option .forum_list_name a.whiteLink {
+    color: var(--aika-fg);
+}
+
+html .rightbox .rightbox_list_option.selected .forum_list_name a.whiteLink {
+    color: var(--aika-accent-bright);
+}
+
+html .rightbox .rightbox_list_option .forum_list_postcount {
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-mono);
+}
+
+html .rightbox .weblink a {
+    color: var(--aika-fg-muted);
+}
+
+html .rightbox .weblink a:hover {
+    color: var(--aika-fg);
+}
+
+html .rightbox .weblink img {
+    opacity: var(--aika-icon-dim);
+}
+
+/* "Subscribe to forum" (btn_grey_black, light-blue text) and "New
+   discussion" (btn_darkblue_white_innerfade — blue, color !important) */
+html .rightbox .btn_grey_black {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    box-shadow: var(--aika-shadow-secondary);
+}
+
+html .rightbox .btn_grey_black > span {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-transparent);
+    color: var(--aika-fg);
+}
+
+html .rightbox .btn_grey_black:hover {
+    background: var(--aika-surface-hover);
+}
+
+html .rightbox .btn_darkblue_white_innerfade {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-accent-fill);
+    box-shadow: var(--aika-shadow-cta);
+    color: var(--aika-on-accent) !important; /* Steam: #a4d7f5 !important */
+}
+
+html .rightbox .btn_darkblue_white_innerfade > span {
+    background: var(--aika-transparent);
+}
+
+html .rightbox .btn_darkblue_white_innerfade:hover {
+    background: var(--aika-accent-fill-hover);
+    color: var(--aika-on-accent) !important; /* Steam: #fff !important */
+}
+
+/* "Community site" in the header (btnv6_blue_hoverfade, light-blue text) */
+html .apphub_OtherSiteInfo a.btnv6_blue_hoverfade {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    box-shadow: var(--aika-shadow-secondary);
+}
+
+html .apphub_OtherSiteInfo a.btnv6_blue_hoverfade > span {
+    color: var(--aika-fg);
+}
+
+/* ==========================================================================
+   The "Family View" web page (community/store pages while Family View is on —
+   author's request 2026-10-08). Stable anchors #parental_main and
+   #parental_main_content; inside — React hashes, so structure only:
+     form > div          — the panel (flex column, centered; Steam: black 30 %
+                           + a blue key image keybg.png)
+       > div:first-child — "Family View"
+       > div:nth-child(2) — "To exit Family View, enter your PIN below."
+       input[type=password] — the PIN (components/input.css, shared with the client)
+       button.DialogButton.Primary — "OK" (components/button.css)
+       > a               — "I forgot my PIN"
+   Steam: a full-width #1b2838 band with a blue-teal glow (colored_body_top.png).
+   Ours: the Aika background, the panel — an accent card with our lock icon.
+   ========================================================================== */
+
+html body #parental_main {
+    background: var(--aika-transparent);
+}
+
+html body #parental_main_content form > div {
+    gap: var(--aika-space-2);
+    padding: var(--aika-space-7) var(--aika-space-6);
+    border-radius: var(--aika-radius-xl);
+    background: var(--aika-card-accent-bg), var(--aika-bg-elevated);
+    box-shadow:
+        inset 0 0 0 var(--aika-hairline) var(--aika-border-accent),
+        var(--aika-highlight-top),
+        var(--aika-shadow-panel);
+}
+
+/* The lock — instead of Steam's blue key picture */
+html body #parental_main_content form > div::before {
+    content: "";
+    width: var(--aika-family-lock);
+    height: var(--aika-family-lock);
+    margin-bottom: var(--aika-space-2);
+    background: var(--aika-accent-bright);
+    mask: var(--aika-icon-lock) center / contain no-repeat;
+    filter: drop-shadow(0 0 12px var(--aika-accent-glow));
+}
+
+html body #parental_main_content form > div > div:first-child {
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-h2);
+    font-weight: var(--aika-weight-semibold);
+    letter-spacing: var(--aika-tracking-h2);
+}
+
+html body #parental_main_content form > div > div:nth-child(2) {
+    margin-bottom: var(--aika-space-3);
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-body);
+}
+
+html body #parental_main_content form > div > a {
+    margin-top: var(--aika-space-2);
+    color: var(--aika-accent-bright);
+    font-size: var(--aika-text-meta);
+    transition: color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html body #parental_main_content form > div > a:hover {
+    color: var(--aika-fg);
+}
+
+/* ==========================================================================
+   Discussions home (steamcommunity.com/discussions/, screenshot 20).
+   Old markup, readable classes (captured 2026-10-08, live and logged out):
+     .steam_discussions_intro (p > b)          — the intro text
+     h2.large_title, h2.discussion_primary_header, .discussion_tab_content_area > h2
+                                               — headings (#66c0f4)
+     .global_discussion_search_ctn             — the search (the field — the right
+                                                 column rules above, widened to it)
+     .discussions_header > a.group_tab(.active) — tabs on a 5 px #417b9c line
+     .discussions_forumlist_header > div       — column captions
+     .discussions_forum_row(.unread)           — a forum row (blue 20 %),
+       .discussions_forumlist_icon img         — a light-blue envelope PNG,
+       _forumname / _lastpost / _topiccount
+     a.recent_game_discussion(.quasi_official_group) — game / Steam feature
+       forum cards (blue 20 %): .playerAvatar img, _name, _count,
+       .recent_game_discussions_unread_indicator img
+     .discussions_view_more_link a             — "Other game forums" (#529cde)
+   Steam rules — (0,1,0)…(0,2,2); ours — html + the same classes.
+   ========================================================================== */
+
+html :is(.grouppage_content_area, .group_content) h2:is(.large_title, .discussion_primary_header),
+html .discussion_tab_content_area > h2 {
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+    font-weight: var(--aika-weight-semibold);
+    letter-spacing: var(--aika-tracking-h1);
+    text-transform: none;
+}
+
+/* .group_content (discussions home, group pages): Steam paints a blue PNG
+   gradient behind the title (group_content_topbackground.png; author's fix
+   2026-10-08) — the Aika background shows through instead */
+html :is(.group_content, .group_content.bottomless) { /* Steam: .group_content.bottomless (0,2,0) */
+    background-image: none;
+}
+
+html .steam_discussions_intro p {
+    color: var(--aika-fg-muted);
+}
+
+html .steam_discussions_intro p b {
+    color: var(--aika-fg);
+}
+
+html .global_discussion_search_ctn .discussionSearchTextContainer {
+    max-width: var(--aika-discussions-search-width);
+}
+
+/* Tabs: a flat row on a hairline; the active one — accent text and an accent
+   line under it (nav.css tabs), instead of a blue gradient tile */
+html .maincontent.discussions_header {
+    border-bottom: var(--aika-hairline) solid var(--aika-border-hover);
+}
+
+html .discussions_header a.group_tab {
+    position: relative;
+    border-radius: var(--aika-radius-md) var(--aika-radius-md) 0 0;
+    background: var(--aika-transparent);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .discussions_header a.group_tab:hover {
+    background: var(--aika-surface-hover);
+}
+
+html .discussions_header a.group_tab > span {
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-ui);
+    transition: color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .discussions_header a.group_tab:hover > span {
+    color: var(--aika-fg);
+}
+
+html .discussions_header a.group_tab.active {
+    background: var(--aika-accent-soft);
+}
+
+html .discussions_header a.group_tab.active > span {
+    color: var(--aika-accent-bright);
+}
+
+html .discussions_header a.group_tab.active::after {
+    content: "";
+    position: absolute;
+    left: var(--aika-space-2);
+    right: var(--aika-space-2);
+    bottom: 0;
+    height: var(--aika-indicator);
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent);
+}
+
+html .discussions_forumlist_header > div {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+/* Forum rows and feature/game cards — Aika cards, accent on hover */
+html :is(.discussions_forum_row, a.recent_game_discussion) {
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-surface);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease);
+}
+
+html :is(.discussions_forum_row, a.recent_game_discussion):hover {
+    background-color: var(--aika-surface-hover);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+}
+
+html .discussions_forum_row .discussions_forumlist_forumname,
+html a.recent_game_discussion .recent_game_discussion_name {
+    color: var(--aika-fg);
+}
+
+html .discussions_forum_row :is(.discussions_forumlist_lastpost, .discussions_forumlist_lastpost span, .discussions_forumlist_topiccount),
+html a.recent_game_discussion .recent_game_discussion_count {
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-mono);
+    /* Meta size: mono is wider — long dates ("6 мар. 2022 г. в 2:09") ran into the name */
+    font-size: var(--aika-text-meta);
+}
+
+/* Unread forums: the name stays bright, the counters a step brighter */
+html .discussions_forum_row.unread :is(.discussions_forumlist_lastpost span, .discussions_forumlist_topiccount) {
+    color: var(--aika-fg);
+}
+
+/* Envelopes (light-blue PNG) — in accent tone, like the topic icons */
+html :is(.discussions_forumlist_icon, .recent_game_discussions_unread_indicator) img {
+    filter: var(--aika-tint-accent);
+}
+
+/* Avatars of the forum cards: a rounded square without Steam's gray frame */
+html a.recent_game_discussion .playerAvatar {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-transparent);
+}
+
+html a.recent_game_discussion .playerAvatar img {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+}
+
+html .discussions_view_more_link a {
+    color: var(--aika-accent-bright);
+    font-family: var(--aika-font-mono);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+html .discussions_view_more_link a:hover {
+    color: var(--aika-fg);
+}
+
+/* --- Discussions home, "Game forums" tab ------------------------------------
+     .discussions_game_controls: #BrowseAppHubs ("Browse hubs" + .quicklistselect —
+       a gray #424242 box, a PNG arrow; the list — #quicklistselect_options.popup_block
+       > .quicklistselect_options.shadow_content > .option) and
+       .discussions_game_searchoption (the search — the rules above);
+     .discussions_game_ctn — a game: .discussions_game_header (black 40 %:
+       logo, .discussions_total_count, the name) + .discussions_game_topics
+       (.forum_topic rows — the game discussions rules above);
+     .discussions_recentlyplayed img — envelopes in the right column.
+   ----------------------------------------------------------------------------- */
+
+html .discussions_game_browseoption {
+    color: var(--aika-fg-muted);
+}
+
+html .discussions_game_browseoption .quicklistselect {
+    border: var(--aika-hairline) solid var(--aika-border-strong);
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-bg-raised);
+    transition: border-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .discussions_game_browseoption .quicklistselect:hover {
+    border-color: var(--aika-border-hover);
+}
+
+html .discussions_game_browseoption .quicklistselect .option {
+    color: var(--aika-fg);
+    font-family: var(--aika-font-mono);
+    font-size: var(--aika-text-label);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+html .discussions_game_browseoption #quicklistselect_arrow {
+    background: var(--aika-fg-muted);
+    mask: var(--aika-icon-chevron-down) center / var(--aika-chevron-size) no-repeat;
+}
+
+html .discussions_game_browseoption .popup_block :is(.shadow_ul, .shadow_top, .shadow_ur, .shadow_left, .shadow_right, .shadow_bl, .shadow_bottom, .shadow_br) {
+    display: none;
+}
+
+html .discussions_game_browseoption .popup_block .quicklistselect_options {
+    padding: var(--aika-space-1);
+    border: var(--aika-hairline) solid var(--aika-border-hover);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-surface-translucent);
+    box-shadow: var(--aika-shadow-menu);
+}
+
+html .discussions_game_browseoption .popup_block .quicklistselect_options .option {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-transparent);
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-ui);
+    font-size: var(--aika-text-body);
+    letter-spacing: normal;
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .discussions_game_browseoption .popup_block .quicklistselect_options .option:hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+html .discussions_game_searchoption .discussionSearchTextContainer {
+    max-width: var(--aika-discussions-search-width);
+}
+
+/* A game — one card: the header strip on a raised surface, topics below */
+html .discussions_game_ctn {
+    overflow: hidden;
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-lg);
+    background: var(--aika-bg-elevated);
+    box-shadow: var(--aika-shadow-card);
+}
+
+html .discussions_game_ctn .discussions_game_header {
+    background: var(--aika-bg-raised);
+    box-shadow: inset 0 calc(-1 * var(--aika-hairline)) 0 0 var(--aika-border);
+}
+
+html .discussions_game_ctn .discussions_game_logo img {
+    border-radius: var(--aika-radius-md);
+}
+
+html .discussions_game_ctn .discussions_game_discussioncount {
+    color: var(--aika-fg-subtle);
+}
+
+html .discussions_game_ctn .discussions_total_count {
+    color: var(--aika-fg);
+    font-family: var(--aika-font-mono);
+}
+
+html .discussions_recentlyplayed img {
+    filter: var(--aika-tint-accent);
+}
+
+/* A gap between a long forum name (ellipsis) and the date column */
+html .discussions_forum_row .discussions_forumlist_forumname {
+    box-sizing: border-box;
+    padding-right: var(--aika-space-3);
+}

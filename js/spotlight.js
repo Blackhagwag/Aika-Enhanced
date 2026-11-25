@@ -1,0 +1,66 @@
+// spotlight.js — cursor glow on large client surfaces
+// (DESIGN.md §1 "Spotlight under the cursor", §4 Cards). Attached by a Patch
+// to the main window (skin.json, "^Steam$").
+//
+// One passive pointermove handler on the document, at most once per frame:
+// finds the nearest surface from SURFACES and writes the cursor coordinates
+// into its --aika-spot-x / --aika-spot-y. The glow itself is CSS
+// (components/card.css, "Spotlight on Steam surfaces"); without the script
+// it shines from the top center (the default token values).
+//
+// Only large blocks that appear a few at a time (not lists and not covers
+// in a grid — DESIGN.md §7, performance).
+
+(() => {
+  "use strict";
+  if (window.__aikaSpotlight) return;
+  window.__aikaSpotlight = true;
+
+  const SURFACES = [
+    ".AppDetailsSection",                               // game page panels
+    ".PartnerEventRowCapsule_Container.HoversEnabled",   // "What's New" cards
+    ".CSSGrid.Grid .Collection",                         // collection tiles
+  ].join(", ");
+
+  let frame = 0;
+  let lastEvent = null;
+  let lastTarget = null;
+
+  const root = document.documentElement;
+  // "Performance: Low" (--aika-motion: 0) and "Balanced" (--aika-decor: 0, no
+  // light chasing the cursor over items) — the glow layer is off there anyway
+  const off = () => {
+    const css = getComputedStyle(root);
+    return css.getPropertyValue("--aika-motion").trim() === "0" || css.getPropertyValue("--aika-decor").trim() === "0";
+  };
+
+  const update = () => {
+    frame = 0;
+    const e = lastEvent;
+    const t = e && e.target instanceof Element ? e.target.closest(SURFACES) : null;
+    if (!t) { lastTarget = null; return; }
+    // In Low / Balanced the handler goes away for good (switching back takes a restart)
+    if (off()) { document.removeEventListener("pointermove", onMove, { capture: true }); return; }
+    const r = t.getBoundingClientRect();
+    t.style.setProperty("--aika-spot-x", Math.round(e.clientX - r.left) + "px");
+    t.style.setProperty("--aika-spot-y", Math.round(e.clientY - r.top) + "px");
+    lastTarget = t;
+  };
+
+  function onMove(e) {
+    if (!(e.target instanceof Element) || !e.target.closest(SURFACES)) {
+      lastEvent = lastTarget = null;
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      return;
+    }
+    lastEvent = e;
+    if (!frame) frame = requestAnimationFrame(update);
+  }
+  document.addEventListener("pointermove", onMove, { passive: true, capture: true });
+  window.__aikaSpotlight = { destroy() {
+    document.removeEventListener("pointermove", onMove, { capture: true });
+    cancelAnimationFrame(frame);
+    delete window.__aikaSpotlight;
+  } };
+})();

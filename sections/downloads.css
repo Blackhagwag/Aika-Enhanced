@@ -1,0 +1,322 @@
+/* ==========================================================================
+   sections/downloads.css — the "Downloads" page (DESIGN.md §5).
+
+   Structure (captured via CDP 2026-10-04, with no active download):
+     .DownloadsPage
+       .TopSection > .Section.Active           — the top strip
+         .HeroAndLogo[.Empty]                  — the current download banner
+                                                 (empty — a blue gradient)
+         .DownloadGraphWrapper .DownloadGraph  — the graph: .DiskGraph svg
+                                                 path.GraphLine — disk
+         .DownloadGraphStatsWrapper .SingleStat
+           .LegendRow (.LegendBox.Network svg + .LegendText) + .Stat .Figure
+       .TopSection > .SettingsButton button    — the gear
+       .ItemLists > .Section[.EmptyQueue]      — "Up Next", "Scheduled"…
+         h3.SectionTitle > .TitleAndCount (.Count) + .AutoUpdate
+         .SectionList > .EmptyTransfers > .Text — "There are no downloads in the queue"
+   Steam: a gray-blue radial background, #0e141b, a blue banner, Motiva Sans,
+   hashes (0,1,0)…(0,3,0). Graph colors: network — accent, disk — the warm
+   light spot → since 2026-10-08 the secondary (pink) light spot, --aika-download-disk
+   (Steam uses blue and green — two different series, same idea).
+
+   Active download (captured 2026-10-04 while installing Among Us) — at the end of the file.
+   ========================================================================== */
+
+/* Page background is transparent: the Aika background shows through */
+html .DownloadsPage {
+    background: var(--aika-transparent);
+}
+
+/* The top strip — a panel with margin and rounding */
+html .DownloadsPage .TopSection > .Section.Active {
+    overflow: hidden;
+    margin: var(--aika-hero-inset);
+    border: var(--aika-hairline) solid var(--aika-border);
+    border-radius: var(--aika-radius-xl);
+    background: var(--aika-bg-elevated);
+    box-shadow: var(--aika-shadow-panel);
+}
+
+/* Empty banner: Steam's blue gradient → a soft accent light */
+html .DownloadsPage .GraphAndStats .HeroAndLogo.Empty {
+    background: linear-gradient(to right, var(--aika-accent-soft), var(--aika-accent-none));
+}
+
+/* Legend and numbers */
+html .DownloadsPage .DownloadGraphStats .LegendRow .LegendText {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+    letter-spacing: var(--aika-tracking-label);
+}
+
+html .DownloadsPage .DownloadGraphStats .SingleStat .Stat .Figure {
+    color: var(--aika-fg);
+    font-family: var(--aika-font-mono);
+}
+
+html .DownloadsPage .LegendRow .LegendBox.Network svg {
+    color: var(--aika-accent);
+}
+
+html .DownloadsPage .DownloadGraph .DiskGraph svg path.GraphLine {
+    stroke: var(--aika-download-disk);
+}
+
+/* The disk legend swatch (a 2 px line; Steam: #59bf40 via hashes (0,2,0)) —
+   the same color as the disk line and bar (author's fix 2026-10-08, screenshot 21) */
+html .DownloadsPage .LegendRow .LegendBox.Disk {
+    background-color: var(--aika-download-disk);
+}
+
+/* The gear: Steam uses #3d4450 via a doubled-hash rule (0,2,0)… */
+html .DownloadsPage .TopSection .SettingsButton button.DialogButton.Secondary {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    box-shadow: var(--aika-shadow-secondary);
+}
+
+html .DownloadsPage .TopSection .SettingsButton button.DialogButton.Secondary:hover {
+    background: var(--aika-surface-hover);
+}
+
+html .DownloadsPage .TopSection .SettingsButton button.DialogButton svg path {
+    fill: var(--aika-fg-muted);
+}
+
+/* Queue sections: header, counter, auto-update */
+html .DownloadsPage .ItemLists .Section h3.SectionTitle {
+    color: var(--aika-fg);
+    font-family: var(--aika-font-ui);
+    font-weight: var(--aika-weight-semibold);
+    letter-spacing: var(--aika-tracking-h2);
+}
+
+html .DownloadsPage .ItemLists .Section h3.SectionTitle .TitleAndCount .Count {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+html .DownloadsPage .ItemLists .Section h3.SectionTitle .AutoUpdate .AutoUpdateHours {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+html .DownloadsPage .ItemLists .Section .SectionList .EmptyTransfers .Text {
+    color: var(--aika-fg-muted);
+}
+
+/* ==========================================================================
+   Active download (captured via CDP 2026-10-04, installing Among Us).
+     .HeroAndLogo .HeroContainer .HeroGradient — the cover fading into blue;
+     .DownloadSectionActiveItem — the row: .DragHandle, .ActiveItemProgressBar >
+       .ProgressDetails (.Value.InProgress / .Denominator) + two bars
+       .DetailsProgressContainer.ProgressBar.Network / .Disk > .DetailsProgressBar
+       (blue 50 % / lime, track #3d4450), .DownloadTimeRemaining;
+     .SectionItemButtons .Buttons button.DialogButton — pause / resume
+       (Steam: a blue-cyan gradient, (0,4,1) with :enabled);
+     bottom panel: .DetailedDownloadProgress — .Icon > .IconBevel (white
+       glare), .ProgressBar.AnimateProgress::after (#1a9fff), .StatusLine .Status.
+   Colors as on the graph: network — accent, disk — --aika-download-disk.
+   ========================================================================== */
+
+/* The fade ends in --aika-dl-hero-end, set on the row below (so it follows the
+   row's hover) */
+html .DownloadsPage .HeroAndLogo .HeroGradient {
+    background: linear-gradient(to right, var(--aika-transparent) 15%, var(--aika-dl-hero-end, var(--aika-download-hero-tint)) 90%);
+    transition: background var(--aika-dur-base) var(--aika-ease-hover);
+}
+
+/* The row under the banner's right half (the stats, the bars, the button):
+   Steam paints it #0e141b (hash (0,2,0)) — that blue-black showed through on
+   every preset (author 2026-10-12: "the gradient over the cover isn't in the
+   theme color"). The fade above ends in the same color: the theme's panel
+   background with a touch of its accent. */
+html .DownloadsPage .SectionItem.Active {
+    --aika-dl-hero-end: var(--aika-download-hero-tint);
+    background-color: var(--aika-dl-hero-end);
+}
+
+/* Hover: the queue rows' translucent warm hover (--aika-surface-hover) turned
+   this banner a muddy grey-brown and broke the seam with the fade (author
+   2026-10-12: "swampy"). The banner keeps the theme tint, a step lighter. */
+html .DownloadsPage .SectionItem.Active:hover {
+    --aika-dl-hero-end: var(--aika-download-hero-tint-hover);
+    background-color: var(--aika-dl-hero-end);
+}
+
+html .DownloadSectionActiveItem .DragHandle svg path {
+    fill: var(--aika-fg-subtle);
+}
+
+html .DownloadsPage .ProgressDetails,
+html .DownloadsPage .ProgressDetails > div,
+html .DownloadsPage .SectionItemStatus > div {
+    color: var(--aika-fg-subtle);
+    font-family: var(--aika-font-mono);
+}
+
+html .DownloadsPage .ProgressDetails .Value.InProgress {
+    color: var(--aika-fg);
+}
+
+html .DownloadsPage .ProgressDetails .Value,
+html .DownloadsPage .ProgressDetails .Value.Denominator {
+    color: var(--aika-fg-subtle);
+}
+
+html .ActiveItemProgressBar .DetailsProgressContainer.ProgressBar {
+    overflow: hidden;
+    border-radius: var(--aika-radius-full);
+    background-color: var(--aika-surface-active);
+}
+
+html .ActiveItemProgressBar .DetailsProgressContainer.ProgressBar.Network .DetailsProgressBar {
+    border-radius: var(--aika-radius-full);
+    background-color: var(--aika-accent);
+}
+
+html .ActiveItemProgressBar .DetailsProgressContainer.ProgressBar.Disk .DetailsProgressBar {
+    border-radius: var(--aika-radius-full);
+    background-color: var(--aika-download-disk);
+}
+
+html .DownloadSectionActiveItem .DownloadTimeRemaining,
+html .DownloadSectionActiveItem .DownloadTimeRemaining span {
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-mono);
+}
+
+/* Pause / resume on the active download (the row is .SectionItem.Active):
+   a round Aika primary */
+/* Its glow is round and compact (--aika-shadow-dl-button): the button sits in
+   .Bottom — exactly its height, overflow hidden — inside a column that clips too,
+   14 px above the banner edge. The CTA glow (down to 30 px) was cut into a
+   square by those boxes — a ghost frame around the round button (author
+   2026-10-12). The clipping is moved out by --aika-dl-glow-room (overflow: clip
+   with a margin — no scroll container, text still truncates). */
+html .DownloadsPage .SectionItem.Active :is(.ActiveItemRightColumn, .Bottom) {
+    overflow: clip;
+    overflow-clip-margin: var(--aika-dl-glow-room);
+}
+
+html .DownloadsPage .SectionItem.Active .SectionItemButtons .Buttons button.Button.DialogButton,
+html .DownloadsPage .SectionItem.Active:hover .SectionItemButtons .Buttons button.Button.DialogButton:enabled {
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent-fill);
+    color: var(--aika-on-accent);
+    box-shadow: var(--aika-shadow-dl-button);
+}
+
+html .DownloadsPage .SectionItem.Active:hover .SectionItemButtons .Buttons button.Button.DialogButton:enabled:hover {
+    background: var(--aika-accent-fill-hover);
+    color: var(--aika-on-accent);
+    box-shadow: var(--aika-shadow-dl-button-hover);
+}
+
+/* Bottom panel: the download icon, the bar, the captions */
+html .DetailedDownloadProgress .Icon {
+    border-radius: var(--aika-radius-md);
+}
+
+html .DetailedDownloadProgress .Icon .IconBevel {
+    border-radius: var(--aika-radius-md);
+    background-image: none;
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+}
+
+html .DetailedDownloadProgress .ProgressBar {
+    overflow: hidden;
+    border-radius: var(--aika-radius-full);
+    background-color: var(--aika-surface-active);
+}
+
+html .DetailedDownloadProgress .ProgressBar::after {
+    border-radius: var(--aika-radius-full);
+    background-color: var(--aika-accent);
+}
+
+html .DetailedDownloadProgress .StatusLine .Status {
+    color: var(--aika-fg-muted);
+    font-family: var(--aika-font-mono);
+}
+
+/* Speed bars on the graph (rect.GraphBar.GraphBarDownload, blue 50 %) —
+   translucent accent, like the network line */
+html .DownloadsPage .DiskGraph svg rect.GraphBar.GraphBarDownload {
+    fill: var(--aika-border-accent);
+}
+
+/* "Completed": "Clear All" (.RemoveAllButton, #3d4450) */
+html .DownloadsPage .Section h3 button.RemoveAllButton.DialogButton {
+    border-radius: var(--aika-radius-md);
+    background: var(--aika-surface);
+    color: var(--aika-fg-muted);
+}
+
+html .DownloadsPage .Section h3 button.RemoveAllButton.DialogButton:hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+/* A row in the lists (.SectionItem): hover — #3d4450 (0,2,0); its buttons
+   ("Remove from queue", "Move up", "Play"…) — #3d4450 → #67707b on row
+   hover (0,4,0) → #8b929a on button hover (0,5,0). The active download
+   (.DownloadSectionActiveItem) has its own, primary, above. */
+html .DownloadsPage .SectionItem {
+    border-radius: var(--aika-radius-md);
+    transition: background-color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .DownloadsPage .SectionItem:hover {
+    background-color: var(--aika-surface-hover);
+}
+
+html .DownloadsPage .SectionItem:not(.Active) .SectionItemButtons .Buttons button.Button.DialogButton,
+html .DownloadsPage .SectionItem:not(.Active):hover .SectionItemButtons .Buttons button.Button.DialogButton:enabled {
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-surface-active);
+    color: var(--aika-fg-muted);
+}
+
+html .DownloadsPage .SectionItem:not(.Active):hover .SectionItemButtons .Buttons button.Button.DialogButton:enabled:hover {
+    background: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+html .DownloadsPage .SectionItem .SectionItemButtons .Buttons button.Button.DialogButton svg {
+    color: inherit;
+}
+
+/* The active download ring on hover (.DownloadSectionActiveItem .HoverRing, #3d4450) */
+html .DownloadSectionActiveItem .HoverRing {
+    border-color: var(--aika-border-accent);
+    border-radius: var(--aika-radius-lg);
+}
+
+/* The game icon of the active download: a white glare bevel (.DownloadGameIconBevel) */
+html .HeroAndLogo .GameIconAndName .DownloadGameIconBevel {
+    border-radius: var(--aika-radius-xs);
+    background-image: none;
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+}
+
+html .HeroAndLogo .GameIconAndName > .Container {
+    overflow: hidden;
+    border-radius: var(--aika-radius-xs);
+}
+
+/* "Patch notes" in a queue row (author's report 2026-10-08, Pratfall):
+   a.PatchNotes (icon + .Text) — Steam: #1a9fff, white on hover, (0,1,0).
+   An accent link, brighter on hover; the icon follows the text color */
+html .DownloadsPage a.PatchNotes {
+    color: var(--aika-accent-bright);
+    transition: color var(--aika-dur-fast) var(--aika-ease-hover);
+}
+
+html .DownloadsPage a.PatchNotes:hover {
+    color: var(--aika-fg);
+}
+
+html .DownloadsPage a.PatchNotes .Text {
+    color: inherit;
+}

@@ -1,0 +1,11 @@
+/* ==========================================================================
+   "Cursor glow: no" (theme settings → "Main").
+   Removes the glow layer (::after) from large client blocks
+   (components/card.css). js/spotlight.js keeps writing coordinates —
+   without the layer they affect nothing.
+   ========================================================================== */
+
+html :is(.AppDetailsSection, .PartnerEventRowCapsule_Container.HoversEnabled, .CSSGrid.Grid .Collection)::after,
+html .aika-card::before {
+    display: none;
+}
