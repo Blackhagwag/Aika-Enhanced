@@ -29,20 +29,20 @@ $D = [char]0x2014
 $Utf8 = New-Object System.Text.UTF8Encoding $false
 function Say($m) { Write-Host "> $m" -ForegroundColor Magenta }
 function Fail($m) { Write-Host "x $m" -ForegroundColor Red; exit 1 }
-function Git { $out = & git @args 2>&1; if ($LASTEXITCODE -ne 0) { Fail "git $($args -join ' '): $out" }; return $out }
+function Invoke-Git { $out = & git.exe @args 2>&1; if ($LASTEXITCODE -ne 0) { Fail "git $($args -join ' '): $out" }; return $out }
 
 # --- 1. Preconditions -----------------------------------------------------------------
 if ($Version -notmatch '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$') { Fail "Version must be MAJOR.MINOR.PATCH, got '$Version'" }
 if ($Title -match '[\r\n]') { Fail "Title must be one line" }
-if ((Git status --porcelain) -ne $null) { Fail "Working tree is not clean. Commit or stash first." }
-$branch = (Git rev-parse --abbrev-ref HEAD).Trim()
+if ((Invoke-Git status --porcelain) -ne $null) { Fail "Working tree is not clean. Commit or stash first." }
+$branch = (Invoke-Git rev-parse --abbrev-ref HEAD).Trim()
 if ($branch -ne "dev") { Fail "Run from branch 'dev' (now on '$branch')." }
 & git merge-base --is-ancestor main dev
 if ($LASTEXITCODE -ne 0) { Fail "main is not an ancestor of dev $D main was changed outside a release. Sort that out first." }
 if ((& git tag -l "v$Version") -ne $null) { Fail "Tag v$Version already exists." }
 
-$prevMain = (Git rev-parse main).Trim()
-$mainSkin = (Git show main:skin.json) -join "`n" | ConvertFrom-Json
+$prevMain = (Invoke-Git rev-parse main).Trim()
+$mainSkin = (Invoke-Git show main:skin.json) -join "`n" | ConvertFrom-Json
 $cur = [version]$mainSkin.version; $new = [version]$Version
 if ($new -le $cur) { Fail "New version $Version must be higher than main's $($mainSkin.version)." }
 Say "Release $($mainSkin.version) -> $Version : $Title"
@@ -79,17 +79,17 @@ if ($LASTEXITCODE -ne 0) { Write-Host "Checks failed. The edits are left in the 
 
 # --- 5. Commit, main, tag ---------------------------------------------------------------
 $msg = "Aika Enhanced $Version $D $Title"
-Git add -A | Out-Null
-Git commit -q -m $msg | Out-Null
-Git checkout -q main | Out-Null
-Git merge -q --ff-only dev | Out-Null
-Git tag -a "v$Version" -m $msg | Out-Null
-Git checkout -q dev | Out-Null
-Say "Committed, main fast-forwarded, tagged v$Version ($((Git rev-parse --short HEAD).Trim()))"
+Invoke-Git add -A | Out-Null
+Invoke-Git commit -q -m $msg | Out-Null
+Invoke-Git checkout -q main | Out-Null
+Invoke-Git merge -q --ff-only dev | Out-Null
+Invoke-Git tag -a "v$Version" -m $msg | Out-Null
+Invoke-Git checkout -q dev | Out-Null
+Say "Committed, main fast-forwarded, tagged v$Version ($((Invoke-Git rev-parse --short HEAD).Trim()))"
 
 # --- 6. Push ------------------------------------------------------------------------------
 if ($Push) {
-  Git push --atomic $Remote main dev "v$Version" | Out-Null
+  Invoke-Git push --atomic $Remote main dev "v$Version" | Out-Null
   Say "Pushed. GitHub Actions builds the Release; Millennium -> Updates offers $Version now."
 } else {
   Say "Not pushed. To publish:"
