@@ -2,7 +2,7 @@
 
 # Aika Enhanced
 
-**[Aika](https://github.com/hatewxb/Aika), the warm dark Steam theme by hatewxb — with a Friends Dock and its built-in chat on every page, and [Steam Enhanced](https://github.com/NVHT/Steam-Enhanced)'s Millennium Settings** · [Millennium](https://steambrew.app) · 2.0.0
+**[Aika](https://github.com/hatewxb/Aika), the warm dark Steam theme by hatewxb — with a Friends Dock and its built-in chat on every page, and [Steam Enhanced](https://github.com/NVHT/Steam-Enhanced)'s Millennium Settings** · [Millennium](https://steambrew.app) · 2.1.0
 
 ![The Friends Dock, expanded](docs/friends-dock/expanded.jpg)
 
@@ -64,6 +64,21 @@ several conversations as tabs. Minimize it to a chip, close it, or move it to St
 with the button in its corner. The look is **Aika's own chat style** (the one Aika gives Steam's
 chat window) inside an Aika floating panel. If a Steam update stops the chat from being embedded, a
 click opens Steam's chat window instead.
+
+## Navigation
+
+Steam Enhanced's navigation, only the parts that matter here, in Aika's look: **My Profile** (your
+avatar in a ring that shows your status, and its menu: the states, Do Not Disturb, your profile, your
+account), **Settings** (Steam's, the theme's, Millennium, the Library Manager), **Games** (Steam's
+Games menu: activate a product, redeem a wallet code, gifts, add a non-Steam game, restore a backup),
+**Announcements** (Steam's news, a dot while unread) and **Notifications** (Steam's own, its count as
+a badge). *Navigation layout*: **Top Bar** (in the header's row, menus drop down) or **Left Sidebar**
+(a narrow rail at the left, menus open beside it). Downloads, Aika's other buttons and the Friends
+Dock stay where they are.
+
+| Left Sidebar, the profile menu (Greeny) | Top Bar, Games (Rose Ash) |
+|:--:|:--:|
+| ![Sidebar](docs/friends-dock/nav-sidebar-profile-greeny.jpg) | ![Top bar](docs/friends-dock/nav-topbar-games-rose-ash.jpg) |
 
 ## Settings
 
@@ -159,6 +174,7 @@ No Steam files are modified and no protections are touched.
 python3 -m http.server 8765 --bind 127.0.0.1 --directory /
 node --test tests/friends-dock.e2e.cjs           # the dock (needs Playwright + Chromium)
 AIKA_ORIGINAL=/path/to/Aika node --test tests/friends-dock.e2e.cjs   # + pixel parity with Aika
+node --test tests/navigation.e2e.cjs             # 2.1: the navigation, both layouts
 REACT_UMD=/path/to/node_modules node --test tests/friends-dock-2.e2e.cjs   # 2.0: pages, chat wiring,
                                                   # Steam Enhanced parts, settings (React 18 UMD for the window)
 node --test tests/*.test.mjs tests/*.test.cjs    # Aika's own tests

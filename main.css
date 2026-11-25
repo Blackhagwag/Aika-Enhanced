@@ -36,6 +36,7 @@
 @import url("./sections/friends.css");
 @import url("./sections/friends-list.css");
 @import url("./sections/friends-dock.css");   /* Aika Enhanced: the Friends Dock in the library */
+@import url("./sections/navigation.css");     /* Aika Enhanced: the navigation from Steam Enhanced */
 @import url("./sections/settings.css");
 @import url("./sections/boot.css");
 @import url("./sections/plugins.css");

@@ -27,7 +27,15 @@
   html, body { margin: 0; height: 100%; overflow: hidden; }
   .Wrapper, .OuterFrame { height: 100%; display: flex; flex-direction: column; }
   .TopBar { flex: none; height: 46px; display: flex; align-items: center; gap: 24px; padding: 0 16px; box-sizing: border-box; }
-  .TopBar .Menu { font: 13px var(--aika-font-ui); color: var(--aika-fg-muted); }
+  .TitleBar { display: flex; align-items: center; width: 100%; gap: 16px; }
+  .RootMenuBar { display: flex; gap: 4px; }
+  .RootMenuButton { font: 13px var(--aika-font-ui); padding: 4px 8px; }
+  .TitleBarControls { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .TitleBarControls .Button { width: 32px; height: 32px; display: grid; place-items: center; color: var(--aika-fg-muted); }
+  .TitleBarControls .Button svg { width: 16px; height: 16px; fill: currentColor; }
+  .AccountMenu { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; font: 13px var(--aika-font-ui); }
+  .AccountMenu img.avatar { width: 24px; height: 24px; }
+  .WindowControls { width: 138px; height: 32px; }
   .ContentFrame { flex: 1; min-height: 0; display: flex; }
   .Library { flex: 1; min-width: 0; display: flex; }
   .Library > .Container { flex: 1; display: flex; min-width: 0; }
@@ -48,7 +56,18 @@
 <body>
 <div class="Wrapper ForceOpaqueBackground">
   <div class="OuterFrame">
-    <div class="TopBar"><span class="Menu">Steam</span><span class="Menu">View</span><span class="Menu">Friends</span><span class="Menu">Games</span><span class="Menu">Help</span></div>
+    <div class="TopBar">
+      <div class="TitleBar">
+        <div class="RootMenuBar"><div class="RootMenuButton">Steam</div><div class="RootMenuButton">View</div><div class="RootMenuButton">Friends</div><div class="RootMenuButton" id="gamesRoot">Games</div><div class="RootMenuButton">Help</div></div>
+        <div class="TitleBarControls _1-9sir4j_KQiMqdkZjQN0u">
+          <div class="Button AnnouncementsButton _5wILZhsLODVwGfcJ0hKmJ" title="News"><svg class="Icon" viewBox="0 0 24 24"><path d="M4 10h4l8-5v14l-8-5H4z"/></svg></div>
+          <div class="Button NotificationsButton RtSv39ZoBOySnb8XQ5hJf" title="Notifications"><svg class="Icon" viewBox="0 0 24 24"><path d="M6 17h12l-2-3V10a4 4 0 0 0-8 0v4z"/></svg><span class="Count">3</span></div>
+          <div class="Button AnnouncementsButton _5wILZhsLODVwGfcJ0hKmJ GamepadUIToggle _3LKQ3S_yqrebeNLF6aeiog" title="Big Picture"><svg class="Icon" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="3"/></svg></div>
+          <div class="AccountMenu _3yD46y5pd3zOGR7CzKs0mC" id="account"><div class="avatarHolder"><img class="avatar" alt=""></div><div>Nikita</div><div class="WalletBalance">1 234 ₽</div></div>
+        </div>
+        <div class="WindowControls"><div class="title-bar-actions"></div></div>
+      </div>
+    </div>
     <div class="ContentFrame">
       <div class="Library">
         <div class="Container">

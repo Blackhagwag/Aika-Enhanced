@@ -45,6 +45,7 @@
     "Message alerts": on("--aika-fdock-alerts"),
     "Scroll to new messages": on("--aika-fdock-autoscroll"),
     "Keep the open chat": on("--aika-fdock-keepchat"),
+    "Navigation layout": {"Top Bar": {"--aika-nav-layout": "top"}, "Left Sidebar": {"--aika-nav-layout": "rail"}},
   };
   keys.push(...Object.keys(dockKeys));
   const markProps = {
@@ -84,7 +85,7 @@
   };
   for (const key of keys) if (valid(key, values[key])) apply(key, values[key]);
 
-  const aliases = {"Вкл.": "On", "Выкл.": "Off", "Готический": "Gothic", "Японский": "Japanese", "Кисть (Aika)": "Japanese", "Катакана (アイカ)": "Katakana"};
+  const aliases = {"Вкл.": "On", "Выкл.": "Off", "Готический": "Gothic", "Японский": "Japanese", "Кисть (Aika)": "Japanese", "Катакана (アイカ)": "Katakana", "Верхняя панель": "Top Bar", "Левая панель": "Left Sidebar"};
   let field = null, observer = null;
   const read = () => {
     if (!field?.isConnected) {observer?.disconnect(); field = null; return;}

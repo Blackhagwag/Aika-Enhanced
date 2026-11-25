@@ -1,5 +1,48 @@
 # Changelog
 
+## 2.1.0 — 2026-11-25
+
+Steam Enhanced's navigation, the parts asked for, in Aika's look: **My Profile**, **Settings**,
+**Games**, **Announcements**, **Notifications** — in the top bar or in a left rail. The 2.0.0 state is
+the git tag `v2.0.0` (branch `backup/aika-enhanced-2.0.0`).
+
+### Added
+- **Navigation layout** setting (new *Navigation* tab): *Top Bar* (default) or *Left Sidebar*; switches
+  at once (Aika's live bridge), kept by Millennium, restored at startup.
+- **My Profile**: Steam's account button as your real avatar in a status ring that follows your
+  status (online — accent, in game — ok, away/snooze — warn, busy/Do Not Disturb — live, invisible /
+  offline — subtle). Its menu (Steam Enhanced's menu with its account menu's groups): your name, the
+  four states (FriendStore), Do Not Disturb (FriendStore), View my profile, Edit profile, Account
+  details, Store preferences, View my wallet, Change account and Sign out where Steam offers them
+  (SteamClient.User), and Steam's own account menu one row away. Labels in Steam's words where it has
+  them.
+- **Settings**: Steam Enhanced's Settings menu — Steam Settings, the theme's settings window,
+  Millennium, the Library Manager — with its keyboard shortcuts.
+- **Games**: Steam Enhanced's Games menu — Steam's own Games menu items (Activate a Product, Redeem
+  Wallet Code, Gifts and Guest Passes, Add a Non-Steam Game, any others Steam adds) and Steam's Restore
+  a Backup dialog, each running Steam's own action.
+- **Announcements**: Steam's button with Steam Enhanced's news menu (Steam's news; a dot while unread).
+- **Notifications**: Steam's own button, menu and notifications; its count as an Aika badge; Steam
+  Enhanced's kinds and day headings in the menu.
+- In the rail: tooltips beside the buttons, menus beside the rail; Steam's own Notifications and
+  account menus placed beside it too. In the top bar: menus drop under their buttons.
+
+### Kept as they were
+Downloads (Aika's floating bar; with the rail it centres on the content beside the rail, as Aika's
+"+" moves out of the rail's way), the other header buttons (menus, tabs, Big Picture), the window
+controls, the library, the store, the Friends Dock, the chat, the Millennium Settings.
+
+### Files
+- Added: `vendor/steam-enhanced/client/navigation/aika-nav.js`, `sections/navigation.css`,
+  `options/nav-sidebar.css`, `tests/navigation.e2e.cjs`; from Steam Enhanced (7d8439c):
+  `client/header/header-shortcuts.js`, `client/shared/news-feed.js`, `client/header/announcements.js`,
+  `client/header/notifications.js/.css`.
+- Changed: `skin.json` (2.1.0, the setting), `main.css`, `js/live-settings.js`, `js/settings-l10n.js`,
+  `vendor/steam-enhanced/client/loader.js`, `.../aika-settings.js` (the tab), `.../aika-foundation.css`,
+  tests harness and fixture (Steam's title bar).
+- Patched Steam Enhanced files: `client/shared/popup-layer-menu.js` (besideRail drops menus under
+  the top bar), `client/header/announcements.js` (Aika Enhanced's navigation flag).
+
 ## 2.0.0 — 2026-11-25
 
 The dock everywhere, its chat inside it, and Steam Enhanced's Millennium Settings — in Aika's look.

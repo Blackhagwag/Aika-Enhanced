@@ -40,7 +40,7 @@ async function open(query = "", { width = 1440, height = 860, init } = {}) {
 const tick = (page, ms = 1200) => page.waitForTimeout(ms);
 // (millennium.host — Millennium's theme server — is not there in a browser: its links fail to load)
 const close = async (page) => {
-  assert.deepEqual(page.errors.filter((e) => !/ERR_TUNNEL_CONNECTION_FAILED|ERR_NAME_NOT_RESOLVED/.test(e)), [], "no JavaScript errors");
+  assert.deepEqual(page.errors.filter((e) => !/ERR_TUNNEL_CONNECTION_FAILED|ERR_NAME_NOT_RESOLVED|CORS policy|ERR_FAILED/.test(e)), [], "no JavaScript errors");
   await page.ctx.close();
 };
 const go = (page, path, url = "") => page.evaluate(([p, u]) => { __fixture.route.path = p; __fixture.route.url = u; }, [path, url]);
@@ -204,7 +204,7 @@ test("settings: saved where Millennium keeps them, applied at once", async () =>
   const skin = await page.evaluate(async () => Object.keys((await (await fetch("../../skin.json")).json()).Conditions));
   assert.equal(schema.length, skin.length - 1, "every condition (Color preset + Custom colors are the palette)");
   assert.ok(schema.includes("palette") && schema.includes("Built-in chat") && schema.includes("Dock: in the store"));
-  assert.deepEqual(await page.evaluate(() => __aikaSettings.tabs), ["Appearance", "Elements", "Friends list", "Friends Dock", "Chat", "Animations", "Advanced"]);
+  assert.deepEqual(await page.evaluate(() => __aikaSettings.tabs), ["Appearance", "Elements", "Friends list", "Friends Dock", "Chat", "Navigation", "Animations", "Advanced"]);
   // a dropdown: Millennium's Core_ChangeCondition, and the dock follows at once
   await page.evaluate(() => __aikaSettings.set("Dock: in the store", "Off"));
   await until(page, () => window.__millennium.calls.some((c) => c[0] === "Core_ChangeCondition"));

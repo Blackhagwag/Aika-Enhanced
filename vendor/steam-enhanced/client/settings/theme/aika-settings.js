@@ -45,12 +45,13 @@
     'Friends list': ['--se-icon-friends', 'The friends list window.'],
     'Friends Dock': ['--se-icon-friends', 'The friends column beside the library, the Store and the Community.'],
     Chat: ['--se-icon-bubble', "The dock's built-in chat."],
+    Navigation: ['--se-icon-compass', 'My Profile, Settings, Games, Announcements and Notifications: in the top bar or a left rail.'],
     Animations: ['--se-icon-activity', 'Motion, performance and the library covers.'],
     Advanced: ['--se-icon-settings', 'Privacy and notifications.'],
   };
   const TAB_RU = {
     Appearance: 'Оформление', Elements: 'Элементы', 'Friends list': 'Список друзей', 'Friends Dock': 'Панель друзей',
-    Chat: 'Чат', Animations: 'Анимации', Advanced: 'Дополнительно',
+    Chat: 'Чат', Navigation: 'Навигация', Animations: 'Анимации', Advanced: 'Дополнительно',
   };
 
   const listeners = new Set();
@@ -284,7 +285,7 @@
     'Dock: in the community': 'community', 'Dock: on other pages': 'globe', 'Dock width': 'view-expanded',
     'Dock avatar size': 'scale', 'Dock opacity': 'eye',
     'Built-in chat': 'bubble', 'Chat window button': 'external', 'Unread badges': 'badge', 'Message alerts': 'bell',
-    'Scroll to new messages': 'arrow-top', 'Keep the open chat': 'pause',
+    'Scroll to new messages': 'arrow-top', 'Keep the open chat': 'pause', 'Navigation layout': 'view-compact',
   };
 
   // The window's own words in Russian, with Steam in Russian (js/settings-l10n.js is loaded)

@@ -303,6 +303,14 @@
   function besideRail(button, { foot = false } = {}) {
     const rect = button.getBoundingClientRect();
     const edge = SE.px('--se-space-2');
+    /* Aika Enhanced: with the navigation in the top bar (Navigation layout: Top Bar), a menu drops
+       under its button instead, its right edge on the button's (vendor/.../aika-nav.js) */
+    if (document.documentElement.dataset.aikaNav === 'top') {
+      return (width, height) => ({
+        left: Math.max(edge, Math.min(rect.right - width, innerWidth - width - edge)),
+        top: Math.max(edge, Math.min(rect.bottom + menuGap(), innerHeight - height - edge)),
+      });
+    }
     return (width, height) => ({
       left: rect.right + menuGap(),
       top: Math.max(edge, Math.min(foot ? rect.bottom - height : rect.top, innerHeight - height - edge)),

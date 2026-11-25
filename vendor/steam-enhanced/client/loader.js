@@ -45,6 +45,15 @@
       'window-fold.js', 'open-page.js', 'steam-confirm.js',
     ]],
     ['main', 'client/friends/', ['call-tools.js']],
+    // The navigation from Steam Enhanced (My Profile, Settings, Games, Announcements,
+    // Notifications) in a left rail or the top bar: what Settings opens and its shortcuts, Steam's
+    // news for Announcements, then Aika Enhanced's layout of them (aika-nav.js)
+    ['main', 'client/header/', ['header-shortcuts.js']],
+    ['main', 'client/shared/', ['news-feed.js']],
+    ['main', 'client/header/', ['announcements.js']],
+    ['main', 'client/navigation/', ['aika-nav.js']],
+    // Steam's notifications menu (its own popup window): each row's kind and the days (Steam Enhanced)
+    ['menu', 'client/header/', ['notifications.css', 'notifications.js']],
     // The Friends dock chat: Steam Enhanced's engine (Steam's own Friends & Chat tree, its chat
     // routing and its popup) driven by the Aika Friends Dock (aika-dock.js, aika-main.js stand in
     // for Steam Enhanced's dock.js and main.js). The look: the frame from friends-dock-chat*.css,

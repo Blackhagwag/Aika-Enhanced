@@ -1,0 +1,7 @@
+/* Aika Enhanced — "Navigation layout: Left Sidebar" (theme settings → "Navigation").
+   My Profile, Settings, Games, Announcements and Notifications in a rail at the
+   left (vendor/steam-enhanced/client/navigation/aika-nav.js reads the variable;
+   sections/navigation.css lays the rail out). Top Bar is the default (no file).
+   Option files load before the theme entry, so the selector carries an extra :root. */
+
+html:root { --aika-nav-layout: rail; }

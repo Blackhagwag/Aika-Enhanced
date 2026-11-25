@@ -2,7 +2,7 @@
     "name": "Aika Enhanced",
     "author": "hatewxb (Aika), NVHT (Steam Enhanced Friends dock)",
     "description": "Aika, a warm dark theme for Steam (Fluent structure, file-system-style panels and soft spots of light on a near-black background), with a Friends Dock and its built-in chat on every page, and Steam Enhanced's Millennium Settings.",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "tags": ["Fluent", "Dark", "Warm", "Minimal", "Friends", "Chat", "WIP"],
     "header_image": "https://raw.githubusercontent.com/hatewxb/Aika/main/screenshots/preview.gif",
     "splash_image": "https://raw.githubusercontent.com/hatewxb/Aika/main/screenshots/store-app.jpg",
@@ -434,6 +434,15 @@
             "values": {
                 "On": {},
                 "Off": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/fdock-keepchat-off.css" } }
+            }
+        },
+        "Navigation layout": {
+            "description": "Where My Profile (your avatar, its ring showing your status), Settings, Games, Announcements and Notifications sit — Steam Enhanced's navigation in Aika's look. Top Bar: in the header's row, menus drop under them. Left Sidebar: a narrow rail at the left, menus open beside it. Downloads and Aika's other buttons stay where they are. Switches at once.",
+            "tab": "Navigation",
+            "default": "Top Bar",
+            "values": {
+                "Top Bar": {},
+                "Left Sidebar": { "TargetCss": { "affects": ["^(Steam|Steam Games List)$"], "src": "options/nav-sidebar.css" } }
             }
         },
         "Performance": {

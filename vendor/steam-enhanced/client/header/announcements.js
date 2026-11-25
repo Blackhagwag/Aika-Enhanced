@@ -168,7 +168,8 @@
   }
 
   // The click is the theme's while the rail is up: Steam's own handler never hears it
-  const railUp = () => document.body?.classList.contains('se-header-actions-ready');
+  /* Aika Enhanced: the navigation (vendor/steam-enhanced/client/navigation/aika-nav.js) is up */
+  const railUp = () => document.documentElement.hasAttribute('data-aika-nav');
   function onClick(event) {
     const button = railUp() && event.target.closest?.(BUTTON);
     if (!button) return;

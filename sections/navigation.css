@@ -1,0 +1,322 @@
+/* ==========================================================================
+   sections/navigation.css — the navigation taken from Steam Enhanced (Aika
+   Enhanced): My Profile (the avatar with its status ring), Settings, Games,
+   Announcements and Notifications, in a left rail or in the top bar
+   (vendor/steam-enhanced/client/navigation/aika-nav.js;
+   "Navigation layout" in the theme settings).
+
+   Steam Enhanced's navigation (client/navigation/nav-rail.css) gives the
+   shapes: square-cornered tiles in a narrow rail, the avatar at its foot as
+   a rounded square inside a status ring, a dot for unread news and alerts,
+   menus beside the rail. Every visual here is Aika's: the left game list's
+   surface and edge for the rail, the header buttons' tile (sections/
+   library.css), the friends window's status colours for the ring, the
+   accent badge, Aika's motion.
+
+   One set of buttons for both layouts: Steam's own (Announcements,
+   Notifications, the account button) stay in its title-bar controls and are
+   only laid out here; Settings and Games are the theme's, beside them.
+     html[data-aika-nav="top" | "rail"]   — the layout (set by aika-nav.js)
+     [data-aika-nav-slot="settings" | "games" | "news" | "alerts" | "profile"]
+                                          — a button's place
+   The Downloads button (Aika's floating icons), the other header buttons,
+   the window controls and the Friends Dock are not touched.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Sizes and the ring's colours (tokens, Aika's)
+   -------------------------------------------------------------------------- */
+
+html[data-aika-nav] {
+    --aika-nav-rail: 56px;                  /* the rail: a 40 px tile and its margins */
+    --aika-nav-btn: 40px;
+    --aika-nav-gap: var(--aika-space-2);
+    --aika-nav-icon: none;
+    --aika-nav-glyph: 18px;
+    --aika-nav-avatar: 32px;
+    --aika-nav-ring: 2px;
+}
+
+html[data-aika-nav="top"] {
+    --aika-nav-btn: 32px;                   /* the header buttons' height (sections/library.css) */
+    --aika-nav-glyph: 16px;
+    --aika-nav-avatar: 24px;
+}
+
+/* --------------------------------------------------------------------------
+   A tile: the theme's (Settings, Games) and Steam's (Announcements,
+   Notifications) alike — the header buttons' surface, hairline and radius
+   -------------------------------------------------------------------------- */
+
+html[data-aika-nav] .aika-nav-btn,
+html[data-aika-nav] .TitleBarControls :is(.AnnouncementsButton, .NotificationsButton):not(.GamepadUIToggle) {
+    position: relative;
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: var(--aika-nav-btn);
+    height: var(--aika-nav-btn);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border-radius: var(--aika-radius-md);
+    background-color: var(--aika-surface);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border);
+    color: var(--aika-fg-muted);
+    font-size: 0;
+    cursor: pointer;
+    -webkit-app-region: no-drag;
+    transition:
+        background-color var(--aika-dur-fast) var(--aika-ease-hover),
+        color var(--aika-dur-fast) var(--aika-ease-hover),
+        box-shadow var(--aika-dur-base) var(--aika-ease),
+        transform var(--aika-dur-base) var(--aika-ease);
+}
+
+html[data-aika-nav] .aika-nav-btn:is(:hover, :focus-visible),
+html[data-aika-nav] .TitleBarControls :is(.AnnouncementsButton, .NotificationsButton):not(.GamepadUIToggle):hover {
+    background-color: var(--aika-surface-hover);
+    color: var(--aika-fg);
+}
+
+html[data-aika-nav] .aika-nav-btn:active,
+html[data-aika-nav] .TitleBarControls :is(.AnnouncementsButton, .NotificationsButton):active {
+    transform: scale(var(--aika-press-scale));
+}
+
+/* A button whose menu is open (the menu marks its owner aria-expanded): the selected look */
+html[data-aika-nav] :is(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton, .AccountMenu)[aria-expanded="true"] {
+    background-color: var(--aika-accent-soft);
+    box-shadow: inset 0 0 0 var(--aika-hairline) var(--aika-border-accent);
+    color: var(--aika-fg);
+}
+
+/* The glyph: Steam Enhanced's icons (core/icons-*.css), in the button's colour */
+html[data-aika-nav] .aika-nav-glyph,
+html[data-aika-nav] .TitleBarControls :is(.AnnouncementsButton, .NotificationsButton):not(.GamepadUIToggle)::before {
+    width: var(--aika-nav-glyph);
+    height: var(--aika-nav-glyph);
+    background: currentColor;
+    -webkit-mask: var(--aika-nav-icon) center / contain no-repeat;
+    mask: var(--aika-nav-icon) center / contain no-repeat;
+}
+
+html[data-aika-nav] .TitleBarControls :is(.AnnouncementsButton, .NotificationsButton):not(.GamepadUIToggle)::before {
+    content: "";
+}
+
+html[data-aika-nav] .TitleBarControls .AnnouncementsButton:not(.GamepadUIToggle) { --aika-nav-icon: var(--se-icon-announcements); }
+html[data-aika-nav] .TitleBarControls .NotificationsButton { --aika-nav-icon: var(--se-icon-bell); }
+
+/* Steam's own glyph and count go: the theme's glyph and badge stand for them */
+html[data-aika-nav] .TitleBarControls :is(.AnnouncementsButton, .NotificationsButton):not(.GamepadUIToggle) > * {
+    display: none !important;
+}
+
+/* Unread: news (announcements.js marks data-se-unread) — a dot; alerts — Steam's count as
+   Aika's accent badge (aika-nav.js reads it off Steam's button), else a dot */
+html[data-aika-nav] .TitleBarControls .AnnouncementsButton[data-se-unread]::after,
+html[data-aika-nav] .TitleBarControls .NotificationsButton[data-aika-unread]:not([data-aika-count])::after {
+    content: "";
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 7px;
+    height: 7px;
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent-bright);
+    box-shadow: 0 0 0 2px var(--aika-bg-base), 0 0 8px var(--aika-accent-glow);
+}
+
+html[data-aika-nav] .TitleBarControls .NotificationsButton[data-aika-count]::after {
+    content: attr(data-aika-count);
+    position: absolute;
+    top: -3px;
+    right: -4px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent-fill);
+    box-shadow: 0 0 0 2px var(--aika-bg-base);
+    color: var(--aika-on-accent);
+    font: var(--aika-weight-semibold) 9px/1 var(--aika-font-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   My Profile: Steam's account button as your avatar in a status ring (the
+   friends window's colours: online — the bright accent, in game — ok, away —
+   warn, do not disturb — live, invisible / offline — subtle)
+   -------------------------------------------------------------------------- */
+
+html[data-aika-nav] .TitleBarControls .AccountMenu {
+    --aika-nav-ring-color: var(--aika-fg-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: var(--aika-nav-btn);
+    height: var(--aika-nav-btn);
+    min-width: 0;
+    padding: 0;
+    gap: 0;
+    background: var(--aika-transparent);
+    box-shadow: none;
+    cursor: pointer;
+    -webkit-app-region: no-drag;
+}
+
+html[data-aika-nav] .TitleBarControls .AccountMenu[data-aika-state="online"] { --aika-nav-ring-color: var(--aika-accent-bright); }
+html[data-aika-nav] .TitleBarControls .AccountMenu[data-aika-state="ingame"] { --aika-nav-ring-color: var(--aika-ok); }
+html[data-aika-nav] .TitleBarControls .AccountMenu:is([data-aika-state="away"], [data-aika-state="snooze"]) { --aika-nav-ring-color: var(--aika-warn); }
+html[data-aika-nav] .TitleBarControls .AccountMenu:is([data-aika-state="busy"], [data-aika-state="dnd"]) { --aika-nav-ring-color: var(--aika-live); }
+html[data-aika-nav] .TitleBarControls .AccountMenu:is([data-aika-state="invisible"], [data-aika-state="offline"]) { --aika-nav-ring-color: var(--aika-fg-subtle); }
+
+/* Only the avatar: the name, the wallet and the chevron go (the menu shows the name) */
+html[data-aika-nav] .TitleBarControls .AccountMenu > :not(.avatarHolder) {
+    display: none !important;
+}
+
+html[data-aika-nav] .TitleBarControls .AccountMenu .avatarHolder {
+    position: relative;
+    margin: 0;
+}
+
+html[data-aika-nav] .TitleBarControls .AccountMenu .avatarHolder .avatarStatus {
+    display: none;
+}
+
+html[data-aika-nav] .TitleBarControls .AccountMenu .avatarHolder img.avatar {
+    display: block;
+    width: var(--aika-nav-avatar);
+    height: var(--aika-nav-avatar);
+    border: 0;
+    border-radius: var(--aika-fl-avatar-radius);
+    box-shadow:
+        0 0 0 var(--aika-nav-ring) var(--aika-bg-base),
+        0 0 0 calc(var(--aika-nav-ring) * 2) var(--aika-nav-ring-color);
+    transition:
+        box-shadow var(--aika-dur-base) var(--aika-ease),
+        transform var(--aika-dur-base) var(--aika-ease);
+}
+
+html[data-aika-nav] .TitleBarControls .AccountMenu:is(:hover, [aria-expanded="true"]) .avatarHolder img.avatar {
+    transform: scale(var(--aika-dock-hover-scale));
+    box-shadow:
+        0 0 0 var(--aika-nav-ring) var(--aika-bg-base),
+        0 0 0 calc(var(--aika-nav-ring) * 2) var(--aika-nav-ring-color),
+        0 0 12px rgb(from var(--aika-nav-ring-color) r g b / 0.45);
+}
+
+/* --------------------------------------------------------------------------
+   Top Bar: the buttons in the header's row, before the account
+   -------------------------------------------------------------------------- */
+
+html[data-aika-nav="top"] .TitleBarControls {
+    align-items: center;
+    gap: var(--aika-space-1);
+}
+
+html[data-aika-nav="top"] [data-aika-nav-slot="settings"] { order: 1; }
+html[data-aika-nav="top"] [data-aika-nav-slot="games"] { order: 2; }
+html[data-aika-nav="top"] [data-aika-nav-slot="news"] { order: 3; }
+html[data-aika-nav="top"] [data-aika-nav-slot="alerts"] { order: 4; }
+html[data-aika-nav="top"] [data-aika-nav-slot="profile"] { order: 5; margin-inline-start: var(--aika-space-1); }
+
+/* --------------------------------------------------------------------------
+   Left Sidebar: a rail under the header — the left game list's surface and
+   edge (sections/library.css) — with the buttons at its foot, the avatar at
+   the bottom (Steam Enhanced's order: profile, Settings, then the rest)
+   -------------------------------------------------------------------------- */
+
+html[data-aika-nav="rail"] .aika-nav-rail {
+    position: fixed;
+    top: var(--aika-nav-top, var(--aika-supernav-height));
+    bottom: 0;
+    left: 0;
+    z-index: 30;
+    width: var(--aika-nav-rail);
+    box-sizing: border-box;
+    background: var(--aika-surface);
+    border-right: var(--aika-hairline) solid var(--aika-border);
+    box-shadow: var(--aika-highlight-top);
+    pointer-events: none;
+}
+
+/* The content gives up the rail's width — beside the Friends Dock's on the right */
+html[data-aika-nav="rail"] .OuterFrame > .ContentFrame {
+    min-width: 0;
+    margin-inline-start: var(--aika-nav-rail);
+}
+
+html[data-aika-nav="rail"][data-aika-fdock] .OuterFrame > .ContentFrame {
+    transition:
+        margin-inline-end var(--aika-fdock-dur) var(--aika-ease),
+        margin-inline-start var(--aika-dur-base) var(--aika-ease);
+}
+
+/* Aika's floating library icons keep to the content (Downloads stays where Aika puts it) */
+html[data-aika-nav="rail"] .OuterFrame > .BottomBarContainer {
+    left: var(--aika-nav-rail);
+}
+
+/* :not(#aika-none) — an id's weight, past the tile rules above (Steam Enhanced's way) */
+html[data-aika-nav="rail"] [data-aika-nav-slot]:not(#aika-none) {
+    --aika-nav-n: 0;
+    position: fixed;
+    left: calc((var(--aika-nav-rail) - var(--aika-nav-btn)) / 2);
+    bottom: calc(var(--aika-space-3) + var(--aika-nav-n) * (var(--aika-nav-btn) + var(--aika-nav-gap)));
+    z-index: 31;
+    margin: 0;
+    animation: aika-dock-in var(--aika-dur-enter) var(--aika-ease) backwards;
+}
+
+html[data-aika-nav="rail"] [data-aika-nav-slot="profile"]:not(#aika-none)  { --aika-nav-n: 0; }
+html[data-aika-nav="rail"] [data-aika-nav-slot="settings"]:not(#aika-none) { --aika-nav-n: 1; animation-delay: var(--aika-stagger); }
+html[data-aika-nav="rail"] [data-aika-nav-slot="games"]:not(#aika-none)    { --aika-nav-n: 2; animation-delay: calc(2 * var(--aika-stagger)); }
+html[data-aika-nav="rail"] [data-aika-nav-slot="news"]:not(#aika-none)     { --aika-nav-n: 3; animation-delay: calc(3 * var(--aika-stagger)); }
+html[data-aika-nav="rail"] [data-aika-nav-slot="alerts"]:not(#aika-none)   { --aika-nav-n: 4; animation-delay: calc(4 * var(--aika-stagger)); }
+
+/* A Steam slot wrapper (a tooltip host around its button) lays its button out at the tile's size */
+html[data-aika-nav="rail"] [data-aika-nav-slot]:not(.aika-nav-btn, .AnnouncementsButton, .NotificationsButton, .AccountMenu) {
+    display: flex;
+    width: var(--aika-nav-btn);
+    height: var(--aika-nav-btn);
+}
+
+/* The rail's tooltip: the dock's (Steam's tooltip in Aika's look), beside the button */
+.aika-nav-tip {
+    position: fixed;
+    z-index: var(--aika-z-fdock-pop);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-aika-nav] [data-aika-nav-slot],
+    html[data-aika-nav] :is(.aika-nav-btn, .AccountMenu img.avatar) {
+        animation: none !important;
+        transition-duration: 0s !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   The profile menu's status rows (Steam Enhanced's menu, SE.layer.menu): a
+   dot before each state, as Steam Enhanced draws it (client/friends/
+   friends-dock.css .se-menu i), in the friends window's colours
+   -------------------------------------------------------------------------- */
+
+.se-menu [data-state] > i {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--aika-radius-full);
+    background: var(--aika-accent-bright);
+}
+
+.se-menu [data-state="away"] > i { background: var(--aika-warn); }
+.se-menu :is([data-state="invisible"], [data-state="offline"]) > i { background: var(--aika-fg-subtle); }

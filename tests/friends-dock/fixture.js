@@ -76,13 +76,40 @@ export const app = {
   ChatStore: { FriendChatStore: { m_rgFriendChats: chats } },
   FriendStore: {
     all_friends: friends,
-    self: { persona: { m_ePersonaState: 1 } },
+    self: {
+      display_name: "Nikita",
+      persona: { m_ePersonaState: 1, m_strPlayerName: "Nikita", get is_ingame() { return !!this.m_unGamePlayedAppID; }, m_unGamePlayedAppID: 0 },
+    },
     EnsureFriendsListLoaded() {},
+    dnd: false,
+    SetUserPersonaState(s) { calls.push(["persona", s]); this.self.persona.m_ePersonaState = s; },
+    GetUserDoNotDisturb() { return this.dnd; },
+    SetUserDoNotDisturb(v) { calls.push(["dnd", v]); this.dnd = v; },
   },
   CMInterface: { BIsConnected: () => true },
   UIStore: { ShowFriendChatDialog(ctx, id) { calls.push(["uistore-chat", id]); } },
   GetDefaultBrowserContext: () => ({ m_eBrowserType: 0 }),
+  SignOutOfFriends() { calls.push(["signout-friends"]); app.FriendStore.self.persona.m_ePersonaState = 0; },
 };
+
+// Steam's Games menu, as its menu-bar button's props carry it (a React fiber stand-in), each item
+// recording what it was asked to do
+export const gamesItems = [
+  { name: "#Menu_ViewLibrary", route: "/library/home" },
+  { name: "#Menu_ActivateRetail", onClick: () => calls.push(["games", "activate"]) },
+  { name: "#Menu_RedeemWallet", onClick: () => calls.push(["games", "wallet"]) },
+  { name: "#Menu_ManageGifts", steamURL: "steam://openurl/https://store.steampowered.com/account/gifts" },
+  { name: "Separator1" },
+  { name: "#Menu_AddNonSteam", onClick: () => calls.push(["games", "nonsteam"]) },
+  { name: "#Menu_ProductCodes", onClick: () => calls.push(["games", "cdkeys"]) },
+];
+const markGamesRoot = () => {
+  const node = document.getElementById("gamesRoot");
+  if (node) node.__reactFiber$fixture = { memoizedProps: { title: "Games Root Menu", menuItems: gamesItems }, return: null };
+  const img = document.querySelector("#account img.avatar");
+  if (img) img.src = svgFace(260, "N");
+};
+markGamesRoot();
 
 export const route = { path: "/library/home", url: "" };
 
@@ -98,4 +125,4 @@ window.SteamUIStore = {
 window.SteamClient = { URL: { ExecuteSteamURL(u) { calls.push(["url", u]); } } };
 // The browser view's address (Store, Community pages in the main window)
 window.MainWindowBrowserManager = { get m_URL() { return route.url; } };
-window.__fixture = { app, friends, calls, route, persona, GAMES, chats };
+window.__fixture = { app, friends, calls, route, persona, GAMES, chats, gamesItems };
