@@ -29,7 +29,13 @@ $D = [char]0x2014
 $Utf8 = New-Object System.Text.UTF8Encoding $false
 function Say($m) { Write-Host "> $m" -ForegroundColor Magenta }
 function Fail($m) { Write-Host "x $m" -ForegroundColor Red; exit 1 }
-function Invoke-Git { $out = & git.exe @args 2>&1; if ($LASTEXITCODE -ne 0) { Fail "git $($args -join ' '): $out" }; return $out }
+function Invoke-Git {
+  # Windows PowerShell 5.1 turns a native program's stderr into errors; git prints progress there.
+  $prev = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+  try { $out = & git.exe @args 2>&1 | ForEach-Object { "$_" } } finally { $ErrorActionPreference = $prev }
+  if ($LASTEXITCODE -ne 0) { Fail "git $($args -join ' '): $($out -join ' ')" }
+  return $out
+}
 
 # --- 1. Preconditions -----------------------------------------------------------------
 if ($Version -notmatch '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$') { Fail "Version must be MAJOR.MINOR.PATCH, got '$Version'" }
