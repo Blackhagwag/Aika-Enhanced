@@ -58,12 +58,13 @@ $clPath = Join-Path $Root "CHANGELOG.md"
 $cl = [IO.File]::ReadAllText($clPath)
 $date = Get-Date -Format "yyyy-MM-dd"
 $heading = "## $Version $D $date $D $Title"
-if ($cl -match "(?m)^## $([regex]::Escape($Version))\b") {
+$reUnreleased = [regex]'(?m)^## Unreleased[ \t]*(?=\r?$)'
+if ($cl -match ('(?m)^## ' + [regex]::Escape($Version) + '\b')) {
   Say "CHANGELOG already has a $Version section $D kept as written"
-} elseif ($cl -match "(?m)^## Unreleased\s*$") {
-  $m = [regex]::Match($cl, "(?ms)^## Unreleased\s*$(.*?)(?=^## |\z)")
+} elseif ($reUnreleased.IsMatch($cl)) {
+  $m = [regex]::Match($cl, '(?ms)^## Unreleased[ \t]*\r?$(.*?)(?=^## |\z)')
   if ($m.Groups[1].Value.Trim().Length -lt 10) { Fail "The '## Unreleased' section of CHANGELOG.md is empty $D list what is new and fixed first." }
-  $cl = [regex]::Replace($cl, "(?m)^## Unreleased[ \t]*\r?$", $heading, 1)
+  $cl = $reUnreleased.Replace($cl, $heading.Replace('$', '$$'), 1)
   [IO.File]::WriteAllText($clPath, $cl, $Utf8)
   Say "CHANGELOG: '## Unreleased' -> '$heading'"
 } else { Fail "CHANGELOG.md needs a '## Unreleased' section listing the changes." }
@@ -71,7 +72,7 @@ if ($cl -match "(?m)^## $([regex]::Escape($Version))\b") {
 # --- 3. Version in every file that carries it -------------------------------------------
 $skinPath = Join-Path $Root "skin.json"
 $skin = [IO.File]::ReadAllText($skinPath)
-$skin2 = [regex]::Replace($skin, '("version"\s*:\s*")[^"]*(")', "`${1}$Version`${2}", 1)
+$skin2 = ([regex]'("version"\s*:\s*")[^"]*(")').Replace($skin, ('${1}' + $Version + '${2}'), 1)
 [IO.File]::WriteAllText($skinPath, $skin2, $Utf8)
 $readmePath = Join-Path $Root "README.md"
 $readme = [IO.File]::ReadAllText($readmePath)
