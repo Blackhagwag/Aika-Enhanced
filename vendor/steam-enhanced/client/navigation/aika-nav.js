@@ -1027,7 +1027,8 @@
     frame = 0;
     if (full === true) {
       layoutNow = '';
-      measureDue = true;
+      // the content's top (a layout read) every 5th slow pass: resizes and settings re-measure at once
+      if (fullPasses % 5 === 4) measureDue = true;
       // every 15th slow pass (30 s) the computed value, in case a sheet set it some other way
       if (++fullPasses % 15 === 0) verified = false;
     }

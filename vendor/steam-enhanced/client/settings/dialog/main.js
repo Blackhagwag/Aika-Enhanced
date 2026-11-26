@@ -182,12 +182,41 @@
     // Sync: the cards and labels must be in place before Steam's re-render paints. Only the
     // dialog's own parts (page list, page, title) count, and their coming and going: the rest
     // of the window (the main window's Library, top bar, friends dock) never wakes it.
-    live.observer = SE.watch(onMutate, {
-      attributes: ['class'],
+    /* Aika Enhanced: the class changes that count are only the dialog's own; watched on the
+       dialog's nodes themselves (a private observer, attached as they come and go), not through
+       the shared observer, which then had to record every class change in the whole window
+       (Steam's hover and state classes, many a second) to find the few in the dialog */
+    const scope = `${LIST}, ${CONTENT}, ${TITLE}`;
+    let classRoots = [];
+    const classObserver = new MutationObserver(() => onMutate());
+    const watchClasses = () => {
+      const roots = [...document.querySelectorAll(scope)].filter((node) => !node.parentElement?.closest(scope));
+      if (roots.length === classRoots.length && roots.every((node, i) => node === classRoots[i])) return;
+      classObserver.disconnect();
+      classRoots = roots;
+      for (const node of roots) classObserver.observe(node, { attributes: true, attributeFilter: ['class'], subtree: true });
+    };
+    const shared = SE.watch(() => {
+      watchClasses();
+      onMutate();
+    }, {
       sync: true,
-      scope: `${LIST}, ${CONTENT}, ${TITLE}`,
+      scope,
       ignore: SE.inSide,
     });
+    watchClasses();
+    live.observer = {
+      disconnect() {
+        shared.disconnect();
+        classObserver.disconnect();
+        classRoots = [];
+      },
+      takeRecords() {
+        shared.takeRecords();
+        classObserver.takeRecords();
+        return [];
+      },
+    };
     document.addEventListener('visibilitychange', onVisibility);
     addEventListener('resize', onResize);
     schedule();

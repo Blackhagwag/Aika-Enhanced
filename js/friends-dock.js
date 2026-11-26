@@ -171,7 +171,10 @@ import "./live-settings.js";
   // ------------------------------------------------------------- the data
   // Steam's persona states (EPersonaState) → the dock's
   const PERSONA = { 0: "offline", 1: "online", 2: "busy", 3: "away", 4: "snooze", 5: "online", 6: "online", 7: "online" };
-  const byName = (x, y) => x.name.localeCompare(y.name, undefined, { sensitivity: "base" });
+  // One collator for every comparison: localeCompare with options builds a new one per call (the
+  // same order: localeCompare is defined as Intl.Collator(locales, options).compare)
+  const NAME_ORDER = new Intl.Collator(undefined, { sensitivity: "base" });
+  const byName = (x, y) => NAME_ORDER.compare(x.name, y.name);
 
   // After Steam Enhanced's read() (client/friends/dock/data.js)
   // Unread messages by friend: Steam's friend chats (blocked friends aside), as Steam Enhanced's
@@ -195,33 +198,43 @@ import "./live-settings.js";
     // the time each second's pass skips them after one look at their state
     const wantOffline = on("offline");
     for (const f of list) {
-      const p = run(() => f.persona);
-      if (!p) continue;
-      if (!wantOffline && !run(() => p.is_ingame) && !run(() => p.is_online)) continue;
-      const id = run(() => f.accountid) ?? run(() => p.GetAccountID());
-      if (id == null) continue;
-      const item = {
-        id: String(id),
-        name: run(() => f.display_name) || run(() => p.m_strPlayerName) || "",
-        avatar: run(() => p.avatar_url_medium) || run(() => p.avatar_url) || "",
-        state: PERSONA[run(() => p.m_ePersonaState)] || "offline",
-        last: run(() => p.last_seen_online) || 0,
-        appid: 0, gameKey: "", game: "", icon: "", rp: "",
-        unread: 0,
-      };
+      // One guarded read per friend (each field through its own run() made ~10 closures a
+      // friend a second); a friend whose object throws is skipped as before
+      let item = null, p, isIngame = false, isOnline = false;
+      try {
+        p = f.persona;
+        if (!p) continue;
+        isIngame = !!p.is_ingame;
+        isOnline = !isIngame && !!p.is_online;
+        if (!wantOffline && !isIngame && !isOnline) continue;
+        const id = f.accountid ?? p.GetAccountID?.();
+        if (id == null) continue;
+        item = {
+          id: String(id),
+          name: f.display_name || p.m_strPlayerName || "",
+          avatar: p.avatar_url_medium || p.avatar_url || "",
+          state: PERSONA[p.m_ePersonaState] || "offline",
+          last: p.last_seen_online || 0,
+          appid: 0, gameKey: "", game: "", icon: "", rp: "",
+          unread: 0,
+        };
+      } catch { continue; }
       item.unread = unread.get(item.id) || 0;
-      if (run(() => p.is_ingame)) {
+      if (isIngame) {
         item.appid = run(() => p.m_unGamePlayedAppID) || 0;
         item.game = run(() => p.GetCurrentGameName()) || "";
         item.gameKey = item.appid ? `a${item.appid}` : `n${item.game}`;
         item.icon = run(() => p.GetCurrentGameIconURL()) || "";
         item.rp = run(() => p.GetCurrentGameRichPresence()) || "";
         item.state = "ingame";
+      }
+      const kind = isIngame ? "ingame" : isOnline ? "online" : "offline";
+      if (kind === "ingame") {
         ingame.push(item);
         let g = games.get(item.gameKey);
         if (!g) games.set(item.gameKey, (g = { key: item.gameKey, appid: item.appid, name: item.game, icon: item.icon, friends: [] }));
         g.friends.push(item);
-      } else if (run(() => p.is_online)) {
+      } else if (kind === "online") {
         online.push(item);
       } else {
         offline.push(item);
@@ -377,7 +390,7 @@ import "./live-settings.js";
     setAttr(av, "data-state", f.state);
     const img = av.children[1];
     const badge = av.lastChild;
-    badge.hidden = !unread;
+    setHidden(badge, !unread);
     setText(badge, unread > 99 ? "99+" : String(unread || ""));
     setAttr(row, "data-unread", unread ? String(unread) : null);
     // A new message (more unread than last time): the badge pulses once ("Message alerts")
@@ -455,6 +468,9 @@ import "./live-settings.js";
     ? COPY.lastOnline(COPY.ago(Math.max(0, Date.now() / 1000 - f.last)))
     : COPY[f.state] || COPY.online;
 
+  // A write only when it changes (setting `hidden` to what it is still records a mutation and
+  // invalidates the node's style)
+  const setHidden = (node, v) => { if (node.hidden !== v) node.hidden = v; };
   function render() {
     const a = app();
     if (!a) return;
@@ -470,7 +486,7 @@ import "./live-settings.js";
     for (const key of SECTIONS) {
       const s = sections[key];
       const visible = show[key] && counts[key] > 0;
-      s.sec.hidden = !visible;
+      setHidden(s.sec, !visible);
       const isOpen = !closed.has(key);
       setAttr(s.sec, "data-closed", isOpen ? null : "");
       setAttr(s.head, "aria-expanded", String(isOpen));
@@ -499,13 +515,13 @@ import "./live-settings.js";
       }
     }
     setText(total, String(live));
-    total.hidden = !on("count");
-    for (const key of SECTIONS) sections[key].count.hidden = !on("count");
+    setHidden(total, !on("count"));
+    for (const key of SECTIONS) setHidden(sections[key].count, !on("count"));
     toggle.dataset.tipName = COPY.title;
     toggle.dataset.tipSub = COPY.countTip(live);
 
     const nothing = SECTIONS.every((k) => sections[k].sec.hidden);
-    note.hidden = !nothing;
+    setHidden(note, !nothing);
     setText(note, signed ? COPY.empty : COPY.signedOut);
 
     // Rows that left every list: forget them (no detached nodes kept)

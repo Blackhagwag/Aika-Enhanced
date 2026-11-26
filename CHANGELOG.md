@@ -1,5 +1,99 @@
 # Changelog
 
+## 2.5.0 — 2026-11-26
+
+A performance release. Nothing looks or behaves differently: the same features, settings, look and
+motion. The 2.4.0 state is the git tag `v2.4.0`.
+
+### Audit: what costs, measured
+- **Method.** Test harness in headless Chromium, not Steam. A library node changes text, class
+  and structure 20 times a second, standing in for Steam's DOM, which changes all the time. Tools:
+  CDP CPU profiles, `Performance.getMetrics`, and counters on every timer, observer, listener and
+  `SE.watch` / `SE.poll` subscriber.
+- **The biggest cost was the shared body observer.** Steam Enhanced's runtime runs one
+  MutationObserver over the whole window. Two subscribers made it record far more than structure:
+  - the Millennium Settings dialog pass wanted class changes, so every class change in the
+    window was recorded;
+  - the Library Manager wanted text and attribute changes, so every text node change was too.
+  - Both matter only inside their own panels, yet the observer recorded everything and
+    dispatched it 20 times a second.
+- **The second: the Friends Dock's sort by name.** `localeCompare` with options builds a new
+  collator for every comparison. With a big list (312 friends in the test) this was ~1.5 of the
+  dock's ~2 ms each second.
+- **Small ones:**
+  - the navigation's slow poll measured the header's height (a forced layout) every 2 s;
+  - the dock's render rewrote `hidden` on its sections, the note and the unread badges when they
+    hadn't changed (each such write is a mutation and a style invalidation);
+  - the dock's friend read wrapped each field in its own closure (about 10 per friend per second).
+
+### Changed (same behaviour)
+- **Millennium Settings dialog pass** (`client/settings/dialog/main.js`): its class changes are
+  watched on the dialog's own nodes, with a private observer attached as they come and go.
+  Structure still comes from the shared observer.
+- **Library Manager** (`client/settings/library-manager/library-manager.js`): text and attribute
+  changes are watched only in and beside Millennium's drawer, with a private observer on its
+  parent. The drawer mounting is still seen through the shared observer.
+- **Friends Dock** (`js/friends-dock.js`):
+  - one cached `Intl.Collator` for the name order. The order is the same, since `localeCompare`
+    is defined as that collator's `compare`;
+  - one guarded read per friend;
+  - `hidden` is written only when it changes.
+  - Steam Enhanced's own list code (`data.js`, `templates.js`) got the same collator.
+- **Navigation** (`aika-nav.js`): the header's height is re-measured every 10 s on the slow poll
+  (resizes and settings still re-measure at once).
+
+### Measured (harness; 2.4.0 → 2.5.0)
+
+| | 2.4.0 | 2.5.0 |
+|---|---|---|
+| Theme script time under DOM churn (mean of 3) | 8.1 ms/s | 6.0 ms/s |
+| Shared observer callbacks under churn | 20/s, 2.3–2.9 ms/s | 5/s, 0.9–1.2 ms/s |
+| Friends Dock tick, 312 friends | 2.0–2.2 ms each second | 0.49–0.55 ms each second |
+| DOM mutations when one friend's status changes | 12 | 9 (only that row, and its move) |
+| Startup: dock and navigation ready (median of 5, three runs) | 338–387 ms | 353–373 ms (same, within noise) |
+| Idle: script / style recalcs | 1.1 µs/s / 1.2/s | same |
+| 60-step session (pages, toggles, layouts, statuses): listeners / live observers / DOM nodes | 120 / 2 / 590 → same | 120 / 2 / 590 → same (no leaks) |
+
+- Steam's own CPU, memory and frame rate were not measured: no Steam client is reachable here.
+
+### Tried and left out (no measured gain)
+- **Caching settings reads in the cover tilt, the cursor spotlight and the friends window's game
+  banners.** Measured on small dedicated pages, it saved nothing: those passes read the
+  element's box in the same frame, so the style is recalculated there anyway. They were
+  reverted.
+- **Loading the settings window and the Navigation editor on demand.** Their startup cost is
+  under 0.4 ms, too small to be worth changing how they start.
+
+### Left as they are (design)
+- Every animation, blur, shadow, glow and transparency. Aika's infinite animations (background
+  spots, the play button, shimmers, the store's price shine and calendar ring) are design
+  elements, and Aika's Performance setting already turns them down.
+- The Friends Dock's easing width and the library's easing room. They lay out during a toggle,
+  but changing them would change the motion.
+
+### Checked
+- All suites pass: the dock 16, the navigation 12, pages / chat wiring / settings 11, Navigation
+  customisation 24 (with the 2.1.0 pixel-parity tests), Store / Community / profiles 8, and
+  Aika's own unit tests 15.
+- Pixel comparison with 2.4.0 shows no difference beyond dithering on:
+  - the library with the top bar, the left sidebar and Expand on hover;
+  - a Store page with the open dock's window;
+  - a community profile;
+  - the theme settings' Navigation tab;
+  - Millennium's window.
+- With the dock folded, 15 pixels of the bell badge's "3" differ (text antialiasing; it looks
+  identical).
+- Not checked: the built-in chat in Steam (Steam's own chat tree is not in a browser), and
+  anything inside a real Steam client.
+
+### Files
+- Changed: `js/friends-dock.js`, `vendor/steam-enhanced/client/navigation/aika-nav.js`,
+  `vendor/steam-enhanced/client/settings/dialog/main.js`,
+  `vendor/steam-enhanced/client/settings/library-manager/library-manager.js`,
+  `vendor/steam-enhanced/client/friends/dock/data.js`,
+  `vendor/steam-enhanced/client/friends/dock/templates.js`, `skin.json` (2.5.0), `README.md`,
+  `CLAUDE.md`.
+
 ## 2.4.0 — 2026-11-26
 
 The Friends Dock opens for real on Store, Community and profile pages, not only in the library.

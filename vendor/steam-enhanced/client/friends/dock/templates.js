@@ -31,6 +31,7 @@
  * and flyout HTML. It also closes a previous dock and skips windows without a body.
  */
 ((SE) => {
+  const NAME_ORDER = new Intl.Collator(undefined, { sensitivity: 'base' });
   window.__seFriendsDock?.destroy();
   if (!document.body) return;
   const ns = (window.__seFriendsDockParts = { live: {} });
@@ -206,7 +207,8 @@
       if (fs.length > 1) shared.push({ ...g, friends: fs, tile: true });
       else solo.push(...fs);
     }
-    solo.sort((x, y) => x.name.localeCompare(y.name, undefined, { sensitivity: 'base' }));
+    /* Aika Enhanced: one collator (localeCompare with options builds one per call; same order) */
+    solo.sort((x, y) => NAME_ORDER.compare(x.name, y.name));
     const sections = [
       ['chats', chats],
       ['favorites', favorites],

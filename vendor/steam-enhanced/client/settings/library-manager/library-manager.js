@@ -850,13 +850,55 @@
     }
   }
 
+  /* Aika Enhanced: text and attribute changes count only in Millennium's drawer and beside it:
+     watched there (a private observer on the drawer's parent, moved as the drawer comes and goes),
+     not through the shared observer, which then recorded every text and attribute change of the
+     whole window. Structure changes (the drawer mounting) still come from the shared one. */
+  let observedHost = null;
+  let hostFrame = 0;
+  const hostObserver = new MutationObserver((records) => {
+    if (hostFrame || !records.some((record) => !outsideDrawer(record.target))) return;
+    hostFrame = requestAnimationFrame(() => {
+      hostFrame = 0;
+      update();
+    });
+  });
+  function watchDrawer() {
+    const host = sidebar()?.parentElement || null;
+    if (host === observedHost) return;
+    hostObserver.disconnect();
+    observedHost = host;
+    if (host) {
+      hostObserver.observe(host, {
+        subtree: true,
+        characterData: true,
+        attributes: true,
+        attributeFilter: ['data-focused-item-type', 'disabled'],
+      });
+    }
+  }
+
   function start() {
     // Core batches non-sync subscribers into one frame, so update() runs at most once per frame.
-    observer = SE.watch(update, {
-      characterData: true,
-      attributes: ['data-focused-item-type', 'disabled'],
-      ignore: outsideDrawer,
-    });
+    const shared = SE.watch(() => {
+      watchDrawer();
+      update();
+    }, { ignore: outsideDrawer });
+    observer = {
+      takeRecords() {
+        shared.takeRecords();
+        hostObserver.takeRecords();
+        return [];
+      },
+      disconnect() {
+        shared.disconnect();
+        hostObserver.disconnect();
+        observedHost = null;
+        if (hostFrame) cancelAnimationFrame(hostFrame);
+        hostFrame = 0;
+      },
+    };
+    watchDrawer();
     document.addEventListener('keydown', onKey, true);
     update();
   }

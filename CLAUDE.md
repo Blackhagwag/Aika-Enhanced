@@ -57,7 +57,16 @@ from commit 7d8439c). Version is in `skin.json`; every release gets a `CHANGELOG
     `friends-dock.js place`'s `lastWhere` / `measureTop`).
 - `getComputedStyle(...).getPropertyValue` and `checkVisibility()` recalculate the whole window's
   style when it is dirty. Read the DOM instead where you can (inline style, a `<link>` present).
-- Profilers used for 2.3 (harness, with simulated DOM churn) are described in `CHANGELOG.md` 2.3.0.
+- The shared body observer (`SE.watch`) is for structure. A subscriber that needs `attributes`
+  or `characterData` widens it to every attribute or text change in the window, so watch those
+  with a private observer on the subscriber's own nodes instead (see 2.5.0: dialog/main.js,
+  library-manager.js).
+- No `localeCompare(..., options)` in loops: use one cached `Intl.Collator`.
+- Write DOM properties only when they change (`hidden`, attributes, text).
+- Prove a performance change with a measurement before keeping it. 2.5.0 reverted three that
+  measured nothing.
+- Profilers used for 2.3 and 2.5 (harness, with simulated DOM churn) are described in
+  `CHANGELOG.md` 2.3.0 and 2.5.0.
 
 ## Rules
 - Real Steam data only; no fake buttons or decorative settings. If something is impossible, leave

@@ -3,6 +3,7 @@
  * object every part reads and writes.
  */
 ((SE) => {
+  const NAME_ORDER = new Intl.Collator(undefined, { sensitivity: 'base' });
   const ns = window.__seFriendsDockParts;
   if (!ns) return;
   const { groupAvatarURL } = ns;
@@ -129,7 +130,8 @@
       }
     }
 
-    const byName = (x, y) => x.name.localeCompare(y.name, undefined, { sensitivity: 'base' });
+    /* Aika Enhanced: one collator (localeCompare with options builds one per call; same order) */
+    const byName = (x, y) => NAME_ORDER.compare(x.name, y.name);
     const list = [...games.values()].sort((x, y) => y.friends.length - x.friends.length || x.name.localeCompare(y.name));
     for (const g of list) g.friends.sort(byName);
     online.sort((x, y) => (x.state !== 'online') - (y.state !== 'online') || byName(x, y));
