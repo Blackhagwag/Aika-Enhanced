@@ -191,9 +191,13 @@ import "./live-settings.js";
     const unread = unreadOf(a);
     const ingame = [], online = [], offline = [];
     const games = new Map();
+    // Offline friends (most of a list) are read only while their section shows: the rest of
+    // the time each second's pass skips them after one look at their state
+    const wantOffline = on("offline");
     for (const f of list) {
       const p = run(() => f.persona);
       if (!p) continue;
+      if (!wantOffline && !run(() => p.is_ingame) && !run(() => p.is_online)) continue;
       const id = run(() => f.accountid) ?? run(() => p.GetAccountID());
       if (id == null) continue;
       const item = {
@@ -575,10 +579,51 @@ import "./live-settings.js";
 
   let topPx = -1;
   let savedScroll = 0;
+  let lastWhere = "";
+  let kindDue = true;
+  let measureTop = true;   // the header's height: read again after a resize, a page change, every few ticks
+
+  /*
+   * Store and Community pages are Steam's native browser view, laid out by Steam in the content
+   * frame. Steam sizes that view when it lays the frame out for its own reasons (the page shown,
+   * the window resized), not when the frame merely narrows: the dock's room changing on a browser
+   * page (expanding, collapsing) left the view at its old size, over the dock — the dock opened
+   * underneath the page, its names cut off by the page's edge. So on a browser page the room
+   * changes at once (no easing the view can't follow) and Steam is asked to lay its view out
+   * again, as after a window resize (the same event Steam answers). The library has no native
+   * view: there the room keeps its easing.
+   */
+  let nudging = false;
+  let nudgeTimer = 0;
+  function relayoutBrowser() {
+    if (!kind || kind === "library") return;
+    const fire = () => {
+      nudging = true;
+      try { window.dispatchEvent(new Event("resize")); } finally { nudging = false; }
+    };
+    requestAnimationFrame(() => requestAnimationFrame(fire));
+    // once more when the dock's own width has eased (a view laid out mid-way follows the end)
+    clearTimeout(nudgeTimer);
+    nudgeTimer = setTimeout(fire, (cssNumber("--aika-fdock-dur", 250) || 250) + 60);
+  }
+  const cssNumber = (name, fallback) => {
+    const v = getComputedStyle(root).getPropertyValue(name).trim();
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? (/ms$/.test(v) ? n : /s$/.test(v) ? n * 1000 : n) : fallback;
+  };
+
   function place() {
     if (state.destroyed) return;
     const was = kind;
-    kind = pageKind();
+    // Where we are: worked out again only when the route or the page changed (or now and then);
+    // pageKind's visibility checks recalculate the window's style when Steam's DOM just changed
+    const where = `${run(() => mainWindow()?.LocationPathName) ?? ""}|${browserURL()}|${document.title}`;
+    if (where !== lastWhere || kindDue) {
+      lastWhere = where;
+      kindDue = false;
+      kind = pageKind();
+    }
+    if (kind !== was) measureTop = true;
     const show = on("enabled") && !!app() && !!kind && on(kind);
     // "Keep the open chat" off: a page change closes it
     if (was && kind !== was && !on("keepchat")) chatEngine()?.close();
@@ -600,12 +645,17 @@ import "./live-settings.js";
         savedScroll = scroll.scrollTop;
         dock.remove(); tip.remove();
         delete root.dataset.aikaFdock;
+        delete root.dataset.aikaFdockPage;
         root.style.removeProperty("--aika-fdock-top");
         topPx = -1;
         return;
       }
     }
     if (!show) return;
+    if (root.dataset.aikaFdockPage !== kind) {
+      root.dataset.aikaFdockPage = kind;
+      relayoutBrowser();
+    }
     const mode = effectiveMode();
     if (mode !== state.mode) {
       state.mode = mode;
@@ -615,8 +665,14 @@ import "./live-settings.js";
       toggle.setAttribute("aria-expanded", String(mode === "open"));
       hideTip();
     }
-    if (root.dataset.aikaFdock !== mode) root.dataset.aikaFdock = mode;
-    // The dock starts where the content starts (under the header, whatever its height)
+    if (root.dataset.aikaFdock !== mode) {
+      root.dataset.aikaFdock = mode;
+      relayoutBrowser();
+    }
+    // The dock starts where the content starts (under the header, whatever its height): one rect
+    // read, only when it can have changed (a layout read each second forced the window's layout)
+    if (!measureTop && topPx >= 0) return;
+    measureTop = false;
     const frame = frameNode() || libraryNode();
     const top = frame ? Math.max(0, Math.round(frame.getBoundingClientRect().top)) : topPx;
     if (top !== topPx) {
@@ -861,7 +917,11 @@ import "./live-settings.js";
   function tick() {
     timer = 0;
     if (state.destroyed || document.visibilityState === "hidden") return;
-    if (++ticks % 5 === 0 && readSettings()) state.signature = "";
+    if (++ticks % 5 === 0) {
+      measureTop = true;
+      kindDue = true;
+    }
+    if (ticks % 10 === 0 && readSettings()) state.signature = "";
     place();
     if (state.shown) {
       const a = app();
@@ -900,6 +960,9 @@ import "./live-settings.js";
     });
   };
   const onResize = () => {
+    if (nudging) return;   // our own nudge to Steam's browser view (relayoutBrowser)
+    measureTop = true;
+    kindDue = true;
     if (innerWidth >= FOLD_AT) held = false;
     hideTip(); hideMenu();
     wake();
@@ -914,14 +977,14 @@ import "./live-settings.js";
   window.addEventListener("aika-visual-setting", onSetting);
   document.addEventListener("visibilitychange", onVisibility);
   // Steam's navigation clicks (a tab, a game in the list): place at once, not a second later
-  const onNav = () => setTimeout(wake, 50);
+  const onNav = () => setTimeout(() => { kindDue = true; wake(); }, 50);
   document.addEventListener("click", onNav, true);
   tick();
 
   function destroy() {
     if (state.destroyed) return;
     state.destroyed = true;
-    clearTimeout(timer); clearTimeout(tipTimer); clearTimeout(peekTimer);
+    clearTimeout(timer); clearTimeout(tipTimer); clearTimeout(peekTimer); clearTimeout(nudgeTimer);
     if (frame) cancelAnimationFrame(frame);
     hideMenu();
     window.removeEventListener("resize", onResize);
@@ -942,6 +1005,7 @@ import "./live-settings.js";
     head.remove(); scroll.remove();
     rows.clear(); gameNodes.clear();
     delete root.dataset.aikaFdock;
+    delete root.dataset.aikaFdockPage;
     root.style.removeProperty("--aika-fdock-top");
     delete window.__aikaFriendsDock;
   }
@@ -960,5 +1024,13 @@ import "./live-settings.js";
     setting: (name) => cfg[name],
     chatChanged,
     chatReady: () => { wake(); },
+    // What the dock and Steam's browser view take up, to check in Steam's DevTools
+    diagnose: () => {
+      const box = (n) => { const r = n?.getBoundingClientRect(); return r ? { x: Math.round(r.x), w: Math.round(r.width) } : null; };
+      const view = (() => { for (const w of owners()) { const b = run(() => w.MainWindowBrowserManager?.m_browser); if (b) return b; } return null; })();
+      const methods = (o) => { const out = new Set(); for (let p = o; p && p !== Object.prototype; p = Object.getPrototypeOf(p)) for (const k of Object.getOwnPropertyNames(p)) if (run(() => typeof o[k] === "function")) out.add(k); return [...out].sort(); };
+      return { page: kind, mode: state.mode, dock: box(dock), frame: box(frameNode()), frameMarginRight: frameNode() && getComputedStyle(frameNode()).marginRight,
+        browserWrapper: box(document.querySelector(".ContentFrame .BrowserWrapper")), view: view ? methods(view).filter((k) => /bound|size|layout|rect|visib/i.test(k)) : null };
+    },
   };
 })();

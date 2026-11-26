@@ -1,5 +1,95 @@
 # Changelog
 
+## 2.3.0 — 2026-11-26
+
+The Friends Dock now really opens on Store and Community pages. The theme does less work while
+Steam runs. Nothing looks different: in the harness the library (top bar and left sidebar), a Store
+page and Expand on hover match 2.2.0 pixel for pixel, apart from Chromium's dithering. The 2.2.0
+state is the git tag `v2.2.0`.
+
+### Fixed — the Friends Dock on Store / Community pages
+- **Cause.**
+  - Store and Community pages are Steam's native browser view. It sits over the main window, so
+    nothing in the window's DOM draws above it.
+  - The dock makes room by narrowing the content frame (`margin-inline-end`, eased over 250 ms).
+    Steam lays its view out in that frame when it lays the frame out for its own reasons (the
+    page shown, the window resized), not when the margin merely changes.
+  - So expanding on a Store page widened the dock underneath the page. The page stayed at its old
+    width and covered everything past the rail: the dock "opened" but showed only its first 52 px,
+    with the names cut off at the page's edge.
+  - Collapsing left a strip of empty frame where the page should have widened back.
+  - The library has no native view, which is why it always worked.
+- **Fix.**
+  - On browser pages the room changes at once (`html[data-aika-fdock-page]`), since the native view
+    can't ease anyway. The dock's own width still eases into the room.
+  - The dock then asks Steam to lay its view out again by sending the same `resize` event a window
+    resize sends, twice: next frame, and once the dock's width has eased.
+  - The dock's own resize handling ignores that event, so its menu and tooltip stay open.
+  - The library keeps its easing.
+- `window.__aikaFriendsDock.diagnose()` reports the dock's, the frame's and Steam's view's boxes,
+  for a check in Steam's DevTools.
+
+### Faster (same look)
+- **Navigation** (`aika-nav.js`):
+  - it only listens to mutations inside the title-bar controls (`SE.watch` scope). Before, every
+    DOM change in the window ran a pass, up to five times a second;
+  - a pass that would draw the same thing stops after its cheap reads;
+  - the layout setting is read from the DOM (the inline value, the option file's `<link>`)
+    instead of `getComputedStyle`, with the computed value checked every 30 s;
+  - the content's top is measured only after a resize, a setting or the slow poll;
+  - in the top bar, the right area's buttons are no longer measured.
+- **Friends Dock** (`js/friends-dock.js`):
+  - the page kind (route, URL, visibility) is worked out again only when the route or the page
+    changes, plus every 5 s. Before it ran each second, and its `checkVisibility()` recalculated
+    the window's style;
+  - the header's height is read only when it can have changed;
+  - settings are re-read every 10 s instead of 5 s (live changes still arrive at once);
+  - offline friends are skipped after one look at their state while their section is hidden
+    (the default), instead of being read in full each second.
+- **Chat engine** (`aika-main.js`):
+  - `EnsureFriendsListLoaded` is called only while Steam's list is empty (it was called every
+    second; the Aika dock already asks that way);
+  - "Scroll to new messages" finds the history's scroller once, instead of walking computed
+    styles on every message.
+
+### Measured (test harness, headless Chromium, not Steam)
+- Conditions: 1440×860, 10 test friends. A node in the library changes every 50 ms, standing in
+  for Steam's DOM, which changes all the time. Each figure is the mean of 3 runs (library) or 2
+  runs (Store + rail), 15 s each. Self time is per call site.
+
+| | 2.2.0 | 2.3.0 |
+|---|---|---|
+| Theme callbacks, library, top bar | 14.2 ms/s | 6.9 ms/s |
+| Theme callbacks, Store page, left sidebar | 12.2 ms/s | 7.2 ms/s |
+| Script time, library | 12.4 ms/s | 8.3 ms/s |
+| Style recalcs at idle, no churn | 3.5/s | 1.35/s |
+| Navigation pass | 3.2/s, 3.1–4.7 ms/s | only on changes in the header (0 under churn) |
+| Dock page check (`checkVisibility`) | 2.0 ms/s | 0.4 ms/s |
+| Time to dock and navigation ready (median of 5) | 376 ms | 359 ms (within noise) |
+| Long session, 80 page changes, toggles, layout and status switches: live MutationObservers / listeners / DOM nodes | 2 / 113 / 586 → same | 2 / 113 / 587 → same |
+
+- Steam's own CPU, memory and frame rate were not measured: no Steam client is reachable here.
+- How it was measured: `PerformanceObserver`-free wrappers around timers, observers and
+  listeners (self time per call site), CDP `Performance.getMetrics`, and CDP CPU profiles.
+
+### Left as they were
+- The look:
+  - every animation, blur, transparency and glow;
+  - Aika's background spots (compositor transforms);
+  - Aika's own infinite animations (preloaders, shimmer, the play button, the store calendar).
+    These are design elements, and Aika's Performance setting already turns them down.
+- Loading order: the Millennium Settings scripts still load in the main window, because
+  Millennium's window is drawn from there.
+- Aika's own scripts measured at under 0.3 ms/s each in the harness and were not touched.
+
+### Files
+- Changed: `js/friends-dock.js`, `sections/friends-dock.css`,
+  `vendor/steam-enhanced/client/navigation/aika-nav.js`,
+  `vendor/steam-enhanced/client/friends/dock/aika-main.js`, `skin.json` (2.3.0), `README.md`,
+  `CLAUDE.md`.
+- Added: `tests/store-dock.e2e.cjs` (a stand-in for Steam's browser view laid out the way Steam
+  lays it out; 2.2.0 fails it with the reported symptom, 2.3.0 passes).
+
 ## 2.2.0 — 2026-11-25
 
 The navigation, customisable: a Navigation editor in the theme settings window with a live preview,

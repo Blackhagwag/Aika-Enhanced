@@ -129,9 +129,11 @@
 
   const NC = () => window.__aikaNavConfig;
   let conf = run(() => NC().get()) || null;
+  let confRev = 0;
   const offConfig = NC()?.on((next) => {
     conf = structuredClone(next);
-    schedule();
+    confRev++;
+    invalidate();
   });
   const B = () => conf?.behavior || {};
 
@@ -139,7 +141,33 @@
 
   // "Navigation layout" (skin.json): options/nav-sidebar.css sets --aika-nav-layout: rail on the
   // root; Aika's live bridge sets it inline while the settings editor is open
-  const layout = () => (getComputedStyle(root).getPropertyValue('--aika-nav-layout').trim().replace(/["']/g, '') === 'rail' ? 'rail' : 'top');
+  // Read once per change, not per pass: a computed-style read with the page's styles dirty
+  // recalculates the whole window's style (Steam's DOM changes many times a second)
+  let layoutNow = '';
+  // The setting is the inline value Aika's live bridge sets, else the option file Millennium
+  // injects (options/nav-sidebar.css): both read off the DOM, no style involved. The computed
+  // value (the truth) is checked now and then (verifyLayout), never on every pass.
+  const NAV_SHEET = 'link[href*="options/nav-sidebar.css"]';
+  const computedLayout = () => (getComputedStyle(root).getPropertyValue('--aika-nav-layout').trim().replace(/["']/g, '') === 'rail' ? 'rail' : 'top');
+  const readLayout = () => {
+    const inline = root.style.getPropertyValue('--aika-nav-layout').trim().replace(/["']/g, '');
+    if (inline) return inline === 'rail' ? 'rail' : 'top';
+    return document.querySelector(NAV_SHEET) ? 'rail' : 'top';
+  };
+  let verified = false;
+  const layout = () => {
+    if (!layoutNow) layoutNow = verified ? readLayout() : computedLayout();
+    verified = true;
+    return layoutNow;
+  };
+  // What a pass measures (the layout setting, the content's top) is read again only after
+  // something that can change it: a setting, the window's size, the slow poll
+  let measureDue = true;
+  function invalidate() {
+    layoutNow = '';
+    measureDue = true;
+    schedule();
+  }
 
   /* ---------- Buttons: Settings and Games, as Steam Enhanced makes them ---------- */
 
@@ -803,13 +831,14 @@
     let order = 1;
     for (const zone of ['start', 'center', 'end']) {
       const items = list[zone];
-      const total = items.reduce((sum, item, i) => sum + extentX(item) + (i ? m.gap : 0), 0);
+      // (the right area stays in the header's row: nothing of it is measured)
+      const total = zone === 'end' ? 0 : items.reduce((sum, item, i) => sum + extentX(item) + (i ? m.gap : 0), 0);
       let x = zone === 'start' ? startX : Math.round(innerWidth / 2 - total / 2);
       for (const item of items) {
         const node = item === 'sep' || item === 'gap' ? filler(item, counts[item]++) : nodes[item];
         if (!node) continue;
         SE.attr(node, 'data-aika-nav-zone', zone);
-        const size = extentX(item);
+        const size = zone === 'end' && item !== 'sep' && item !== 'gap' ? 0 : extentX(item);
         if (zone === 'end') {
           // In the header's row, in order, before nothing of Steam's own (2.1.0: orders 1–5)
           prop(node, '--aika-nav-x', null);
@@ -988,8 +1017,20 @@
     setTimeout(() => el.removeAttribute(name), ms);
   };
 
-  function sync() {
+  // A pass that would draw exactly what is drawn stops after the cheap reads (lastPass)
+  let lastPass = '';
+  let fullPasses = 0;
+  const ids = new WeakMap();
+  let nextId = 1;
+  const idOf = (node) => (node ? ids.get(node) || (ids.set(node, nextId++), ids.get(node)) : 0);
+  function sync(full = false) {
     frame = 0;
+    if (full === true) {
+      layoutNow = '';
+      measureDue = true;
+      // every 15th slow pass (30 s) the computed value, in case a sheet set it some other way
+      if (++fullPasses % 15 === 0) verified = false;
+    }
     const news = document.querySelector(NEWS);
     const bell = document.querySelector(BELL);
     const account = document.querySelector(ACCOUNT);
@@ -1053,6 +1094,20 @@
       SE.attr(account, 'data-aika-tip', `${run(() => friendStore().self.display_name) || T.profile}`);
     }
 
+    if (mode === 'rail' && (measureDue || navTop < 0)) {
+      const f = frameNode();
+      const top = f ? Math.round(f.getBoundingClientRect().top) : navTop;
+      if (top >= 0) navTop = top;
+    }
+    measureDue = false;
+    const pass = [mode, confRev, innerWidth, innerHeight, navTop, concealed, expanded, autohide(), !!SE.browserShown?.(), st, lastCount, lastNews,
+      idOf(controls), idOf(nodes.news), idOf(nodes.alerts), idOf(nodes.profile), idOf(settingsButton.parentElement), idOf(gamesButton.parentElement)].join('|');
+    if (pass === lastPass) {
+      patchManager();
+      return;
+    }
+    lastPass = pass;
+
     const m = metrics(mode);
     looks = lookOf(mode, m);
     SE.attr(root, 'data-aika-nav-look', [...looks].join(' ') || null);
@@ -1073,9 +1128,6 @@
     SE.attr(account, 'data-aika-label', looks.has('caption') || named ? captionFor(st) || null : null);
 
     if (mode === 'rail') {
-      const f = frameNode();
-      const top = f ? Math.round(f.getBoundingClientRect().top) : navTop;
-      if (top >= 0) navTop = top;
       rootVar('--aika-nav-top', navTop >= 0 ? `${navTop}px` : null);
     } else {
       rootVar('--aika-nav-rail', null);
@@ -1107,7 +1159,8 @@
     if (!frame) frame = requestAnimationFrame(sync);
   }
 
-  const onSetting = () => schedule();
+  const onSetting = () => invalidate();
+  const onResize = () => invalidate();
   addEventListener('click', onAccountClick, true);
   addEventListener('keydown', onAccountKey, true);
   addEventListener('pointerdown', onNativeOpen, true);
@@ -1115,11 +1168,13 @@
   document.addEventListener('mouseout', onOut);
   document.addEventListener('pointermove', onMove, { passive: true });
   document.documentElement.addEventListener('mouseleave', onLeaveWindow);
-  addEventListener('resize', schedule);
+  addEventListener('resize', onResize);
   addEventListener('aika-visual-setting', onSetting);
-  // Structure changes (Steam re-rendering its buttons) and, slowly, the persona's state (no event)
-  const watcher = SE.watch(schedule, { throttle: 200 });
-  const poll = SE.poll(sync, 2000);
+  // Steam re-rendering its title-bar buttons (only mutations there: the rest of the window changes
+  // many times a second and has nothing of the navigation's) and, slowly, everything else the
+  // pass reads (the persona's state has no event; the header's height; a replaced title bar)
+  const watcher = SE.watch(schedule, { scope: CONTROLS, throttle: 200 });
+  const poll = SE.poll(() => sync(true), 2000);
   sync();
 
   state.layout = () => root.dataset.aikaNav || '';
@@ -1132,8 +1187,8 @@
     });
     return { m, looks: [...lookOf(mode, m)], vars, areas: areas(mode), label: (key) => labelFor(key, document.querySelector(BELL)), caption: () => captionFor(selfState() || 'offline'), state: () => selfState() || 'offline' };
   };
-  state.refresh = schedule;
-  state.sync = sync;
+  state.refresh = invalidate;
+  state.sync = () => sync(true);
   state.concealed = () => concealed;
   state.reveal = () => setConcealed(false);
   state.conceal = () => autohide() && setConcealed(true);
@@ -1145,7 +1200,7 @@
     document.removeEventListener('mouseout', onOut);
     document.removeEventListener('pointermove', onMove);
     document.documentElement.removeEventListener('mouseleave', onLeaveWindow);
-    removeEventListener('resize', schedule);
+    removeEventListener('resize', onResize);
     removeEventListener('aika-visual-setting', onSetting);
     offConfig?.();
     watcher?.disconnect();

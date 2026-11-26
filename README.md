@@ -2,7 +2,7 @@
 
 # Aika Enhanced
 
-**[Aika](https://github.com/hatewxb/Aika), the warm dark Steam theme by hatewxb — with a Friends Dock and its built-in chat on every page, and [Steam Enhanced](https://github.com/NVHT/Steam-Enhanced)'s Millennium Settings** · [Millennium](https://steambrew.app) · 2.2.0
+**[Aika](https://github.com/hatewxb/Aika), the warm dark Steam theme by hatewxb — with a Friends Dock and its built-in chat on every page, and [Steam Enhanced](https://github.com/NVHT/Steam-Enhanced)'s Millennium Settings** · [Millennium](https://steambrew.app) · 2.3.0
 
 ![The Friends Dock, expanded](docs/friends-dock/expanded.jpg)
 
@@ -221,6 +221,7 @@ node --test tests/friends-dock.e2e.cjs           # the dock (needs Playwright + 
 AIKA_ORIGINAL=/path/to/Aika node --test tests/friends-dock.e2e.cjs   # + pixel parity with Aika
 node --test tests/navigation.e2e.cjs             # 2.1: the navigation, both layouts
 node --test tests/nav-custom.e2e.cjs             # 2.2: customisation (+ AIKA_21=<2.1.0 checkout>, REACT_UMD=… for the editor)
+node --test tests/store-dock.e2e.cjs             # 2.3: the dock on Store / Community pages (a stand-in for Steam's browser view)
 REACT_UMD=/path/to/node_modules node --test tests/friends-dock-2.e2e.cjs   # 2.0: pages, chat wiring,
                                                   # Steam Enhanced parts, settings (React 18 UMD for the window)
 node --test tests/*.test.mjs tests/*.test.cjs    # Aika's own tests

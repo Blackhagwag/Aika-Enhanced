@@ -56,6 +56,15 @@ html[data-aika-fdock] .OuterFrame > .BottomBarContainer {
     transition: right var(--aika-fdock-dur) var(--aika-ease);
 }
 
+/* On a Store / Community / other page the frame holds Steam's native browser
+   view, which Steam lays out once, not frame by frame: the room changes at
+   once there and the dock eases into it (js/friends-dock.js relayoutBrowser
+   asks Steam to lay its view out again). :root — past the navigation's rule
+   for the frame (sections/navigation.css). */
+html:root[data-aika-fdock-page]:not([data-aika-fdock-page="library"]) :is(.OuterFrame > .ContentFrame, .OuterFrame > .BottomBarContainer) {
+    transition: none;
+}
+
 /* Arriving on the library (startup, back from a store page) the dock and the
    room are simply there for a frame — no easing in on every visit
    (js/friends-dock.js sets the mark for two frames) */

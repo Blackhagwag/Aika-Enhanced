@@ -141,7 +141,9 @@
     resumeOverlayChat();
     const a = app();
     const connected = run(() => a.CMInterface.BIsConnected()) ?? run(() => a.CMInterface.logged_on);
-    if (connected) run(() => a.FriendStore.EnsureFriendsListLoaded?.(false));
+    // Only while the list is empty: once loaded, Steam keeps it up itself (the Aika dock asks the
+    // same way, js/friends-dock.js tick)
+    if (connected && !(run(() => a.FriendStore.all_friends.length) > 0)) run(() => a.FriendStore.EnsureFriendsListLoaded?.(false));
     keepLibraryManagers();
     place();
   }
@@ -174,9 +176,12 @@
     watchedHistory = history;
     if (!history) return;
     const View = history.ownerDocument.defaultView;
+    // A new message only scrolls: the history's scroller is found once (computed styles up the
+    // tree) and kept while it stays in the history's tree
+    let box = null;
     historyObserver = new View.MutationObserver(() => {
       if (aika()?.setting?.('autoscroll') === '0') return;
-      const box = scrollerOf(history.lastElementChild || history) || scrollerOf(history);
+      if (!box?.isConnected || !box.contains(history)) box = scrollerOf(history.lastElementChild || history) || scrollerOf(history);
       if (box) box.scrollTop = box.scrollHeight;
     });
     historyObserver.observe(history, { childList: true });
