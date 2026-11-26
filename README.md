@@ -2,7 +2,7 @@
 
 # Aika Enhanced
 
-**[Aika](https://github.com/hatewxb/Aika), the warm dark Steam theme by hatewxb — with a Friends Dock and its built-in chat on every page, and [Steam Enhanced](https://github.com/NVHT/Steam-Enhanced)'s Millennium Settings** · [Millennium](https://steambrew.app) · 2.3.0
+**[Aika](https://github.com/hatewxb/Aika), the warm dark Steam theme by hatewxb — with a Friends Dock and its built-in chat on every page, and [Steam Enhanced](https://github.com/NVHT/Steam-Enhanced)'s Millennium Settings** · [Millennium](https://steambrew.app) · 2.4.0
 
 ![The Friends Dock, expanded](docs/friends-dock/expanded.jpg)
 
@@ -43,10 +43,11 @@ not from a Steam client.</sub>
 - **Two states.** Expanded (264 px by default): faces, names, the game or status, the online count,
   groups **In game**, **Online** (and **Offline**, off by default). Collapsed: a 52 px rail of faces;
   hovering a face shows the name and the game.
-- **On every page.** Store, Community and the other pages are Steam's native browser view, laid out
-  in the window's content frame: the frame narrows by the dock's width and Steam fits the page
-  beside it (the way Steam Enhanced places its dock). Tooltips and menus over a page are drawn in
-  Steam's popup windows. Expanded/collapsed, the scroll position and the open chat stay as you move
+- **On every page.** Store, Community, profiles and the other pages are Steam's native browser
+  view, drawn over the main window. The page keeps the rail's room beside it. The open dock (and
+  the hover peek) is drawn over the page in one of Steam's popup windows, at the window's right
+  edge. It is the same dock, its header and list moved there and back, as its tooltips, menus and
+  the built-in chat already are. Expanded/collapsed, the scroll position and the open chat stay as you move
   between pages. Each kind of page can be switched off.
 - **Live**: friends appear and leave, move between groups, unread counts pulse when a message
   arrives; only the rows that changed are touched.
@@ -221,7 +222,7 @@ node --test tests/friends-dock.e2e.cjs           # the dock (needs Playwright + 
 AIKA_ORIGINAL=/path/to/Aika node --test tests/friends-dock.e2e.cjs   # + pixel parity with Aika
 node --test tests/navigation.e2e.cjs             # 2.1: the navigation, both layouts
 node --test tests/nav-custom.e2e.cjs             # 2.2: customisation (+ AIKA_21=<2.1.0 checkout>, REACT_UMD=… for the editor)
-node --test tests/store-dock.e2e.cjs             # 2.3: the dock on Store / Community pages (a stand-in for Steam's browser view)
+REACT_UMD=… node --test tests/store-dock.e2e.cjs  # the dock on Store / Community / profile pages (stand-ins for Steam's browser view and popup windows)
 REACT_UMD=/path/to/node_modules node --test tests/friends-dock-2.e2e.cjs   # 2.0: pages, chat wiring,
                                                   # Steam Enhanced parts, settings (React 18 UMD for the window)
 node --test tests/*.test.mjs tests/*.test.cjs    # Aika's own tests

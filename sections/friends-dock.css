@@ -65,6 +65,15 @@ html:root[data-aika-fdock-page]:not([data-aika-fdock-page="library"]) :is(.Outer
     transition: none;
 }
 
+/* …and while the open dock is drawn over the page in one of Steam's popup
+   windows (.aika-fdock--layer below; js/friends-dock.js sets
+   data-aika-fdock-layer), the page's room stays the rail's, so Steam's view
+   never has to follow a change of it. Where no popup window could open, the
+   room is the open dock's, as before. */
+html:root[data-aika-fdock-page]:not([data-aika-fdock-page="library"])[data-aika-fdock-layer] {
+    --aika-fdock-space: var(--aika-fdock-rail);
+}
+
 /* Arriving on the library (startup, back from a store page) the dock and the
    room are simply there for a frame — no easing in on every visit
    (js/friends-dock.js sets the mark for two frames) */
@@ -882,4 +891,50 @@ html[data-aika-fdock-instant] :is(.OuterFrame > .ContentFrame, .OuterFrame > .Bo
 
 .aika-fdock-menu.is-layered {
     display: inline-flex;
+}
+
+/* --------------------------------------------------------------------------
+   The open dock over a browser page (js/friends-dock.js "the open dock over a
+   browser page"): the dock's own header and list in one of Steam's popup
+   windows, at the window's right edge under the header, the dock's full width
+   and height (set inline). The same look as the dock in the window; the
+   surface is laid on the window's base colour, since a popup window has no
+   Aika background behind it. It opens sliding out of the rail and folds back
+   into it, with the dock's own easing (transform only: the window's size is
+   set once).
+   -------------------------------------------------------------------------- */
+
+.aika-fdock-layer-shell {
+    position: relative;
+    overflow: hidden;
+}
+
+.aika-fdock.aika-fdock--layer {
+    position: relative;
+    inset: auto;
+    z-index: auto;
+    max-width: none;
+    background: linear-gradient(var(--aika-fdock-bg), var(--aika-fdock-bg)), var(--aika-bg-base);
+    transition: none;
+    animation: aika-fdock-layer-in var(--aika-fdock-dur) var(--aika-ease) both;
+}
+
+.aika-fdock.aika-fdock--layer.is-closing {
+    animation: aika-fdock-layer-out var(--aika-fdock-dur) var(--aika-ease) both;
+    pointer-events: none;
+}
+
+@keyframes aika-fdock-layer-in {
+    from { transform: translateX(calc(100% - var(--aika-fdock-rail))); }
+}
+
+@keyframes aika-fdock-layer-out {
+    to { transform: translateX(calc(100% - var(--aika-fdock-rail))); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aika-fdock.aika-fdock--layer,
+    .aika-fdock.aika-fdock--layer.is-closing {
+        animation: none;
+    }
 }

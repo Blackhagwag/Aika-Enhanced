@@ -642,6 +642,7 @@ import "./live-settings.js";
         state.signature = "";
       } else {
         hideTip(); hideMenu(); setPeek(false);
+        closeLayer();
         savedScroll = scroll.scrollTop;
         dock.remove(); tip.remove();
         delete root.dataset.aikaFdock;
@@ -665,20 +666,19 @@ import "./live-settings.js";
       toggle.setAttribute("aria-expanded", String(mode === "open"));
       hideTip();
     }
-    if (root.dataset.aikaFdock !== mode) {
-      root.dataset.aikaFdock = mode;
-      relayoutBrowser();
-    }
+    if (root.dataset.aikaFdock !== mode) root.dataset.aikaFdock = mode;
     // The dock starts where the content starts (under the header, whatever its height): one rect
     // read, only when it can have changed (a layout read each second forced the window's layout)
-    if (!measureTop && topPx >= 0) return;
-    measureTop = false;
-    const frame = frameNode() || libraryNode();
-    const top = frame ? Math.max(0, Math.round(frame.getBoundingClientRect().top)) : topPx;
-    if (top !== topPx) {
-      topPx = top;
-      root.style.setProperty("--aika-fdock-top", `${top}px`);
+    if (measureTop || topPx < 0) {
+      measureTop = false;
+      const frame = frameNode() || libraryNode();
+      const top = frame ? Math.max(0, Math.round(frame.getBoundingClientRect().top)) : topPx;
+      if (top !== topPx) {
+        topPx = top;
+        root.style.setProperty("--aika-fdock-top", `${top}px`);
+      }
     }
+    syncLayer();
   }
 
   function setMode(m) {
@@ -697,6 +697,7 @@ import "./live-settings.js";
     state.peek = v;
     setAttr(dock, "data-peek", v ? "" : null);
     if (v) hideTip();
+    syncLayer();
   }
   dock.addEventListener("pointerenter", () => {
     if (state.mode !== "rail" || !on("hover")) return;
@@ -723,6 +724,134 @@ import "./live-settings.js";
       container.append(node);
     });
   }
+
+  // ------------------------------------------ the open dock over a browser page
+  /*
+   * Store, Community and profile pages are Steam's native browser view: it lies over the main
+   * window, so nothing of the window's DOM is ever drawn above it, and Steam alone decides when to
+   * lay it out again in the content frame. The library has no such view, which is why the dock
+   * opened there and only there: on a browser page the open dock widened *under* the page, which
+   * kept its width and covered everything past the rail.
+   *
+   * So on a browser page the dock does not ask the page for room to open into. The page's room
+   * stays the rail's in both states (sections/friends-dock.css), so Steam's view never has to
+   * follow a change, and the open dock is drawn where nothing covers it: in one of Steam's popup
+   * windows over the page, at the window's right edge, under the header, the dock's full width.
+   * This is Steam Enhanced's popup layer (vendor/.../client/shared/popup-layer*.js), the same
+   * mechanism that already draws the dock's tooltips and menus and the built-in chat over those
+   * pages. It is the same dock, not a copy: its own parts (the header and the list) move into
+   * that window and back, with their rows, listeners and live updates. One state (open / rail)
+   * and one set of sizes serve every page; the library keeps the dock in the window as before.
+   */
+  const layerBox = el("aside", "aika-fdock aika-fdock--layer");
+  layerBox.dataset.mode = "open";
+  layerBox.setAttribute("aria-label", COPY.title);
+  // The window measures its content to size and place itself: a still shell of the dock's size,
+  // the dock sliding inside it (a transform would move what the window measures)
+  const layerShell = el("div", "aika-fdock-layer-shell");
+  layerShell.append(layerBox);
+  let layer = null;          // the popup panel holding the open dock
+  let layerKey = "";
+  let layerOrigin = { left: 0, top: 0 };
+  let layerClosing = 0;
+  let fallbackFor = "";
+  const pxVar = (name, fallback) => parseFloat(getComputedStyle(root).getPropertyValue(name)) || fallback;
+  const wantLayer = () => state.shown && !!kind && kind !== "library" && (state.mode === "open" || state.peek) && !!SE()?.layer && overBrowser();
+
+  // The theme's colours as they are in the main window (the preset, custom colours): the popup
+  // window gets Aika's stylesheets, not the main window's own condition files and custom values
+  function paintLayer() {
+    const cs = getComputedStyle(root);
+    for (let i = 0; i < cs.length; i++) {
+      const name = cs[i];
+      if (name.startsWith("--aika-")) layerBox.style.setProperty(name, cs.getPropertyValue(name));
+    }
+  }
+  function sizeLayer() {
+    if (!layer) return;
+    const width = Math.round(pxVar("--aika-fdock-width", 264));
+    const top = Math.max(0, topPx);
+    const height = Math.max(160, innerHeight - top);
+    const key = `${width}|${top}|${height}|${innerWidth}`;
+    if (key === layerKey) return;
+    layerKey = key;
+    layerShell.style.width = layerBox.style.width = `${width}px`;
+    layerShell.style.height = layerBox.style.height = `${height}px`;
+    layerOrigin = { left: innerWidth - width, top };
+    layer.show({ right: innerWidth, top }, (container) => { container.append(layerShell); });
+  }
+  function openLayer() {
+    clearTimeout(layerClosing);
+    layerClosing = 0;
+    if (layer) return;
+    const panel = SE().layer.panel({ sheets: LAYER_SHEETS });
+    if (!panel) {
+      // No window could open: the dock opens in the window as before (the room the open dock's),
+      // and Steam is asked once to lay its view out again
+      if (fallbackFor !== kind) { fallbackFor = kind; relayoutBrowser(); }
+      return;
+    }
+    fallbackFor = "";
+    layer = panel;
+    hideTip();
+    const at = scroll.scrollTop;
+    paintLayer();
+    layerBox.classList.remove("is-closing");
+    layerBox.append(head, scroll);
+    layerKey = "";
+    sizeLayer();
+    root.dataset.aikaFdockLayer = "";
+    requestAnimationFrame(() => { scroll.scrollTop = at; });
+  }
+  function closeLayer(now = true) {
+    if (!layer) return;
+    const done = () => {
+      layerClosing = 0;
+      if (!layer) return;
+      const at = scroll.scrollTop;
+      dock.prepend(head, scroll);
+      layer.release();
+      layer = null;
+      layerKey = "";
+      layerBox.classList.remove("is-closing");
+      delete root.dataset.aikaFdockLayer;
+      scroll.scrollTop = at;
+    };
+    if (now) { clearTimeout(layerClosing); done(); return; }
+    if (layerClosing) return;
+    // The dock folds back toward the rail (the same easing as its width), then the window goes
+    layerBox.classList.add("is-closing");
+    layerClosing = setTimeout(done, pxVar("--aika-fdock-dur", 250) || 250);
+  }
+  function syncLayer() {
+    if (state.destroyed) return;
+    // Steam can take a popup window down on its own (another menu opening): the dock's parts come
+    // home, and the window opens again on this pass if the dock is still to be open
+    if (layer?.released) {
+      clearTimeout(layerClosing);
+      layerClosing = 0;
+      dock.prepend(head, scroll);
+      layer = null;
+      layerKey = "";
+      layerBox.classList.remove("is-closing");
+      delete root.dataset.aikaFdockLayer;
+    }
+    const want = wantLayer();
+    if (want) {
+      if (!layer || layerClosing) openLayer();
+      else sizeLayer();
+    } else {
+      if (fallbackFor) { fallbackFor = ""; if (state.shown && kind && kind !== "library") relayoutBrowser(); }
+      if (layer) closeLayer(!state.shown || kind === "library");
+    }
+  }
+  // The pointer over the open dock's window: a peek stays open, leaving it folds the peek back
+  layerBox.addEventListener("pointerenter", () => clearTimeout(peekTimer));
+  layerBox.addEventListener("pointerleave", () => {
+    if (!state.peek) return;
+    clearTimeout(peekTimer);
+    peekTimer = setTimeout(() => { if (!menu) setPeek(false); }, 300);
+  });
 
   // --------------------------------------------------------------- tooltip
   // In the rail only (open, the names are there): the name and the game, at
@@ -884,7 +1013,10 @@ import "./live-settings.js";
     if (!row) return;
     const r = row.getBoundingClientRect();
     const fromKey = e.clientX === 0 && e.clientY === 0;
-    showMenu(row, fromKey ? r.left : e.clientX, fromKey ? r.bottom : e.clientY);
+    // In the open dock's window over a browser page: its points, moved to the main window's
+    const dx = row.ownerDocument === document ? 0 : layerOrigin.left;
+    const dy = row.ownerDocument === document ? 0 : layerOrigin.top;
+    showMenu(row, (fromKey ? r.left : e.clientX) + dx, (fromKey ? r.bottom : e.clientY) + dy);
   }
   function onKey(e) {
     if ((e.key === "Enter" || e.key === " ") && e.target.matches?.("[data-friend]")) {
@@ -906,6 +1038,10 @@ import "./live-settings.js";
   dock.addEventListener("keydown", onKey);
   dock.addEventListener("error", onError, true);
   dock.addEventListener("animationend", onAnimEnd);
+  // the same, for the dock's parts while they are in the open dock's window (a browser page)
+  for (const [type, fn, capture] of [["click", onClick], ["contextmenu", onContext], ["keydown", onKey], ["error", onError, true], ["animationend", onAnimEnd]]) {
+    layerBox.addEventListener(type, fn, !!capture);
+  }
   scroll.addEventListener("scroll", onScroll, { passive: true });
 
   // ----------------------------------------------------------------- timing
@@ -967,7 +1103,8 @@ import "./live-settings.js";
     hideTip(); hideMenu();
     wake();
   };
-  const onSetting = () => { readSettings(); state.signature = ""; wake(); };
+  // (a preset or a custom colour changed: the open dock's window takes the new colours)
+  const onSetting = () => { readSettings(); state.signature = ""; kindDue = true; if (layer) { paintLayer(); layerKey = ""; } wake(); };
   const onVisibility = () => {
     if (document.visibilityState === "hidden") { clearTimeout(timer); timer = 0; hideTip(); hideMenu(); }
     else wake();
@@ -998,6 +1135,11 @@ import "./live-settings.js";
     dock.removeEventListener("keydown", onKey);
     dock.removeEventListener("error", onError, true);
     dock.removeEventListener("animationend", onAnimEnd);
+    closeLayer();
+    clearTimeout(layerClosing);
+    for (const [type, fn, capture] of [["click", onClick], ["contextmenu", onContext], ["keydown", onKey], ["error", onError, true], ["animationend", onAnimEnd]]) {
+      layerBox.removeEventListener(type, fn, !!capture);
+    }
     scroll.removeEventListener("scroll", onScroll);
     dock.remove(); tip.remove();
     tipPanel?.release();
@@ -1024,13 +1166,36 @@ import "./live-settings.js";
     setting: (name) => cfg[name],
     chatChanged,
     chatReady: () => { wake(); },
-    // What the dock and Steam's browser view take up, to check in Steam's DevTools
+    // The dock's real geometry on this page, to check in Steam's DevTools (run by hand only;
+    // nothing is logged on its own): each box with the sizes and the properties that can limit
+    // it, the dock's ancestors, and where the open dock is drawn (the window, or a popup window
+    // over a browser page)
     diagnose: () => {
-      const box = (n) => { const r = n?.getBoundingClientRect(); return r ? { x: Math.round(r.x), w: Math.round(r.width) } : null; };
+      const PROPS = ["position", "width", "min-width", "max-width", "flex-shrink", "overflow", "overflow-x", "transform", "z-index", "contain", "margin-right"];
+      const info = (n) => {
+        if (!n) return null;
+        const r = n.getBoundingClientRect();
+        const cs = n.ownerDocument.defaultView.getComputedStyle(n);
+        return {
+          node: `${n.tagName.toLowerCase()}${n.className && typeof n.className === "string" ? "." + n.className.trim().split(/\s+/).slice(0, 3).join(".") : ""}`,
+          inPopupWindow: n.ownerDocument !== document,
+          rect: { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) },
+          clientWidth: n.clientWidth, scrollWidth: n.scrollWidth, offsetWidth: n.offsetWidth,
+          ...Object.fromEntries(PROPS.map((k) => [k, cs.getPropertyValue(k)])),
+        };
+      };
+      const chain = [];
+      for (let n = dock.parentElement; n && chain.length < 6; n = n.parentElement) chain.push(info(n));
       const view = (() => { for (const w of owners()) { const b = run(() => w.MainWindowBrowserManager?.m_browser); if (b) return b; } return null; })();
       const methods = (o) => { const out = new Set(); for (let p = o; p && p !== Object.prototype; p = Object.getPrototypeOf(p)) for (const k of Object.getOwnPropertyNames(p)) if (run(() => typeof o[k] === "function")) out.add(k); return [...out].sort(); };
-      return { page: kind, mode: state.mode, dock: box(dock), frame: box(frameNode()), frameMarginRight: frameNode() && getComputedStyle(frameNode()).marginRight,
-        browserWrapper: box(document.querySelector(".ContentFrame .BrowserWrapper")), view: view ? methods(view).filter((k) => /bound|size|layout|rect|visib/i.test(k)) : null };
+      return {
+        page: kind, mode: state.mode, peek: state.peek, browserShown: overBrowser(), openDockInPopupWindow: !!layer && !layer.released,
+        room: getComputedStyle(root).getPropertyValue("--aika-fdock-space").trim(),
+        dock: info(dock), openDockWindow: layer ? info(layerBox) : null, list: info(scroll),
+        frame: info(frameNode()), browserWrapper: info(document.querySelector(".ContentFrame .BrowserWrapper")),
+        dockAncestors: chain,
+        steamViewMethods: view ? methods(view).filter((k) => /bound|size|layout|rect|visib/i.test(k)) : null,
+      };
     },
   };
 })();

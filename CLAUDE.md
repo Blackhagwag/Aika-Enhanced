@@ -26,15 +26,27 @@ from commit 7d8439c). Version is in `skin.json`; every release gets a `CHANGELOG
   - `nav-editor.js` / `.css` (the Navigation tab).
 - Patched Steam Enhanced files carry an "Aika Enhanced" comment. See `CHANGELOG.md` for the list.
 
-## Store / Community pages
+## Store / Community / profile pages
 - Those pages are Steam's native browser view. It sits over the main window, so nothing in the
-  window's DOM draws above it. Steam sizes the view to `.ContentFrame` when Steam lays the frame
-  out (the page shown, the window resized), not whenever the frame's margin changes.
-- So the dock's room (`margin-inline-end` on `.ContentFrame`) changes at once on those pages,
-  with no easing (`html[data-aika-fdock-page]` in `sections/friends-dock.css`).
-- Then `js/friends-dock.js relayoutBrowser()` sends a `resize` event so Steam lays its view out
-  again. Never rely on `z-index` there.
-- `window.__aikaFriendsDock.diagnose()` reports the boxes, for a check in Steam's DevTools.
+  window's DOM ever draws above it.
+- Steam alone decides when to lay the view out again in `.ContentFrame`. 2.2 eased the room; 2.3
+  made the room change at once and sent a `resize` nudge. Neither made the open dock visible in
+  real Steam.
+- Since 2.4, on a browser page:
+  - the page's room stays the rail's in both states (`--aika-fdock-space` under
+    `html[data-aika-fdock-page]`);
+  - the open dock (and the Expand-on-hover peek) is drawn in one of Steam's popup windows over
+    the page, through Steam Enhanced's popup layer (`SE.layer.panel`). It is the same mechanism
+    as the dock's tooltips, menus and the built-in chat over those pages.
+- The dock's own header and list move into that window (`layerShell > layerBox`) and back, with
+  their listeners. One dock, one state. The library keeps the dock in the window.
+- Steam can close popup windows on its own. `syncLayer()` then brings the parts home and reopens
+  the window on the next pass.
+- Never rely on `z-index` or the room there. `window.__aikaFriendsDock.diagnose()` reports the
+  real geometry (rects, client, scroll and offset widths, the limiting properties, ancestors,
+  where the open dock is drawn).
+- Tests: `tests/store-dock.e2e.cjs` with `tests/friends-dock/popup-stub.js`, where an `<iframe>`
+  per popup window stands in for Steam's popups, and a stand-in for the browser view.
 
 ## Performance rules (main window)
 - Steam's DOM changes many times a second, so nothing may do layout or style reads on every
@@ -62,7 +74,7 @@ from commit 7d8439c). Version is in `skin.json`; every release gets a `CHANGELOG
 ```sh
 python3 -m http.server 8765 --bind 127.0.0.1 --directory /
 node --test tests/friends-dock.e2e.cjs tests/navigation.e2e.cjs tests/nav-custom.e2e.cjs tests/store-dock.e2e.cjs
-REACT_UMD=/path/node_modules node --test tests/friends-dock-2.e2e.cjs tests/nav-custom.e2e.cjs
+REACT_UMD=/path/node_modules node --test tests/friends-dock-2.e2e.cjs tests/nav-custom.e2e.cjs tests/store-dock.e2e.cjs
 AIKA_21=/path/to/v2.1.0-checkout node --test tests/nav-custom.e2e.cjs   # pixel parity of the defaults
 ```
 The harness can't reach Steam's popup windows, its own menus, webpack modules or the embedded

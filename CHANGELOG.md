@@ -1,5 +1,109 @@
 # Changelog
 
+## 2.4.0 — 2026-11-26
+
+The Friends Dock opens for real on Store, Community and profile pages, not only in the library.
+2.3.0's fix did not do it in Steam; this replaces that approach. The 2.3.0 state is the git tag
+`v2.3.0`.
+
+### The cause (from the code; Steam's own DOM was not reachable here)
+- **The dock lives in the main window, in every section.** It is one `<aside class="aika-fdock">`,
+  `position: fixed` at the window's right edge. It has no parent that limits its width: the
+  limiting properties (`width`, `min-width`, `max-width`, `overflow`, `contain`, `transform`) are
+  the same in the library and on the store. Its open width, 264 px, is real on every page.
+- **What differs is what lies over it.**
+  - The library is part of the main window's DOM.
+  - Store, Community and profile pages are Steam's native browser view: a separate surface that
+    Steam lays over the main window, in the box of `.ContentFrame`. Nothing in the window's DOM
+    is ever drawn above it, whatever its `z-index`.
+- **How the dock made room, and why it failed.**
+  - The dock made room by narrowing `.ContentFrame`: 52 px when folded, 264 px when open. That
+    only helps if Steam lays its view out again when the frame narrows, and Steam decides that
+    on its own.
+  - When the dock opened on a browser page, it widened under the page. The page kept its width
+    and covered everything past the rail. The button changed state, the dock was 264 px wide,
+    and only its first 52 px could be seen.
+  - 2.2 eased the room. 2.3 made it change at once and sent a `resize` nudge. In Steam the view
+    still did not follow. The mechanism itself depended on the library's structure: there,
+    narrowing the frame really moves the content.
+
+### What changed: one mechanism that doesn't depend on the page
+- **Browser pages.**
+  - On a Store, Community, profile or other browser page, the open dock (and the Expand-on-hover
+    peek) is drawn in one of Steam's popup windows over the page. It sits at the window's right
+    edge, under the header, at the dock's full width and down to the window's foot.
+  - These are the windows Steam Enhanced's popup layer (`SE.layer.panel`) already uses for the
+    dock's tooltips and menus and for the built-in chat over those pages. Steam's popups are
+    windows of their own, above the browser view.
+  - While it is open, the page keeps the rail's room, so nothing waits on Steam relaying its view.
+- **It is the same dock, not a second one.**
+  - Its header and list (rows, listeners, live updates, scroll position) move into that window
+    and back.
+  - There is one state (open / rail), one set of sizes and one set of settings for every page.
+  - The library keeps the dock in the window exactly as before, with its easing.
+- **The look is the dock's.**
+  - The window gets Aika's stylesheets and the main window's current colours (preset, custom
+    colours, repainted when they change).
+  - The dock opens sliding out of the rail and folds back into it, with its own easing. It
+    animates by transform, inside a still shell the window measures.
+- **Behaviour.**
+  - Its menu opens at the row clicked, over the page; chat clicks and the settings button work
+    as in the window.
+  - Leaving the peek folds it back.
+  - The open dock's window follows the right edge when the window is resized.
+  - If Steam takes the window down on its own (another menu opening), the dock's parts come
+    home and the window opens again on the next pass, within a second.
+  - If no popup window can open at all, the dock falls back to 2.3's way: it opens in the window
+    with the open dock's room, and Steam is asked once to lay its view out.
+- **No new watchers or timers.** It runs inside the dock's existing placement pass and its
+  existing one-second tick, with no MutationObserver and no new interval.
+- **Diagnostics:** `window.__aikaFriendsDock.diagnose()`, run by hand in Steam's DevTools. It is
+  never logged on its own. It reports, for the dock, the open dock's window, the list, the
+  content frame, Steam's browser wrapper and the dock's ancestors:
+  - `getBoundingClientRect`, `clientWidth`, `scrollWidth`, `offsetWidth`;
+  - `position`, `width`, `min-width`, `max-width`, `flex-shrink`, `overflow`, `transform`,
+    `z-index`, `contain`, `margin-right`;
+  - where the open dock is drawn.
+
+### Checked in the test harness (not in Steam)
+- **Stand-ins.** A stand-in for Steam's browser view, laid out only when it appears and on
+  `resize`. A stand-in for Steam's popup windows (`tests/friends-dock/popup-stub.js`): one
+  `<iframe>` per window, a document of its own, stacked above the view.
+- **Pages.** Each page was checked folded, open, folded, open again:
+  - store: home, a game's page, search, a category, a sale page;
+  - community: home, discussions, the Workshop, a game's hub;
+  - profiles: your own, another person's, achievements, screenshots;
+  - library: home, a game.
+- **What each check looks at.**
+  - The open dock is seen across its whole width at the window's right edge, not under the page.
+  - Rows and names are uncut, with no horizontal scroll.
+  - The page keeps its width.
+  - There is one dock, one header and at most one open-dock window.
+- **Transitions:** Library → Store → Community → Profile → Store → Library → Profile. The state
+  is kept, with no second dock and no copied header.
+- **Also checked:**
+  - three window sizes;
+  - Steam closing the window;
+  - the peek over a page;
+  - the menu from the open dock's window, with the same colours and font as in the window.
+- 2.3.0 fails these with the reported symptom ("open — drawn in a window over the page").
+- The library, the top bar and left sidebar, a Store page with no popup windows and Expand on
+  hover look as in 2.3.0, pixel for pixel: one antialiased pixel at the avatar ring differs.
+- Performance matches 2.3.0 within noise (theme callbacks ~6–7 ms/s under simulated DOM churn).
+- A 60-step session left listeners, observers and DOM nodes where they started; the 7 listeners
+  of the open dock's window are registered once.
+
+### Not checked
+- Everything above against Steam's real browser view and real popup windows: no Steam client is
+  reachable here. To check in Steam, open the dock on a Store page. If it misbehaves, run
+  `__aikaFriendsDock.diagnose()` in Steam's DevTools and send the result.
+
+### Files
+- Changed: `js/friends-dock.js`, `sections/friends-dock.css`, `skin.json` (2.4.0), `README.md`,
+  `CLAUDE.md`.
+- Added: `tests/friends-dock/popup-stub.js` (test fixture). `tests/store-dock.e2e.cjs` was
+  rewritten.
+
 ## 2.3.0 — 2026-11-26
 
 The Friends Dock now really opens on Store and Community pages. The theme does less work while
